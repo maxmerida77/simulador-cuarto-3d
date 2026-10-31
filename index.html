@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurador 3D de Cuarto · Setup Ingeniero, Vibecoding y Fútbol</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/examples/jsm/": "./node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Barra Superior Simple: Combos de 1 clic + Presupuesto en vivo -->
+  <header class="topbar" id="app-topbar">
+    <div class="brand-box">
+      <button id="btn-toggle-drawer-top" class="btn-drawer-toggle" title="Desplegar / Ocultar menú de artículos">
+        ☰ Ocultar Catálogo
+      </button>
+    </div>
+
+    <div id="quick-combos-bar" class="combos-bar"></div>
+
+    <div class="budget-pill">
+      <div>
+        <div class="budget-label" id="budget-items-count">6 zonas activas</div>
+        <div class="budget-amount" id="budget-total-amount">$0 MXN</div>
+      </div>
+      <button id="btn-screenshot" class="btn-camera" title="Guardar foto PNG del render">📷</button>
+    </div>
+  </header>
+
+  <main class="main-layout" id="main-layout">
+    <!-- Menú Lateral Desplegable de Artículos y Links Reales -->
+    <aside class="config-sidebar" id="config-sidebar">
+      <div class="clutter-banner">
+        <label class="switch-row">
+          <div>
+            <div class="switch-title">🧹 Mostrar desorden actual (Fotos)</div>
+            <div class="switch-sub">Cobija en TV, bolsas del piso y cajas sobre el espejo</div>
+          </div>
+          <input id="switch-show-clutter" type="checkbox" />
+        </label>
+      </div>
+
+      <div class="sidebar-scroll">
+        <div id="zones-accordion-list"></div>
+
+        <!-- Acabados: Color de Luz LED, Pintura, Piso y Colchas -->
+        <div class="zone-card">
+          <div class="zone-header" style="cursor:default">
+            <div>
+              <div class="zone-title">7. Acabados: Luz LED, Pintura, Piso y Colchas</div>
+              <div class="zone-current-choice">Personaliza las texturas y el ambiente PBR</div>
+            </div>
+          </div>
+          <div class="zone-body">
+            <div class="finish-group">
+              <label>Color de las Luces LED:</label>
+              <div id="led-colors-row" class="pills-wrap"></div>
+            </div>
+            <div class="finish-group">
+              <label>Pintura de Paredes:</label>
+              <div id="wall-palettes-row" class="pills-wrap"></div>
+            </div>
+            <div class="finish-group">
+              <label>Color de Edredones (Literas):</label>
+              <div id="bedding-themes-row" class="pills-wrap"></div>
+            </div>
+            <div class="finish-group">
+              <label>Acabado de Piso:</label>
+              <div id="floor-types-row" class="pills-wrap"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Lienzo 3D Principal -->
+    <section class="viewport-area">
+      <div id="viewport-container"></div>
+
+      <!-- Controles Superiores Flotantes: Menú + Vistas Predeterminadas de Escritorio + Pantalla Completa -->
+      <div class="viewport-top-controls">
+        <button id="btn-toggle-drawer-float" class="float-ctrl-btn">
+          ☰ Ocultar Menú
+        </button>
+
+        <div class="desk-quick-views">
+          <span class="desk-quick-label">🔍 Vistas Escritorio:</span>
+          <button class="desk-view-btn" data-cam-preset="desk_front">💻 Monitor + Teclado</button>
+          <button class="desk-view-btn" data-cam-preset="desk_corner">💻 Laptop Esquina</button>
+          <button class="desk-view-btn" data-cam-preset="desk_lab">🛠️ Lab / Tapete Kaisi</button>
+          <button class="desk-view-btn" data-cam-preset="desk_pegboard">🧰 Panel Yolispa + Repisas</button>
+        </div>
+
+        <button id="btn-fullscreen" class="float-ctrl-btn accent">
+          ⛶ Pantalla Completa
+        </button>
+      </div>
+
+      <!-- Tooltip Flotante al pasar el mouse sobre cualquier artículo en 3D -->
+      <div id="hover-3d-tooltip" class="hover-3d-tooltip hidden"></div>
+
+      <!-- Pin 3D Flotante anclado en tiempo real sobre el artículo seleccionado dentro del cuarto -->
+      <div id="floating-3d-pin" class="floating-3d-pin hidden">
+        <div class="pin-bubble">
+          <span class="pin-name" id="pin-3d-name">Artículo</span>
+          <span class="pin-price" id="pin-3d-price">$0</span>
+        </div>
+        <div class="pin-stem"></div>
+        <div class="pin-dot"></div>
+      </div>
+
+      <!-- Ficha Interactiva del Artículo dentro del Cuarto 3D (al dar clic en cualquier objeto) -->
+      <aside id="room-item-inspector" class="room-item-inspector hidden">
+        <div class="insp-header">
+          <span class="insp-badge" id="insp-badge">Categoría</span>
+          <button id="btn-close-inspector" class="insp-close-btn" title="Cerrar ficha">✕</button>
+        </div>
+
+        <div class="insp-title-row">
+          <h3 class="insp-title" id="insp-title">Nombre del Artículo</h3>
+          <span class="insp-price" id="insp-price">$0 MXN</span>
+        </div>
+
+        <div class="insp-dims" id="insp-dims">📐 Medidas</div>
+        <p class="insp-desc" id="insp-desc">Descripción del artículo...</p>
+
+        <!-- Selector de Sub-Gadgets cuando la zona tiene varios artículos (ej. Escritorio / Lab / Panel) -->
+        <div id="insp-subgadgets-wrap" class="insp-subgadgets-wrap hidden">
+          <div class="insp-sub-label">🔍 Artículos en esta estación (clic para ver cada uno):</div>
+          <div id="insp-subgadgets-list" class="insp-subgadgets-list"></div>
+        </div>
+
+        <!-- Links directos de compra dentro del cuarto 3D -->
+        <div id="insp-links-wrap" class="insp-links-wrap"></div>
+
+        <!-- Acciones directas en 3D sobre el artículo -->
+        <div class="insp-actions-bar">
+          <button id="act-zoom-item" class="insp-act-btn primary" title="Acercar cámara a este artículo">🎯 Ver de Cerca</button>
+          <button id="act-rot-l" class="insp-act-btn" title="Girar -45°">↺ -45°</button>
+          <button id="act-rot-r" class="insp-act-btn" title="Girar +45°">↻ +45°</button>
+          <button id="act-elev-up" class="insp-act-btn" title="Subir altura">↑</button>
+          <button id="act-elev-dn" class="insp-act-btn" title="Bajar altura">↓</button>
+          <button id="act-del" class="insp-act-btn danger" title="Quitar del cuarto">🗑️</button>
+        </div>
+      </aside>
+
+      <!-- Barra Inferior de Cámaras del Cuarto -->
+      <div class="bottom-cam-bar">
+        <button class="cam-pill active" data-cam-preset="orbit_3d">🧊 Cuarto Completo</button>
+        <button class="cam-pill" data-cam-preset="desk_front">💻 Escritorio</button>
+        <button class="cam-pill" data-cam-preset="desk_lab">🛠️ Lab Ingeniería</button>
+        <button class="cam-pill" data-cam-preset="zoom_soccer">🧣⚽ 2da Litera (Bufandas)</button>
+        <button class="cam-pill" data-cam-preset="zoom_underbed">🛏️ Bajo Cama</button>
+        <span class="cam-divider"></span>
+        <button class="cam-pill" data-cam-preset="top_2d">📐 Planta 2D</button>
+        <button class="cam-pill" data-cam-preset="walk">🎮 Caminar (WASD)</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

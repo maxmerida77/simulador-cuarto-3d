@@ -1,0 +1,4 @@
+node_modules/
+dist/
+simulador_standalone.html
+test_bundle_check.mjs
