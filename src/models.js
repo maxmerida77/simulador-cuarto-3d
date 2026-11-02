@@ -1519,10 +1519,13 @@ export function buildFurnitureMesh(itemData, roomState) {
       alexaGroup.add(alexaFront);
       // Anillo LED cian brillante en la base
       const cyanRingMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-      alexaGroup.add(cyl(0.048, 0.048, 0.008, 24, cyanRingMat, 0, -0.022, 0));
+      const alexaRing = cyl(0.048, 0.048, 0.008, 24, cyanRingMat, 0, -0.022, 0);
+      alexaRing.userData = { isAlexaRing: true };
+      alexaGroup.add(alexaRing);
       // Resplandor cian tenue sobre el tapete
       const alexaGlow = new THREE.PointLight(0x00f0ff, 0.35, 0.55);
       alexaGlow.position.set(0, 0.01, 0);
+      alexaGlow.userData = { isAlexaGlow: true };
       alexaGroup.add(alexaGlow);
       alexaGroup.userData = { isSubGadget: 'alexa_echo' };
       group.add(alexaGroup);
@@ -1536,13 +1539,17 @@ export function buildFurnitureMesh(itemData, roomState) {
       stripGroup.add(box(0.018, 0.008, 0.022, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.013, -0.082));
       // 4 tomas AC con micro-led verde en cada salida
       const socketMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
-      [-0.042, -0.002, 0.038, 0.078].forEach(sz => {
+      [-0.042, -0.002, 0.038, 0.078].forEach((sz, idx) => {
         stripGroup.add(box(0.034, 0.003, 0.026, socketMat, 0, 0.0125, sz));
-        stripGroup.add(cyl(0.002, 0.002, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.021, 0.013, sz));
+        const outLed = cyl(0.002, 0.002, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.021, 0.013, sz);
+        outLed.userData = { isOutletLed: idx + 1 };
+        stripGroup.add(outLed);
       });
       // Bloque de 4 puertos USB con micro-LED azul
       stripGroup.add(box(0.028, 0.002, 0.012, new THREE.MeshStandardMaterial({ color: 0x1e293b }), 0, 0.0125, 0.102));
-      stripGroup.add(cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.021, 0.013, 0.102));
+      const usbLed = cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.021, 0.013, 0.102);
+      usbLed.userData = { isOutletLed: 'usb' };
+      stripGroup.add(usbLed);
       // Cable de uso rudo trenzado bajando por detrás
       const cableMat = new THREE.MeshStandardMaterial({ color: 0x181a20, roughness: 0.75 });
       stripGroup.add(cyl(0.0055, 0.0055, 0.28, 8, cableMat, -0.015, -0.12, -0.11));
@@ -1625,9 +1632,24 @@ export function buildFurnitureMesh(itemData, roomState) {
       group.add(blueArm);
 
       group.add(box(0.045, 0.022, 0.048, darkMetal, -0.17, 0.014, 0.06));
-      const fnirsiPen = cyl(0.007, 0.005, 0.15, 12, chromeMat, -0.17, 0.052, 0.07);
-      fnirsiPen.rotation.x = -0.78;
-      group.add(fnirsiPen);
+      const fnirsiGroup = new THREE.Group();
+      fnirsiGroup.position.set(-0.17, 0.052, 0.07);
+      fnirsiGroup.rotation.x = -0.78;
+      // Cuerpo del cautín metálico
+      fnirsiGroup.add(cyl(0.007, 0.0055, 0.11, 12, chromeMat, 0, 0.02, 0));
+      // Pantalla OLED mini del cautín
+      fnirsiGroup.add(box(0.008, 0.022, 0.006, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0, 0.025, 0.006));
+      // Punta incandescente de precisión
+      const fnirsiTipMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        emissive: new THREE.Color(0xf97316),
+        emissiveIntensity: 0.95,
+        roughness: 0.35
+      });
+      const fnirsiTip = cyl(0.003, 0.0008, 0.042, 10, fnirsiTipMat, 0, -0.055, 0);
+      fnirsiTip.userData = { isFnirsiTip: true };
+      fnirsiGroup.add(fnirsiTip);
+      group.add(fnirsiGroup);
 
       // Módulo FTDI USB-UART serial con jumpers Dupont a la protoboard
       const ftdiGroup = new THREE.Group();

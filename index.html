@@ -20,6 +20,11 @@
     <button id="btn-toggle-drawer-top" class="icon-btn" title="Mostrar / ocultar catálogo">☰</button>
     <div id="quick-combos-bar" class="combos-bar"></div>
     <div class="topbar-right">
+      <button id="btn-toggle-domotica" class="domo-top-btn" title="Panel de Domótica Tuya / Alexa">
+        <span class="domo-top-icon">⚡</span>
+        <span class="domo-top-label">Domótica</span>
+        <span id="domo-power-badge" class="domo-power-badge">147 W</span>
+      </button>
       <div class="budget-pill" id="budget-pill" title="Total de lo seleccionado">
         <span id="budget-total-amount">$0</span>
       </div>
@@ -144,6 +149,173 @@
           <button id="act-elev-up" class="insp-act-btn" title="Subir">↑</button>
           <button id="act-elev-dn" class="insp-act-btn" title="Bajar">↓</button>
           <button id="act-del" class="insp-act-btn danger" title="Quitar">🗑️</button>
+        </div>
+      </aside>
+
+      <!-- Panel de Domótica Inteligente (Tuya / Alexa / Persiana) -->
+      <aside id="domotica-drawer" class="domotica-drawer hidden">
+        <div class="domo-header">
+          <div class="domo-header-title">
+            <span class="domo-logo-icon">⚡</span>
+            <div>
+              <h3>Domótica del Cuarto</h3>
+              <p class="domo-sub">Tuya Smart Life · Alexa · Zigbee 3.0</p>
+            </div>
+          </div>
+          <button id="btn-close-domotica" class="insp-close-btn" title="Cerrar panel">✕</button>
+        </div>
+
+        <div class="domo-body">
+          <!-- Tarjeta de Telemetría Eléctrica Tuya -->
+          <div class="domo-card telemetry-card">
+            <div class="telemetry-header">
+              <span class="domo-tag">MEDIDOR DE ENERGÍA MULTICONTACTO</span>
+              <span class="live-indicator"><span class="dot-pulse"></span> 127V CFE</span>
+            </div>
+            <div class="telemetry-main">
+              <div class="watt-box">
+                <span class="watt-num" id="telem-watts">147</span>
+                <span class="watt-unit">W</span>
+              </div>
+              <div class="telemetry-stats">
+                <div class="stat-col">
+                  <span class="stat-val" id="telem-amps">1.16 A</span>
+                  <span class="stat-lbl">Corriente</span>
+                </div>
+                <div class="stat-col">
+                  <span class="stat-val" id="telem-kwh">1.25 kWh</span>
+                  <span class="stat-lbl">Consumo/día</span>
+                </div>
+                <div class="stat-col">
+                  <span class="stat-val" id="telem-cost">$54 MXN</span>
+                  <span class="stat-lbl">Est. al mes</span>
+                </div>
+              </div>
+            </div>
+            <div class="telemetry-footer">
+              <button id="btn-kill-all-outlets" class="domo-kill-btn" title="Corte general de emergencia">⚠️ Apagado general</button>
+            </div>
+          </div>
+
+          <!-- Control de Salidas Inteligentes del Multicontacto -->
+          <div class="domo-card">
+            <div class="domo-card-title">
+              <span>🔌 Salidas AC Inteligentes (Tuya WiFi)</span>
+            </div>
+            <div class="outlets-list">
+              <div class="outlet-row">
+                <div class="outlet-info">
+                  <span class="outlet-num">1</span>
+                  <div class="outlet-desc">
+                    <strong>Cautín FNIRSI Soldering</strong>
+                    <span class="outlet-spec">65W · USB-C PD · 380°C</span>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="domo-switch-1" checked>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="outlet-row">
+                <div class="outlet-info">
+                  <span class="outlet-num">2</span>
+                  <div class="outlet-desc">
+                    <strong>Luz Monitor + Tira LED</strong>
+                    <span class="outlet-spec">24W · Luz focal escritorio</span>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="domo-switch-2" checked>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="outlet-row">
+                <div class="outlet-info">
+                  <span class="outlet-num">3</span>
+                  <div class="outlet-desc">
+                    <strong>Cargador GaN 100W Laptop TUF</strong>
+                    <span class="outlet-spec">58W · Carga rápida + Celular</span>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="domo-switch-3" checked>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="outlet-row">
+                <div class="outlet-info">
+                  <span class="outlet-num">4</span>
+                  <div class="outlet-desc">
+                    <strong>Ventilador USB / Periféricos</strong>
+                    <span class="outlet-spec">12W · Enfriamiento de mesa</span>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="domo-switch-4">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Persiana Zebra Motorizada Inteligente -->
+          <div class="domo-card">
+            <div class="domo-card-title">
+              <span>🪟 Persiana Zebra Inteligente (Zigbee)</span>
+              <span id="blind-pct-badge" class="pct-badge">40%</span>
+            </div>
+            <div class="blind-slider-box">
+              <input type="range" id="domo-blind-slider" min="0" max="100" value="40" class="blind-range">
+              <div class="blind-presets">
+                <button class="domo-mini-btn" data-blind="0">Cerrada (0%)</button>
+                <button class="domo-mini-btn" data-blind="40">Zebra (40%)</button>
+                <button class="domo-mini-btn" data-blind="100">Abierta (100%)</button>
+              </div>
+            </div>
+            <p class="blind-hint">💡 Modula en tiempo real la entrada de luz solar a la habitación y el reflejo sobre el monitor.</p>
+          </div>
+
+          <!-- Rutinas y Asistente Alexa -->
+          <div class="domo-card alexa-card">
+            <div class="domo-card-title">
+              <span class="alexa-blue">🗣️ Asistente de Voz Alexa (Echo Pop)</span>
+            </div>
+            <p class="alexa-sub">Haz clic en una rutina o escribe tu comando por voz:</p>
+            <div class="alexa-routines-grid">
+              <button class="alexa-btn" data-alexa="modo ingenieria">
+                <span class="alexa-btn-icon">⚡</span>
+                <span class="alexa-btn-txt">"Alexa, modo ingeniería"</span>
+              </button>
+              <button class="alexa-btn" data-alexa="modo vibecoding">
+                <span class="alexa-btn-icon">🤖</span>
+                <span class="alexa-btn-txt">"Alexa, modo vibecoding"</span>
+              </button>
+              <button class="alexa-btn" data-alexa="modo partido">
+                <span class="alexa-btn-icon">⚽</span>
+                <span class="alexa-btn-txt">"Alexa, modo partido"</span>
+              </button>
+              <button class="alexa-btn" data-alexa="apaga el cautin">
+                <span class="alexa-btn-icon">🔥</span>
+                <span class="alexa-btn-txt">"Alexa, apaga el cautín"</span>
+              </button>
+              <button class="alexa-btn" data-alexa="abre la persiana">
+                <span class="alexa-btn-icon">☀️</span>
+                <span class="alexa-btn-txt">"Alexa, abre la persiana"</span>
+              </button>
+              <button class="alexa-btn" data-alexa="apaga todo">
+                <span class="alexa-btn-icon">🌙</span>
+                <span class="alexa-btn-txt">"Alexa, buenas noches"</span>
+              </button>
+            </div>
+
+            <form id="alexa-voice-form" class="alexa-input-form">
+              <input type="text" id="alexa-cmd-input" placeholder="O escribe: Alexa, ..." autocomplete="off">
+              <button type="submit" class="alexa-send-btn">Enviar</button>
+            </form>
+          </div>
         </div>
       </aside>
 

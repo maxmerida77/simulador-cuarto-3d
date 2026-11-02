@@ -63,6 +63,16 @@ class RoomSimulatorApp {
     // Flujo de trabajo en pantalla (Claude Code / KiCad PCB / Control PID)
     this.workflowMode = 'claude_code';
 
+    // Sistema de Domótica Interactiva (Tuya WiFi / Zigbee / Alexa)
+    this.domotica = {
+      outlet1_iron: true,      // Toma 1: Cautín FNIRSI (65W calentando / 0W apagado)
+      outlet2_lights: true,    // Toma 2: Iluminación & Tira LED (24W)
+      outlet3_gan: true,       // Toma 3: Cargador GaN 100W Laptop TUF (58W)
+      outlet4_fan: false,      // Toma 4: Periféricos / Ventilador USB (8W)
+      blindOpenPercent: 40     // Persiana motorizada: 0% cerrada a 100% sol total
+    };
+    this.domoticaDrawerOpen = false;
+
     // Deshacer / Rehacer
     this.undoStack = [];
     this.redoStack = [];
@@ -249,7 +259,8 @@ class RoomSimulatorApp {
       room: clone(this.room),
       activeComboId: this.activeComboId,
       lightingMode: this.lightingMode,
-      workflowMode: this.workflowMode
+      workflowMode: this.workflowMode,
+      domotica: clone(this.domotica)
     };
   }
 
@@ -260,12 +271,17 @@ class RoomSimulatorApp {
     this.activeComboId = snap.activeComboId;
     this.lightingMode = snap.lightingMode;
     if (snap.workflowMode) this.workflowMode = snap.workflowMode;
+    if (snap.domotica) {
+      this.domotica = clone(snap.domotica);
+    }
     if (this.selectedId && !this.items.find(i => i.id === this.selectedId)) {
       this.selectedId = null;
       this.selectedSubGadgetId = null;
     }
     this.buildArchitecture();
     this.rebuildFurnitureMeshes();
+    this.updateDomoticaStateIn3D();
+    this.updateDomoticaUI();
     this.updateBudgetUI();
     this.syncUIState();
   }
@@ -322,6 +338,7 @@ class RoomSimulatorApp {
     this.wallGroups = res.wallGroups;
     this.ceilingMesh = res.ceilingMesh;
     this.renderer.toneMappingExposure = this.lightScene === 'sleep' ? 1.0 : 1.18;
+    this.updateBlindIn3D();
   }
 
   buildArchitectureInto(archGroup, lightsGroup, roomState, lightingMode, sceneId) {
@@ -367,17 +384,49 @@ class RoomSimulatorApp {
     const winX = -W / 2 + 0.04 + winW / 2;
     const winY = 1.44;
     const frameMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.30, metalness: 0.2 });
+
+    // Marco exterior de la ventana
+    const frameMesh = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.05, winH + 0.05, 0.03), frameMat);
+    frameMesh.position.set(winX, winY, -D / 2 + 0.012);
+    wallGroups.north.add(frameMesh);
+
+    // Vidrio de ventana semitransparente con tinte azul
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x93c5fd,
+      roughness: 0.15,
+      metalness: 0.85,
+      transparent: true,
+      opacity: 0.35
+    });
+    const glassMesh = new THREE.Mesh(new THREE.BoxGeometry(winW, winH, 0.008), glassMat);
+    glassMesh.position.set(winX, winY, -D / 2 + 0.014);
+    wallGroups.north.add(glassMesh);
+
+    // Riel superior de la persiana
+    const headRail = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.05, 0.065, 0.065), frameMat);
+    headRail.position.set(winX, winY + winH / 2 + 0.02, -D / 2 + 0.03);
+    wallGroups.north.add(headRail);
+
+    // Motor tubular inteligente Tuya/Zigbee en el extremo derecho del riel
+    const motorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.35 });
+    const motorMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.07, 16), motorMat);
+    motorMesh.rotation.z = Math.PI / 2;
+    motorMesh.position.set(winX + winW / 2 - 0.035, winY + winH / 2 + 0.02, -D / 2 + 0.032);
+    wallGroups.north.add(motorMesh);
+    const motorLed = new THREE.Mesh(new THREE.CylinderGeometry(0.002, 0.002, 0.006, 8), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+    motorLed.position.set(winX + winW / 2 - 0.01, winY + winH / 2 + 0.02, -D / 2 + 0.046);
+    wallGroups.north.add(motorLed);
+
+    // Malla de persiana Zebra con metadatos para escalar
     const blindMat = new THREE.MeshStandardMaterial({
       map: createZebraBlindTexture(),
       roughness: 0.50,
       emissive: new THREE.Color(sceneId === 'sleep' ? 0x0b1530 : 0x1e293b),
       emissiveIntensity: 0.12
     });
-    const headRail = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.04, 0.065, 0.065), frameMat);
-    headRail.position.set(winX, winY + winH / 2 + 0.02, -D / 2 + 0.03);
-    wallGroups.north.add(headRail);
-    const blindMesh = new THREE.Mesh(new THREE.BoxGeometry(winW, winH, 0.02), blindMat);
-    blindMesh.position.set(winX, winY, -D / 2 + 0.015);
+    const blindMesh = new THREE.Mesh(new THREE.BoxGeometry(winW, winH, 0.018), blindMat);
+    blindMesh.position.set(winX, winY, -D / 2 + 0.022);
+    blindMesh.userData = { isSmartBlind: true, winX, winY, winH };
     wallGroups.north.add(blindMesh);
 
     // Pared Sur
@@ -514,6 +563,7 @@ class RoomSimulatorApp {
 
     const winLight = new THREE.DirectionalLight(winColor, winI);
     winLight.position.set(-0.5, 1.8, -D / 2 - 0.8);
+    winLight.userData = { isWinLight: true, baseIntensity: winI };
     lightsGroup.add(winLight);
 
     // Luces extra de cada escena
@@ -559,6 +609,7 @@ class RoomSimulatorApp {
       this.setWorkflowMode(this.workflowMode, { showFeedback: false });
     }
 
+    this.updateDomoticaStateIn3D();
     this.updateSelectionHighlight();
   }
 
@@ -625,6 +676,297 @@ class RoomSimulatorApp {
     const order = ['claude_code', 'pcb_kicad', 'control_firmware'];
     const nextIdx = (order.indexOf(this.workflowMode) + 1) % order.length;
     this.setWorkflowMode(order[nextIdx]);
+  }
+
+  // ==========================================================================
+  // DOMÓTICA INTERACTIVA (TUYA WIFI / ZIGBEE / ALEXA)
+  // ==========================================================================
+  calcTelemetry() {
+    let watts = 4.5; // Consumo base (Alexa Echo Pop en standby + ESP32/WiFi)
+    if (this.domotica.outlet1_iron) watts += 65;    // Cautín FNIRSI Soldering Pen (65W PD)
+    if (this.domotica.outlet2_lights) watts += 24;  // Barra de luz monitor + tira LED
+    if (this.domotica.outlet3_gan) watts += 58;     // Cargador GaN 100W (Laptop TUF + Celular)
+    if (this.domotica.outlet4_fan) watts += 12;     // Ventilador USB mesa / periféricos
+
+    const amps = (watts / 127).toFixed(2);
+    const kwhDay = ((watts * 8.5) / 1000).toFixed(2);
+    const monthlyMxn = Math.round((watts * 8.5 * 30 / 1000) * 1.45);
+
+    return { watts, amps, kwhDay, monthlyMxn };
+  }
+
+  setOutlet(outletKey, state, { record = true } = {}) {
+    if (this.domotica[outletKey] === Boolean(state)) return;
+    if (record) this.pushHistory();
+    this.domotica[outletKey] = Boolean(state);
+    this.updateDomoticaStateIn3D();
+    this.updateDomoticaUI();
+
+    const names = {
+      outlet1_iron: 'Cautín FNIRSI',
+      outlet2_lights: 'Luz de monitor y LED',
+      outlet3_gan: 'Cargador GaN 100W',
+      outlet4_fan: 'Ventilador USB'
+    };
+    const name = names[outletKey] || 'Salida AC';
+    this.showToast(`${state ? '⚡' : '🔌'} ${name}: ${state ? 'ENCENDIDO' : 'APAGADO'}`);
+  }
+
+  killAllOutlets() {
+    this.pushHistory();
+    this.domotica.outlet1_iron = false;
+    this.domotica.outlet2_lights = false;
+    this.domotica.outlet3_gan = false;
+    this.domotica.outlet4_fan = false;
+    this.updateDomoticaStateIn3D();
+    this.updateDomoticaUI();
+    this.showToast('⚠️ Corte general: todas las tomas apagadas');
+  }
+
+  setBlindOpen(percent, { record = true } = {}) {
+    const val = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
+    if (this.domotica.blindOpenPercent === val) return;
+    if (record) this.pushHistory();
+    this.domotica.blindOpenPercent = val;
+    this.updateBlindIn3D();
+    this.updateDomoticaUI();
+  }
+
+  updateBlindIn3D() {
+    const pct = this.domotica.blindOpenPercent;
+    let blindMesh = null;
+    this.architectureGroup.traverse(child => {
+      if (child.userData?.isSmartBlind) blindMesh = child;
+    });
+
+    if (blindMesh) {
+      const scaleY = Math.max(0.06, (100 - pct) / 100);
+      blindMesh.scale.y = scaleY;
+      const winY = blindMesh.userData.winY || 1.44;
+      const winH = blindMesh.userData.winH || 1.26;
+      blindMesh.position.y = (winY + winH / 2) - (winH * scaleY) / 2;
+    }
+
+    let winLight = null;
+    this.lightsGroup.traverse(child => {
+      if (child.userData?.isWinLight) winLight = child;
+    });
+
+    if (winLight) {
+      const daylightFactor = 0.10 + (pct / 100) * 1.30;
+      winLight.intensity = (winLight.userData.baseIntensity || 0.5) * daylightFactor;
+      winLight.castShadow = pct > 20;
+    }
+  }
+
+  updateDomoticaStateIn3D() {
+    this.furnitureGroup.traverse(child => {
+      if (child.userData?.isOutletLed) {
+        const out = child.userData.isOutletLed;
+        let isOn = false;
+        if (out === 1) isOn = this.domotica.outlet1_iron;
+        else if (out === 2) isOn = this.domotica.outlet2_lights;
+        else if (out === 3) isOn = this.domotica.outlet3_gan;
+        else if (out === 4) isOn = this.domotica.outlet4_fan;
+        else if (out === 'usb') isOn = this.domotica.outlet3_gan;
+
+        if (child.material) {
+          child.material.color.setHex(isOn ? (out === 'usb' ? 0x38bdf8 : 0x22c55e) : 0x334155);
+        }
+      }
+
+      if (child.userData?.isFnirsiTip) {
+        if (child.material) {
+          if (this.domotica.outlet1_iron) {
+            child.material.emissive.setHex(0xf97316);
+            child.material.emissiveIntensity = 0.95;
+          } else {
+            child.material.emissive.setHex(0x000000);
+            child.material.emissiveIntensity = 0.0;
+          }
+        }
+      }
+    });
+
+    this.updateBlindIn3D();
+  }
+
+  updateDomoticaUI() {
+    const sw1 = document.getElementById('domo-switch-1');
+    const sw2 = document.getElementById('domo-switch-2');
+    const sw3 = document.getElementById('domo-switch-3');
+    const sw4 = document.getElementById('domo-switch-4');
+    if (sw1) sw1.checked = !!this.domotica.outlet1_iron;
+    if (sw2) sw2.checked = !!this.domotica.outlet2_lights;
+    if (sw3) sw3.checked = !!this.domotica.outlet3_gan;
+    if (sw4) sw4.checked = !!this.domotica.outlet4_fan;
+
+    const bSlider = document.getElementById('domo-blind-slider');
+    const bBadge = document.getElementById('blind-pct-badge');
+    if (bSlider) bSlider.value = this.domotica.blindOpenPercent;
+    if (bBadge) bBadge.textContent = `${this.domotica.blindOpenPercent}%`;
+
+    const telem = this.calcTelemetry();
+    const wEl = document.getElementById('telem-watts');
+    const aEl = document.getElementById('telem-amps');
+    const kEl = document.getElementById('telem-kwh');
+    const cEl = document.getElementById('telem-cost');
+    const badgeEl = document.getElementById('domo-power-badge');
+
+    if (wEl) wEl.textContent = telem.watts.toFixed(0);
+    if (aEl) aEl.textContent = `${telem.amps} A`;
+    if (kEl) kEl.textContent = `${telem.kwhDay} kWh`;
+    if (cEl) cEl.textContent = `$${telem.monthlyMxn} MXN`;
+    if (badgeEl) badgeEl.textContent = `${telem.watts.toFixed(0)} W`;
+  }
+
+  toggleDomoticaDrawer(force) {
+    const drawer = document.getElementById('domotica-drawer');
+    const btn = document.getElementById('btn-toggle-domotica');
+    if (!drawer) return;
+    const shouldOpen = force !== undefined ? force : drawer.classList.contains('hidden');
+    if (shouldOpen) {
+      drawer.classList.remove('hidden');
+      btn?.classList.add('active');
+      this.domoticaDrawerOpen = true;
+      this.clearSelection();
+      this.updateSelectionHighlight();
+      this.updateDomoticaUI();
+    } else {
+      drawer.classList.add('hidden');
+      btn?.classList.remove('active');
+      this.domoticaDrawerOpen = false;
+    }
+  }
+
+  playAlexaChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.audioCtx) this.audioCtx = new AudioCtx();
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+      const now = this.audioCtx.currentTime;
+
+      const osc1 = this.audioCtx.createOscillator();
+      const gain1 = this.audioCtx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(523.25, now);
+      gain1.gain.setValueAtTime(0.0001, now);
+      gain1.gain.exponentialRampToValueAtTime(0.18, now + 0.03);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      osc1.connect(gain1);
+      gain1.connect(this.audioCtx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.24);
+
+      const osc2 = this.audioCtx.createOscillator();
+      const gain2 = this.audioCtx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(880, now + 0.16);
+      gain2.gain.setValueAtTime(0.0001, now + 0.16);
+      gain2.gain.exponentialRampToValueAtTime(0.22, now + 0.19);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+      osc2.connect(gain2);
+      gain2.connect(this.audioCtx.destination);
+      osc2.start(now + 0.16);
+      osc2.stop(now + 0.55);
+    } catch (e) {
+      // Audio autoplay policy fallback
+    }
+  }
+
+  triggerAlexaPulse(durationMs = 2800) {
+    this.playAlexaChime();
+    let ringMesh = null;
+    let glowLight = null;
+
+    this.furnitureGroup.traverse(child => {
+      if (child.userData?.isAlexaRing) ringMesh = child;
+      if (child.userData?.isAlexaGlow) glowLight = child;
+    });
+
+    if (!ringMesh && !glowLight) return;
+
+    const start = performance.now();
+    const origGlowI = glowLight ? glowLight.intensity : 0.35;
+    if (this.alexaPulseRaf) cancelAnimationFrame(this.alexaPulseRaf);
+
+    const animatePulse = (t) => {
+      const elapsed = t - start;
+      if (elapsed > durationMs) {
+        if (glowLight) glowLight.intensity = origGlowI;
+        if (ringMesh) ringMesh.material.color.setHex(0x00f0ff);
+        return;
+      }
+      const pulse = 0.5 + 0.5 * Math.sin((elapsed / 160) * Math.PI);
+      if (glowLight) glowLight.intensity = 0.35 + pulse * 1.5;
+      if (ringMesh) {
+        ringMesh.material.color.setHex(pulse > 0.5 ? 0x38bdf8 : 0x00f0ff);
+      }
+      this.alexaPulseRaf = requestAnimationFrame(animatePulse);
+    };
+    this.alexaPulseRaf = requestAnimationFrame(animatePulse);
+  }
+
+  executeAlexaCommand(rawCmd) {
+    if (!rawCmd) return;
+    const cmd = rawCmd.toLowerCase().trim().replace(/^alexa[, ]*/i, '');
+    this.triggerAlexaPulse(3200);
+
+    let feedbackMsg = '';
+    this.pushHistory();
+
+    if (cmd.includes('ingenieria') || cmd.includes('estudiar') || cmd.includes('lab') || cmd.includes('pcb')) {
+      this.setWorkflowMode('pcb_kicad');
+      this.setLightScene('code');
+      this.domotica.outlet1_iron = true;
+      this.domotica.outlet2_lights = true;
+      this.domotica.outlet3_gan = true;
+      this.domotica.blindOpenPercent = 20;
+      feedbackMsg = '⚡ "Modo ingeniería activado: KiCad PCB, cautín a 380°C y persiana al 20%"';
+    } else if (cmd.includes('vibecoding') || cmd.includes('programar') || cmd.includes('claude') || cmd.includes('codex')) {
+      this.setWorkflowMode('claude_code');
+      this.setLightScene('code');
+      this.domotica.outlet1_iron = false;
+      this.domotica.outlet2_lights = true;
+      this.domotica.outlet3_gan = true;
+      this.domotica.blindOpenPercent = 35;
+      feedbackMsg = '🤖 "Modo vibecoding: Claude Code listo, cautín apagado por seguridad"';
+    } else if (cmd.includes('partido') || cmd.includes('futbol') || cmd.includes('america')) {
+      this.setLightScene('match');
+      this.domotica.outlet1_iron = false;
+      this.domotica.outlet2_lights = false;
+      this.domotica.outlet4_fan = true;
+      this.domotica.blindOpenPercent = 10;
+      feedbackMsg = '⚽ "¡Modo partido activado! Iluminación de afición azulcrema y persiana abajo"';
+    } else if (cmd.includes('apaga') && (cmd.includes('cautin') || cmd.includes('soldador'))) {
+      this.domotica.outlet1_iron = false;
+      feedbackMsg = '🔥 "Cautín FNIRSI apagado. Consumo en toma 1 reducido a 0 Watts"';
+    } else if (cmd.includes('enciende') && (cmd.includes('cautin') || cmd.includes('soldador'))) {
+      this.domotica.outlet1_iron = true;
+      feedbackMsg = '🔥 "Cautín FNIRSI encendido en toma 1. Calentando a 380°C"';
+    } else if (cmd.includes('abre') && cmd.includes('persiana')) {
+      this.domotica.blindOpenPercent = 100;
+      feedbackMsg = '☀️ "Persiana Zebra abierta al 100%. Entrando luz solar"';
+    } else if (cmd.includes('cierra') && cmd.includes('persiana')) {
+      this.domotica.blindOpenPercent = 0;
+      feedbackMsg = '🪟 "Persiana Zebra cerrada al 100%"';
+    } else if (cmd.includes('apaga todo') || cmd.includes('buenas noches') || cmd.includes('dormir')) {
+      this.setLightScene('sleep');
+      this.domotica.outlet1_iron = false;
+      this.domotica.outlet2_lights = false;
+      this.domotica.outlet4_fan = false;
+      this.domotica.blindOpenPercent = 0;
+      feedbackMsg = '🌙 "Buenas noches: persiana cerrada, tomas apagadas y luz nocturna tenue"';
+    } else {
+      feedbackMsg = `🗣️ Alexa entendió: "${rawCmd}"`;
+    }
+
+    this.updateDomoticaStateIn3D();
+    this.updateDomoticaUI();
+    this.showToast(feedbackMsg);
   }
 
   // ==========================================================================
@@ -998,9 +1340,31 @@ class RoomSimulatorApp {
         setPointer(e);
         this.raycaster.setFromCamera(this.pointer, this.camera);
         const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
-        if (hits.length > 0 && hits[0].object?.userData?.isScreen) {
-          this.cycleWorkflowMode();
+        if (hits.length > 0) {
+          const hitObj = hits[0].object;
+          if (hitObj?.userData?.isScreen) {
+            this.cycleWorkflowMode();
+          } else if (
+            this.selectedSubGadgetId === 'alexa_echo' ||
+            this.selectedSubGadgetId === 'smart_power_strip' ||
+            hitObj.userData?.isOutletLed ||
+            hitObj.userData?.isAlexaRing ||
+            hitObj.userData?.isFnirsiTip
+          ) {
+            this.toggleDomoticaDrawer(true);
+            if (this.selectedSubGadgetId === 'alexa_echo' || hitObj.userData?.isAlexaRing) {
+              this.triggerAlexaPulse(2400);
+            }
+          }
         }
+
+        // Clic en la ventana / persiana inteligente
+        const archHits = this.raycaster.intersectObjects(this.architectureGroup.children, true);
+        if (archHits.length > 0 && archHits[0].object?.userData?.isSmartBlind) {
+          this.toggleDomoticaDrawer(true);
+          this.showToast('🪟 Persiana Zebra Inteligente seleccionada');
+        }
+
         if (!pickFurniture()) {
           this.clearSelection();
           this.updateSelectionHighlight();
@@ -1289,6 +1653,68 @@ class RoomSimulatorApp {
       link.click();
     });
 
+    // Domótica: Botón de apertura / cierre del panel
+    document.getElementById('btn-toggle-domotica')?.addEventListener('click', () => {
+      this.toggleDomoticaDrawer();
+    });
+    document.getElementById('btn-close-domotica')?.addEventListener('click', () => {
+      this.toggleDomoticaDrawer(false);
+    });
+
+    // Domótica: Switches de tomas Tuya
+    document.getElementById('domo-switch-1')?.addEventListener('change', (e) => {
+      this.setOutlet('outlet1_iron', e.target.checked);
+    });
+    document.getElementById('domo-switch-2')?.addEventListener('change', (e) => {
+      this.setOutlet('outlet2_lights', e.target.checked);
+    });
+    document.getElementById('domo-switch-3')?.addEventListener('change', (e) => {
+      this.setOutlet('outlet3_gan', e.target.checked);
+    });
+    document.getElementById('domo-switch-4')?.addEventListener('change', (e) => {
+      this.setOutlet('outlet4_fan', e.target.checked);
+    });
+
+    // Domótica: Botón corte general de emergencia
+    document.getElementById('btn-kill-all-outlets')?.addEventListener('click', () => {
+      this.killAllOutlets();
+    });
+
+    // Domótica: Slider de persiana motorizada
+    const blindSlider = document.getElementById('domo-blind-slider');
+    blindSlider?.addEventListener('input', (e) => {
+      this.setBlindOpen(e.target.value, { record: false });
+    });
+    blindSlider?.addEventListener('change', (e) => {
+      this.setBlindOpen(e.target.value, { record: true });
+    });
+
+    // Domótica: Botones presets de persiana
+    document.querySelectorAll('[data-blind]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.setBlindOpen(btn.getAttribute('data-blind'));
+      });
+    });
+
+    // Domótica: Rutinas de voz de Alexa
+    document.querySelectorAll('[data-alexa]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-alexa');
+        this.executeAlexaCommand(cmd);
+      });
+    });
+
+    // Domótica: Input de voz libre Alexa
+    document.getElementById('alexa-voice-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('alexa-cmd-input');
+      if (input && input.value.trim()) {
+        this.executeAlexaCommand(input.value.trim());
+        input.value = '';
+      }
+    });
+
+    this.updateDomoticaUI();
     this.updateHistoryButtons();
     this.syncUIState();
   }
