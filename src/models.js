@@ -307,20 +307,773 @@ function createKaisiMatTexture() {
   return tex;
 }
 
-export function createMonitorScreenTexture(mode = 'setup') {
+function drawArrow(ctx, fromX, fromY, toX, toY, headLength = 10) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const angle = Math.atan2(dy, dx);
+  ctx.beginPath();
+  ctx.moveTo(fromX, fromY);
+  ctx.lineTo(toX, toY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(toX, toY);
+  ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+  ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+  ctx.closePath();
+  ctx.fill();
+}
+
+export function createWhiteboardTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
-  canvas.height = 576;
+  canvas.height = 768;
   const ctx = canvas.getContext('2d');
 
-  const grad = ctx.createLinearGradient(0, 0, 1024, 576);
-  grad.addColorStop(0, '#090f1d');
-  grad.addColorStop(0.5, '#111c32');
-  grad.addColorStop(1, '#060a12');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 1024, 576);
+  // Fondo blanco esmaltado de pizarrón
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(0, 0, 1024, 768);
 
+  // Retícula tenue de puntos para dibujo de precisión
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.22)';
+  for (let x = 30; x < 1000; x += 32) {
+    for (let y = 30; y < 740; y += 32) {
+      ctx.fillRect(x, y, 2, 2);
+    }
+  }
+
+  // Título superior tipo marcador rojo seco
+  ctx.fillStyle = '#dc2626';
+  ctx.font = 'bold 26px "Courier New", monospace';
+  ctx.fillText('// SPRINT 3: FIRMWARE + DOMÓTICA IoT (ESP32-S3)', 40, 52);
+
+  ctx.strokeStyle = '#dc2626';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(40, 64); ctx.lineTo(760, 64); ctx.stroke();
+
+  ctx.fillStyle = '#475569';
+  ctx.font = 'italic 16px sans-serif';
+  ctx.fillText('¡Reubicado al frente del escritorio! (100% visible sin estorbo de puerta)', 40, 88);
+
+  // ==========================================
+  // DIAGRAMA 1 (Izquierda): Lazo de Control PID
+  // ==========================================
+  ctx.fillStyle = '#1e40af';
+  ctx.font = 'bold 19px sans-serif';
+  ctx.fillText('1. LAZO DE CONTROL PID EN TIEMPO REAL (100 Hz)', 40, 130);
+
+  // Punto de suma (círculo)
+  const sumX = 80;
+  const sumY = 210;
+  ctx.strokeStyle = '#1e3a8a';
+  ctx.lineWidth = 3;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(sumX, sumY, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#1e3a8a';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('+', sumX - 14, sumY - 4);
+  ctx.fillText('-', sumX - 4, sumY + 14);
+
+  // Entrada Setpoint R(s)
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText('R(s) [Ref]', 20, 180);
+  ctx.strokeStyle = '#0f172a';
+  ctx.fillStyle = '#0f172a';
+  drawArrow(ctx, 20, 210, sumX - 18, 210, 10);
+
+  // Flecha de error e(t)
+  drawArrow(ctx, sumX + 18, 210, 150, 210, 10);
+  ctx.fillText('e(t)', 114, 202);
+
+  // Bloque Controlador PID
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 3;
+  ctx.fillStyle = '#eff6ff';
+  ctx.fillRect(150, 175, 140, 70);
+  ctx.strokeRect(150, 175, 140, 70);
+  ctx.fillStyle = '#1e40af';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText('CONTROLADOR', 160, 202);
+  ctx.fillText('PID + Anti-Windup', 158, 224);
+
+  // Flecha señal de control u(t)
+  ctx.strokeStyle = '#0f172a';
+  ctx.fillStyle = '#0f172a';
+  drawArrow(ctx, 290, 210, 360, 210, 10);
+  ctx.fillText('u(t) [PWM]', 294, 202);
+
+  // Bloque Planta / Motor DC
+  ctx.strokeStyle = '#059669';
+  ctx.lineWidth = 3;
+  ctx.fillStyle = '#ecfdf5';
+  ctx.fillRect(360, 175, 130, 70);
+  ctx.strokeRect(360, 175, 130, 70);
+  ctx.fillStyle = '#065f46';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText('MOTOR DC /', 376, 202);
+  ctx.fillText('BRAZO ROBOT', 370, 224);
+
+  // Flecha de salida Y(s)
+  ctx.strokeStyle = '#0f172a';
+  ctx.fillStyle = '#0f172a';
+  drawArrow(ctx, 490, 210, 560, 210, 10);
+  ctx.fillText('Y(s) [Posición]', 498, 202);
+
+  // Lazo de retroalimentación
+  ctx.strokeStyle = '#dc2626';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(525, 210);
+  ctx.lineTo(525, 280);
+  ctx.lineTo(sumX, 280);
+  ctx.stroke();
+  ctx.fillStyle = '#dc2626';
+  drawArrow(ctx, sumX, 280, sumX, sumY + 18, 10);
+  ctx.fillText('Sensor Encoder (Feedback)', 220, 272);
+
+  // Ecuación y parámetros sintonizados
+  ctx.fillStyle = '#1e293b';
+  ctx.font = '15px monospace';
+  ctx.fillText('u(t) = Kp·e(t) + Ki·∫e(τ)dτ + Kd·(de/dt)', 40, 320);
+  ctx.fillStyle = '#2563eb';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText('Sintonía: Kp = 2.40  |  Ki = 0.18  |  Kd = 0.05', 40, 345);
+
+  // Mini gráfica de respuesta escalón
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(40, 440); ctx.lineTo(240, 440); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(40, 440); ctx.lineTo(40, 370); ctx.stroke();
+  ctx.strokeStyle = '#f59e0b';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(40, 395); ctx.lineTo(240, 395); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#d97706';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('Target (1.0)', 180, 390);
+  ctx.strokeStyle = '#0284c7';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(40, 440);
+  ctx.bezierCurveTo(70, 435, 85, 380, 110, 388);
+  ctx.bezierCurveTo(130, 396, 150, 394, 240, 395);
+  ctx.stroke();
+  ctx.fillStyle = '#0284c7';
+  ctx.fillText('Respuesta (Overshoot 8%, Ts=360ms)', 52, 424);
+
+  // ==========================================
+  // DIAGRAMA 2 (Derecha Arriba): Arquitectura ESP32
+  // ==========================================
+  ctx.fillStyle = '#1e40af';
+  ctx.font = 'bold 19px sans-serif';
+  ctx.fillText('2. ARQUITECTURA HARDWARE ESP32-S3', 600, 130);
+
+  // Chip central ESP32
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 3;
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(660, 160, 240, 160);
+  ctx.strokeRect(660, 160, 240, 160);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText('ESP32-S3-WROOM-1', 690, 190);
+  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('Dual Core 240MHz · WiFi + BLE', 685, 210);
+
+  // Pines rotulados
+  ctx.font = '13px monospace';
+  ctx.fillStyle = '#dc2626';
+  ctx.fillText('• 3V3 / GND  (Alimentación Ugreen 100W)', 675, 238);
+  ctx.fillStyle = '#2563eb';
+  ctx.fillText('• GPIO 21/22 (I2C -> OLED + Sensores)', 675, 260);
+  ctx.fillStyle = '#059669';
+  ctx.fillText('• GPIO 16/17 (UART -> FTDI Debugger)', 675, 282);
+  ctx.fillStyle = '#d97706';
+  ctx.fillText('• GPIO 4     (PWM -> Driver DRV8833)', 675, 304);
+
+  // ==========================================
+  // DIAGRAMA 3 (Abajo Izquierda): Domótica & Conectividad
+  // ==========================================
+  ctx.strokeStyle = '#059669';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = '#f0fdf4';
+  ctx.fillRect(40, 480, 450, 250);
+  ctx.strokeRect(40, 480, 450, 250);
+
+  ctx.fillStyle = '#065f46';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('🏠 DOMÓTICA DEL CUARTO (TUYA + ALEXA)', 60, 514);
+
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = '#1e293b';
+  const domoLines = [
+    '• Alexa Echo Pop: Rutina "Modo Programar" enciende LEDs y PC.',
+    '• Multicontacto Inteligente Tuya WiFi: 4 tomas AC + 4 USB.',
+    '• Seguridad Cautín: Apagado automático a los 30 min sin uso.',
+    '• Monitoreo de Energía: Medición de kWh consumidos en tiempo real.',
+    '• Telemetría MQTT: Logs del ESP32 directos al dashboard local.',
+    '• Conectividad Escritorio: Clips magnéticos Baseus para USB-C.'
+  ];
+  domoLines.forEach((l, idx) => {
+    ctx.fillText(l, 60, 548 + idx * 28);
+  });
+
+  // ==========================================
+  // DIAGRAMA 4 (Abajo Derecha): Checklist de Tareas
+  // ==========================================
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(520, 360, 460, 370);
+  ctx.strokeRect(520, 360, 460, 370);
+
+  ctx.fillStyle = '#1e40af';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('📋 CHECKLIST INGENIERO / PROYECTOS:', 545, 396);
+
+  ctx.font = '15px monospace';
+  const checks = [
+    { done: true, text: 'Claude Code Opus: Tarea FreeRTOS generada' },
+    { done: true, text: 'KiCad 8.0: PCB 4 capas ruteado con USB-C' },
+    { done: true, text: 'ESP32: Anti-windup clamping implementado' },
+    { done: true, text: 'FTDI USB-UART: Conexión serial 115200' },
+    { done: true, text: 'Pizarrón reubicado frente al escritorio' },
+    { done: true, text: 'Multicontacto Tuya integrado con Alexa' },
+    { done: false, text: 'Pruebas osciloscopio ZOYI canal 2 (PWM)' },
+    { done: false, text: 'Soldar componentes SMD en tapete Kaisi' }
+  ];
+
+  checks.forEach((item, idx) => {
+    ctx.fillStyle = item.done ? '#16a34a' : '#d97706';
+    ctx.fillText(item.done ? '[✓]' : '[ ]', 545, 436 + idx * 34);
+    ctx.fillStyle = item.done ? '#0f172a' : '#475569';
+    ctx.fillText(item.text, 582, 436 + idx * 34);
+  });
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createUlanziClockTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#040711';
+  ctx.fillRect(0, 0, 256, 96);
+
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(4, 4, 248, 88);
+
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const timeStr = `${hours}:${minutes}`;
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 44px "Courier New", monospace';
+  ctx.fillText(timeStr, 24, 62);
+
+  // Batería pixel
+  ctx.fillStyle = '#22c55e';
+  ctx.fillRect(174, 28, 38, 14);
+  ctx.fillRect(212, 32, 4, 6);
+  ctx.fillStyle = '#040711';
+  ctx.font = 'bold 9px monospace';
+  ctx.fillText('88%', 180, 39);
+
+  // WiFi icon
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(190, 68, 10, -Math.PI * 0.8, -Math.PI * 0.2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(190, 68, 6, -Math.PI * 0.8, -Math.PI * 0.2);
+  ctx.stroke();
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.arc(190, 68, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Temperatura / Sol
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('24°C ☀️', 160, 20);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createWorkflowScreenTexture(workflow = 'claude_code', target = 'main_monitor') {
+  const canvas = document.createElement('canvas');
+  if (target === 'laptop') {
+    canvas.width = 512;
+    canvas.height = 320;
+  } else if (target === 'vertical_monitor') {
+    canvas.width = 576;
+    canvas.height = 1024;
+  } else {
+    canvas.width = 1024;
+    canvas.height = 576;
+  }
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  if (target === 'laptop') {
+    if (workflow === 'pcb_kicad') {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(10, 10, W - 20, 26);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText('KiCad 8.0 · 3D Raytraced Raytracing Viewer [PCB]', 20, 27);
+
+      ctx.fillStyle = '#0e3a20';
+      ctx.fillRect(50, 60, W - 100, H - 100);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(55, 65, W - 110, H - 110);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(W * 0.35, 90, 140, 90);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText('ESPRESSIF ESP32', W * 0.35 + 10, 140);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(W * 0.42, H - 55, 65, 20);
+
+      ctx.fillStyle = '#f59e0b';
+      for (let i = 0; i < 12; i++) {
+        ctx.fillRect(68 + i * 28, 72, 8, 10);
+        ctx.fillRect(68 + i * 28, H - 52, 8, 10);
+      }
+    } else if (workflow === 'control_firmware') {
+      ctx.fillStyle = '#0b0f19';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, W, 24);
+      ctx.fillStyle = '#4ade80';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText('SERIAL TELEMETRY PLOTTER · COM4 (115200 bps)', 12, 17);
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      for (let y = 35; y < H - 10; y += 25) {
+        ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(W - 10, y); ctx.stroke();
+      }
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(10, H * 0.65);
+      for (let x = 10; x < W - 10; x += 15) {
+        const ny = H * 0.65 + Math.sin(x * 0.08) * 18 * Math.exp(-x * 0.003);
+        ctx.lineTo(x, ny);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '11px monospace';
+      ctx.fillText('> duty_pwm: 55.7% | i_load: 0.38A | temp_mcu: 34.2C | status: LOCKED', 14, H - 16);
+    } else {
+      ctx.fillStyle = '#0d1117';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#161b22';
+      ctx.fillRect(0, 0, W, 24);
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('VS Code · pid_controller.cpp · Git: main*', 12, 17);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '11px monospace';
+      ctx.fillText('1 #include <Arduino.h>', 14, 46);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('2 #include "freertos/FreeRTOS.h"', 14, 64);
+      ctx.fillStyle = '#a855f7';
+      ctx.fillText('3 void vMotorTask(void *pvParams) {', 14, 82);
+      ctx.fillStyle = '#e6edf3';
+      ctx.fillText('4   TickType_t xLast = xTaskGetTickCount();', 14, 100);
+      ctx.fillText('5   for(;;) { pid.compute(); vTaskDelay(10); }', 14, 118);
+      ctx.fillStyle = '#a855f7';
+      ctx.fillText('6 }', 14, 136);
+
+      ctx.fillStyle = '#010409';
+      ctx.fillRect(8, 150, W - 16, H - 158);
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText('✔ 18 tests passed (0 errors) [Build 1.2s]', 16, 180);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('tuf-f15:~/robotics$ git status: clean', 16, 202);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  if (workflow === 'pcb_kicad') {
+    ctx.fillStyle = '#12161f';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#1f2430';
+    ctx.fillRect(0, 0, W, 36);
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('KiCad 8.0.2 - PCB Editor [robot_controller_4layer.kicad_pcb]', 16, 24);
+
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(660, 8, 65, 20);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px monospace'; ctx.fillText('F.Cu (1)', 670, 22);
+    ctx.fillStyle = '#22c55e'; ctx.fillRect(735, 8, 65, 20);
+    ctx.fillStyle = '#ffffff'; ctx.fillText('In1.Cu (G)', 740, 22);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(810, 8, 65, 20);
+    ctx.fillStyle = '#ffffff'; ctx.fillText('In2.Cu (V)', 815, 22);
+    ctx.fillStyle = '#f59e0b'; ctx.fillRect(885, 8, 65, 20);
+    ctx.fillStyle = '#0f172a'; ctx.fillText('B.Cu (4)', 895, 22);
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.15)';
+    for (let x = 20; x < W; x += 22) {
+      for (let y = 45; y < H - 35; y += 22) {
+        ctx.fillRect(x, y, 1.5, 1.5);
+      }
+    }
+
+    const boardX = 80;
+    const boardY = 60;
+    const boardW = W - 160;
+    const boardH = H - 110;
+
+    ctx.fillStyle = '#0c381e';
+    ctx.fillRect(boardX, boardY, boardW, boardH);
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(boardX + 10, boardY + 10, boardW - 20, boardH - 20);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText('MAX ROBOTICS · ESP32-S3 CORE v3.2', boardX + 30, boardY + 38);
+
+    const espX = boardX + 50;
+    const espY = boardY + 70;
+    const espW = 220;
+    const espH = 260;
+
+    ctx.fillStyle = '#082514';
+    ctx.fillRect(espX, espY, espW, 55);
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(espX + 25, espY + 40);
+    for (let k = 0; k < 6; k++) {
+      ctx.lineTo(espX + 35 + k * 28, espY + 15);
+      ctx.lineTo(espX + 45 + k * 28, espY + 40);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(espX, espY + 58, espW, espH - 58);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('ESPRESSIF', espX + 55, espY + 120);
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('ESP32-S3-WROOM-1', espX + 35, espY + 148);
+    ctx.font = '11px monospace';
+    ctx.fillText('FCC ID: 2AC7Z-ESPS3', espX + 42, espY + 172);
+
+    ctx.fillStyle = '#f59e0b';
+    for (let i = 0; i < 14; i++) {
+      ctx.fillRect(espX - 12, espY + 68 + i * 13, 10, 8);
+      ctx.fillRect(espX + espW + 2, espY + 68 + i * 13, 10, 8);
+    }
+    for (let i = 0; i < 9; i++) {
+      ctx.fillRect(espX + 25 + i * 18, espY + espH + 2, 10, 10);
+    }
+
+    const usbX = boardX + boardW - 55;
+    const usbY = boardY + boardH * 0.5 - 35;
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(usbX, usbY, 45, 70);
+    ctx.fillStyle = '#f59e0b';
+    for (let i = 0; i < 8; i++) {
+      ctx.fillRect(usbX - 14, usbY + 8 + i * 7, 10, 4);
+    }
+
+    const drvX = boardX + 340;
+    const drvY = boardY + 90;
+    ctx.fillStyle = '#1e2028';
+    ctx.fillRect(drvX, drvY, 80, 110);
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('DRV8833', drvX + 10, drvY + 55);
+    ctx.fillText('H-BRIDGE', drvX + 8, drvY + 75);
+    ctx.fillStyle = '#cbd5e1';
+    for (let i = 0; i < 8; i++) {
+      ctx.fillRect(drvX - 8, drvY + 10 + i * 12, 6, 6);
+      ctx.fillRect(drvX + 82, drvY + 10 + i * 12, 6, 6);
+    }
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    const tracesF = [
+      [[espX + espW + 12, espY + 110], [drvX - 10, espY + 110]],
+      [[espX + espW + 12, espY + 130], [drvX - 25, espY + 130], [drvX - 10, drvY + 45]],
+      [[espX + espW + 12, espY + 160], [boardX + 500, espY + 160], [boardX + 550, espY + 210], [usbX - 16, espY + 210]],
+      [[drvX + 90, drvY + 30], [boardX + 560, drvY + 30], [boardX + 620, drvY + 90]],
+      [[drvX + 90, drvY + 60], [boardX + 580, drvY + 60], [boardX + 620, drvY + 120]]
+    ];
+    tracesF.forEach(pts => {
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+    });
+
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 3.5;
+    const tracesB = [
+      [[usbX - 16, usbY + 25], [boardX + 460, usbY + 25], [boardX + 400, boardY + boardH - 60]],
+      [[boardX + 400, boardY + boardH - 60], [espX + 160, boardY + boardH - 60], [espX + 160, espY + espH + 12]]
+    ];
+    tracesB.forEach(pts => {
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+    });
+
+    const vias = [
+      [boardX + 310, espY + 110], [boardX + 500, espY + 160],
+      [boardX + 460, usbY + 25], [drvX + 90, drvY + 30],
+      [boardX + 400, boardY + boardH - 60], [espX + 160, boardY + boardH - 60]
+    ];
+    vias.forEach(([vx, vy]) => {
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(vx, vy, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0c381e';
+      ctx.beginPath(); ctx.arc(vx, vy, 2.5, 0, Math.PI * 2); ctx.fill();
+    });
+
+    ctx.fillStyle = '#78350f';
+    for (let i = 0; i < 6; i++) {
+      const rx = boardX + 480 + (i % 3) * 35;
+      const ry = boardY + 260 + ((i / 3) | 0) * 45;
+      ctx.fillRect(rx, ry, 16, 8);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(rx - 3, ry, 3, 8);
+      ctx.fillRect(rx + 16, ry, 3, 8);
+      ctx.fillStyle = '#78350f';
+    }
+
+    ctx.fillStyle = '#1e2430';
+    ctx.fillRect(0, H - 32, W, 32);
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('DRC: 0 Errors, 0 Unconnected Nets ✓', 20, H - 11);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Layer: F.Cu  |  Grid: 0.127 mm (5.0 mil)  |  Tracks: 42  |  Vias: 18  |  Zoom: 240%', 320, H - 11);
+
+  } else if (workflow === 'control_firmware') {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, W, H);
+
+    const splitX = W * 0.48;
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(16, 16, splitX - 24, H - 32);
+
+    ctx.fillStyle = '#2d2d2d';
+    ctx.fillRect(16, 16, splitX - 24, 34);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('pid_controller.cpp - PlatformIO [ESP32-S3]', 32, 38);
+
+    const codeLines = [
+      { text: '#include <Arduino.h>', color: '#38bdf8' },
+      { text: '#include "esp_timer.h"', color: '#38bdf8' },
+      { text: '', color: '#fff' },
+      { text: '// Parámetros sintonizados en banco:', color: '#6a9955' },
+      { text: 'const float Kp = 2.40f;', color: '#4ec9b0' },
+      { text: 'const float Ki = 0.18f;', color: '#4ec9b0' },
+      { text: 'const float Kd = 0.05f;', color: '#4ec9b0' },
+      { text: '', color: '#fff' },
+      { text: 'float PID::compute(float setpoint, float current) {', color: '#dcdcaa' },
+      { text: '  float error = setpoint - current;', color: '#9cdcfe' },
+      { text: '  integral += error * DT;', color: '#9cdcfe' },
+      { text: '  integral = clamp(integral, -120.0f, 120.0f); // Anti-windup', color: '#6a9955' },
+      { text: '  float derivative = (error - prev_error) / DT;', color: '#9cdcfe' },
+      { text: '  prev_error = error;', color: '#9cdcfe' },
+      { text: '  float out = Kp*error + Ki*integral + Kd*derivative;', color: '#ce9178' },
+      { text: '  return clamp(out, 0.0f, 255.0f);', color: '#c586c0' },
+      { text: '}', color: '#dcdcaa' }
+    ];
+
+    ctx.font = '13px "Courier New", monospace';
+    codeLines.forEach((cl, idx) => {
+      ctx.fillStyle = '#569cd6';
+      ctx.fillText(String(idx + 1).padStart(2, ' '), 24, 76 + idx * 24);
+      ctx.fillStyle = cl.color;
+      ctx.fillText(cl.text, 56, 76 + idx * 24);
+    });
+
+    const scopeX = splitX + 8;
+    const scopeW = W - scopeX - 16;
+    ctx.fillStyle = '#060a14';
+    ctx.fillRect(scopeX, 16, scopeW, H - 32);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(scopeX, 16, scopeW, 36);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('DIGITAL OSCILLOSCOPE · STEP RESPONSE (CLOSED LOOP)', scopeX + 16, 40);
+
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let x = scopeX + 20; x < scopeX + scopeW - 10; x += 45) {
+      ctx.beginPath(); ctx.moveTo(x, 60); ctx.lineTo(x, 340); ctx.stroke();
+    }
+    for (let y = 60; y < 350; y += 35) {
+      ctx.beginPath(); ctx.moveTo(scopeX + 10, y); ctx.lineTo(scopeX + scopeW - 10, y); ctx.stroke();
+    }
+
+    const targetY = 175;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(scopeX + 30, targetY);
+    ctx.lineTo(scopeX + scopeW - 30, targetY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('SETPOINT: 1.000 rad', scopeX + 40, targetY - 8);
+
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(scopeX + 30, 310);
+    ctx.bezierCurveTo(scopeX + 90, 310, scopeX + 120, targetY - 32, scopeX + 160, targetY - 26);
+    ctx.bezierCurveTo(scopeX + 195, targetY - 20, scopeX + 230, targetY + 8, scopeX + 270, targetY);
+    ctx.lineTo(scopeX + scopeW - 30, targetY);
+    ctx.stroke();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('Rise Time (Tr): 120 ms', scopeX + 30, 375);
+    ctx.fillText('Overshoot (Mp): 8.0%', scopeX + 220, 375);
+    ctx.fillText('Settling Time: 360 ms', scopeX + 30, 400);
+    ctx.fillText('Steady Error (Ess): 0.00%', scopeX + 220, 400);
+
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(scopeX + 10, 420, scopeW - 20, H - 446);
+    ctx.fillStyle = '#4ade80';
+    ctx.font = '12px monospace';
+    ctx.fillText('[COM4 @ 115200] ESP32-S3 TELEMETRY STREAM:', scopeX + 20, 442);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('[12:44:02.108] pos: 0.9998 rad | pwm: 142 | load: 0.38A | loop: 100Hz [LOCKED]', scopeX + 20, 466);
+    ctx.fillText('[12:44:02.118] pos: 1.0001 rad | pwm: 141 | load: 0.38A | loop: 100Hz [LOCKED]', scopeX + 20, 488);
+    ctx.fillText('[12:44:02.128] pos: 1.0000 rad | pwm: 142 | load: 0.38A | loop: 100Hz [LOCKED]', scopeX + 20, 510);
+
+  } else {
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(0, 0, W, 36);
+    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(22, 18, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(38, 18, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(54, 18, 6, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('claude-code v1.2.0 · Opus 5.5 · antigravity-agent · [branch: main*]', 80, 23);
+
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '14px monospace';
+    ctx.fillText('engineer@tuf-f15:~/robotics_control$ claude', 30, 68);
+
+    ctx.fillStyle = '#58a6ff';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText('> Optimiza el lazo PID y crea tarea FreeRTOS para control de motor en ESP32', 30, 96);
+
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(30, 114, W - 60, 115);
+    ctx.strokeStyle = '#1f6feb';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30, 114, W - 60, 115);
+
+    ctx.fillStyle = '#79c0ff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('🧠 Thinking Process (Claude Code Opus 5.5):', 45, 138);
+
+    ctx.font = '13px monospace';
+    ctx.fillStyle = '#c9d1d9';
+    ctx.fillText('1. Analizando dinámica del motor: Ts = 10ms (frecuencia = 100 Hz).', 45, 162);
+    ctx.fillText('2. Implementando anti-windup clamping para evitar saturación del actuador en PWM 255.', 45, 184);
+    ctx.fillText('3. Encapsulando en FreeRTOS Task con afinidad al Core 1 y prioridad configMAX_PRIORITIES - 2.', 45, 206);
+
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(30, 240, W - 60, 210);
+    ctx.strokeStyle = '#30363d';
+    ctx.strokeRect(30, 240, W - 60, 210);
+
+    ctx.fillStyle = '#8b949e';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('diff --git a/firmware/motor_task.cpp b/firmware/motor_task.cpp', 45, 262);
+
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('- void loop() { float pwm = Kp * error; analogWrite(PWM_PIN, pwm); }', 45, 290);
+
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('+ void vMotorControlTask(void *pvParameters) {', 45, 318);
+    ctx.fillText('+   TickType_t xLastWakeTime = xTaskGetTickCount();', 45, 340);
+    ctx.fillText('+   for(;;) {', 45, 362);
+    ctx.fillText('+     float u = pid.compute(target_setpoint, current_feedback);', 45, 384);
+    ctx.fillText('+     ledcWrite(PWM_CHANNEL, clamp_u8(u));', 45, 406);
+    ctx.fillText('+     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));', 45, 428);
+    ctx.fillText('+   }', 45, 450);
+
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(30, 465, W - 60, 44);
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText('✔ PASS: 14/14 tests passing (42ms) · 0 memory leaks · FreeRTOS Core 1 Task RUNNING', 45, 493);
+
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(0, H - 32, W, 32);
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '12px monospace';
+    ctx.fillText('Model: Opus 5.5  |  Tokens: 4,820 prompt / 680 completion  |  Latency: 1.1s  |  Cost: $0.024', 24, H - 11);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createMonitorScreenTexture(mode = 'setup') {
   if (mode === 'tv') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 576;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 1024, 576);
+    grad.addColorStop(0, '#090f1d');
+    grad.addColorStop(0.5, '#111c32');
+    grad.addColorStop(1, '#060a12');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1024, 576);
+
     const pitchGrad = ctx.createLinearGradient(0, 80, 0, 520);
     pitchGrad.addColorStop(0, '#0f172a');
     pitchGrad.addColorStop(0.35, '#14532d');
@@ -338,45 +1091,16 @@ export function createMonitorScreenTexture(mode = 'setup') {
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 26px sans-serif';
     ctx.fillText('UCL  2 - 1  84:12', 88, 91);
-  } else if (mode === 'vertical_code') {
-    ctx.fillStyle = '#0b1120';
-    ctx.fillRect(20, 20, 984, 536);
-    const colors = ['#38bdf8', '#f59e0b', '#a855f7', '#4ade80', '#94a3b8'];
-    for (let i = 0; i < 20; i++) {
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.fillRect(50 + (i % 4) * 28, 45 + i * 24, 180 + (i % 5) * 90, 11);
-    }
-  } else {
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(28, 28, 610, 520);
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(56, 62, 190, 14);
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillRect(56, 96, 310, 14);
-    ctx.fillStyle = '#a855f7';
-    ctx.fillRect(88, 130, 240, 14);
-    ctx.fillStyle = '#94a3b8';
-    for (let i = 0; i < 11; i++) {
-      ctx.fillRect(56 + (i % 3) * 26, 170 + i * 31, 220 + (i % 4) * 65, 10);
-    }
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(660, 28, 336, 520);
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.arc(828, 220, 76, 0, Math.PI * 1.7);
-    ctx.stroke();
-    ctx.fillStyle = '#4ade80';
-    ctx.font = 'bold 28px monospace';
-    ctx.fillText('ESP32 READY', 735, 385);
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 22px monospace';
-    ctx.fillText('BUILD PASS ✓', 745, 435);
-  }
 
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+  if (mode === 'vertical_code') {
+    return createWorkflowScreenTexture('claude_code', 'vertical_monitor');
+  }
+  const wf = (mode === 'claude_code' || mode === 'pcb_kicad' || mode === 'control_firmware') ? mode : 'claude_code';
+  return createWorkflowScreenTexture(wf, 'main_monitor');
 }
 
 function box(w, h, d, mat, x = 0, y = 0, z = 0, castShadow = true) {
@@ -417,9 +1141,9 @@ function addLogitechMxKeysMini(group, darkMetal, chromeMat) {
   const ulanzi = new THREE.Group();
   ulanzi.position.set(-0.045, 0.036, 0.04);
   ulanzi.add(box(0.032, 0.066, 0.195, darkMetal, 0, 0, 0));
-  ulanzi.add(box(0.004, 0.050, 0.178, new THREE.MeshBasicMaterial({ color: 0x080c14 }), 0.015, 0, 0));
-  ulanzi.add(box(0.005, 0.022, 0.088, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.016, 0.002, 0.025));
-  ulanzi.add(box(0.005, 0.018, 0.032, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.016, 0.002, -0.052));
+  const ulanziScreenMat = new THREE.MeshBasicMaterial({ map: createUlanziClockTexture() });
+  ulanzi.add(box(0.004, 0.052, 0.180, ulanziScreenMat, 0.015, 0, 0));
+  ulanzi.userData = { isSubGadget: 'ulanzi_tc001' };
   group.add(ulanzi);
 
   const geek = new THREE.Group();
@@ -740,13 +1464,17 @@ export function buildFurnitureMesh(itemData, roomState) {
 
       if (isDual) {
         group.add(box(0.022, 0.34, 0.56, frameMat, -0.05, 0.27, -0.06));
-        group.add(box(0.006, 0.32, 0.54, scrMat, -0.036, 0.27, -0.06));
+        const scrMesh = box(0.006, 0.32, 0.54, scrMat, -0.036, 0.27, -0.06);
+        scrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'main_monitor' };
+        group.add(scrMesh);
 
         const vertMon = new THREE.Group();
         vertMon.position.set(-0.01, 0.29, 0.34);
         vertMon.rotation.y = -0.35;
         vertMon.add(box(0.02, 0.48, 0.28, frameMat, 0, 0, 0));
-        vertMon.add(box(0.006, 0.46, 0.26, vertScrMat, 0.011, 0, 0));
+        const vertScrMesh = box(0.006, 0.46, 0.26, vertScrMat, 0.011, 0, 0);
+        vertScrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'vertical_monitor' };
+        vertMon.add(vertScrMesh);
         group.add(vertMon);
       } else if (is34) {
         const monW = 0.76;
@@ -757,12 +1485,16 @@ export function buildFurnitureMesh(itemData, roomState) {
           segGroup.position.set(-0.05 + Math.abs(idx) * 0.024, 0.28, idx * (segW - 0.004));
           segGroup.rotation.y = -idx * 0.17;
           segGroup.add(box(0.02, monH, segW, frameMat, 0, 0, 0));
-          segGroup.add(box(0.005, monH - 0.022, segW - 0.01, scrMat, 0.012, 0, 0));
+          const scrMesh = box(0.005, monH - 0.022, segW - 0.01, scrMat, 0.012, 0, 0);
+          scrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'main_monitor' };
+          segGroup.add(scrMesh);
           group.add(segGroup);
         });
       } else {
         group.add(box(0.022, 0.35, 0.59, frameMat, -0.05, 0.27, 0));
-        group.add(box(0.006, 0.325, 0.57, scrMat, -0.036, 0.27, 0));
+        const scrMesh = box(0.006, 0.325, 0.57, scrMat, -0.036, 0.27, 0);
+        scrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'main_monitor' };
+        group.add(scrMesh);
       }
 
       const barZ = isDual ? -0.06 : 0;
@@ -770,6 +1502,63 @@ export function buildFurnitureMesh(itemData, roomState) {
       group.add(cyl(0.020, 0.020, 0.016, 16, darkMetal, 0.01, 0.010, -0.10));
 
       addLogitechMxKeysMini(group, darkMetal, chromeMat);
+
+      // ======================================================================
+      // DOMÓTICA & GADGETS: ALEXA ECHO POP + MULTICONTACTO TUYA + BASEUS CLIPS
+      // ======================================================================
+
+      // 1. Bocina Inteligente Alexa Echo Pop (WiFi/Bluetooth con anillo LED cian)
+      const alexaGroup = new THREE.Group();
+      alexaGroup.position.set(-0.06, 0.032, 0.17);
+      alexaGroup.rotation.y = 0.35;
+      const alexaFabric = new THREE.MeshStandardMaterial({ color: 0x1f242d, roughness: 0.85 });
+      alexaGroup.add(cyl(0.046, 0.038, 0.052, 24, alexaFabric, 0, 0, 0));
+      // Rejilla frontal ligeramente orientada
+      const alexaFront = cyl(0.042, 0.042, 0.006, 24, new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.9 }), 0.008, 0.005, 0);
+      alexaFront.rotation.z = 0.25;
+      alexaGroup.add(alexaFront);
+      // Anillo LED cian brillante en la base
+      const cyanRingMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      alexaGroup.add(cyl(0.048, 0.048, 0.008, 24, cyanRingMat, 0, -0.022, 0));
+      // Resplandor cian tenue sobre el tapete
+      const alexaGlow = new THREE.PointLight(0x00f0ff, 0.35, 0.55);
+      alexaGlow.position.set(0, 0.01, 0);
+      alexaGroup.add(alexaGlow);
+      alexaGroup.userData = { isSubGadget: 'alexa_echo' };
+      group.add(alexaGroup);
+
+      // 2. Multicontacto Inteligente WiFi Tuya (4 Tomas AC + 4 USB + LEDs)
+      const stripGroup = new THREE.Group();
+      stripGroup.position.set(-0.16, 0.014, -0.22);
+      const whiteAbs = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.35 });
+      stripGroup.add(box(0.058, 0.024, 0.22, whiteAbs, 0, 0, 0));
+      // Switch de encendido general iluminado en rojo
+      stripGroup.add(box(0.018, 0.008, 0.022, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.013, -0.082));
+      // 4 tomas AC con micro-led verde en cada salida
+      const socketMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
+      [-0.042, -0.002, 0.038, 0.078].forEach(sz => {
+        stripGroup.add(box(0.034, 0.003, 0.026, socketMat, 0, 0.0125, sz));
+        stripGroup.add(cyl(0.002, 0.002, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.021, 0.013, sz));
+      });
+      // Bloque de 4 puertos USB con micro-LED azul
+      stripGroup.add(box(0.028, 0.002, 0.012, new THREE.MeshStandardMaterial({ color: 0x1e293b }), 0, 0.0125, 0.102));
+      stripGroup.add(cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.021, 0.013, 0.102));
+      // Cable de uso rudo trenzado bajando por detrás
+      const cableMat = new THREE.MeshStandardMaterial({ color: 0x181a20, roughness: 0.75 });
+      stripGroup.add(cyl(0.0055, 0.0055, 0.28, 8, cableMat, -0.015, -0.12, -0.11));
+      stripGroup.userData = { isSubGadget: 'smart_power_strip' };
+      group.add(stripGroup);
+
+      // 3. Clips Magnéticos de Cables Baseus en el Borde Frontal
+      const clipBar = box(0.014, 0.006, 0.092, darkMetal, 0.165, 0.004, 0.19);
+      [[-0.028, 0xef4444], [0, 0x64748b], [0.028, 0x38bdf8]].forEach(([cz, col]) => {
+        clipBar.add(cyl(0.005, 0.005, 0.008, 10, new THREE.MeshStandardMaterial({ color: col }), 0, 0.005, cz));
+      });
+      clipBar.userData = { isSubGadget: 'baseus_clips' };
+      group.add(clipBar);
+
+      // 4. Memoria USB Metálica Kingston
+      group.add(box(0.028, 0.005, 0.012, chromeMat, 0.015, 0.013, -0.06));
       break;
     }
 
@@ -839,6 +1628,30 @@ export function buildFurnitureMesh(itemData, roomState) {
       const fnirsiPen = cyl(0.007, 0.005, 0.15, 12, chromeMat, -0.17, 0.052, 0.07);
       fnirsiPen.rotation.x = -0.78;
       group.add(fnirsiPen);
+
+      // Módulo FTDI USB-UART serial con jumpers Dupont a la protoboard
+      const ftdiGroup = new THREE.Group();
+      ftdiGroup.position.set(0.08, 0.010, -0.04);
+      const ftdiBoardMat = new THREE.MeshStandardMaterial({ color: 0xd92626, roughness: 0.4 });
+      ftdiGroup.add(box(0.038, 0.005, 0.022, ftdiBoardMat, 0, 0, 0));
+      // Chip FT232RL
+      ftdiGroup.add(box(0.014, 0.004, 0.012, darkMetal, 0, 0.004, 0));
+      // Mini conector USB
+      ftdiGroup.add(box(0.010, 0.006, 0.010, chromeMat, 0.018, 0.004, 0));
+      // LEDs PWR (rojo) y TX/RX (verde)
+      ftdiGroup.add(cyl(0.0016, 0.0016, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0xef4444 }), -0.010, 0.004, 0.005));
+      ftdiGroup.add(cyl(0.0016, 0.0016, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), -0.010, 0.004, -0.005));
+      // 4 Jumpers Dupont (amarillo, naranja, rojo, café) arqueando hacia la protoboard
+      const wireColors = [0xf59e0b, 0xf97316, 0xef4444, 0x854d0e];
+      wireColors.forEach((wCol, widx) => {
+        const jumper = cyl(0.0016, 0.0016, 0.095, 8, new THREE.MeshStandardMaterial({ color: wCol }));
+        jumper.rotation.z = 1.15;
+        jumper.rotation.x = (widx - 1.5) * 0.12;
+        jumper.position.set(-0.04, 0.014, (widx - 1.5) * 0.005);
+        ftdiGroup.add(jumper);
+      });
+      ftdiGroup.userData = { isSubGadget: 'ftdi_debugger' };
+      group.add(ftdiGroup);
       break;
     }
 
@@ -1059,9 +1872,59 @@ export function buildFurnitureMesh(itemData, roomState) {
       const lapScreen = box(0.32, 0.21, 0.010, darkMetal, 0, 0.195, -0.085);
       lapScreen.rotation.x = -0.14;
       group.add(lapScreen);
-      const scr = box(0.30, 0.185, 0.004, new THREE.MeshBasicMaterial({ map: sharedSetupScrTex }), 0, 0.195, -0.078);
+      const scr = box(0.30, 0.185, 0.004, new THREE.MeshBasicMaterial({ map: createWorkflowScreenTexture('claude_code', 'laptop') }), 0, 0.195, -0.078);
       scr.rotation.x = -0.14;
+      scr.userData = { isFurniture: true, id: itemData.id, isScreen: 'laptop' };
       group.add(scr);
+      break;
+    }
+
+    case 'dry_erase_whiteboard': {
+      // Pizarrón blanco esmaltado con diagramas de ingeniería
+      const alumMat = new THREE.MeshStandardMaterial({ color: 0xc8d1dc, metalness: 0.85, roughness: 0.25 });
+      const cornerMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 });
+      const whiteMat = new THREE.MeshStandardMaterial({
+        map: createWhiteboardTexture(),
+        roughness: 0.18,
+        metalness: 0.05
+      });
+
+      // Tablero con diagramas de control PID y pinouts ESP32
+      group.add(box(w, h, 0.016, whiteMat, 0, h / 2, 0));
+
+      // Marco de aluminio perimetral
+      const frameT = 0.018;
+      group.add(box(w + frameT * 2, frameT, 0.024, alumMat, 0, h + frameT / 2, 0));
+      group.add(box(w + frameT * 2, frameT, 0.024, alumMat, 0, -frameT / 2, 0));
+      group.add(box(frameT, h, 0.024, alumMat, -w / 2 - frameT / 2, h / 2, 0));
+      group.add(box(frameT, h, 0.024, alumMat, w / 2 + frameT / 2, h / 2, 0));
+
+      // 4 esquineros plásticos oscuros
+      [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([sx, sy]) => {
+        const cx = sx * (w / 2 + frameT / 2);
+        const cy = sy > 0 ? h + frameT / 2 : -frameT / 2;
+        group.add(box(frameT * 1.3, frameT * 1.3, 0.026, cornerMat, cx, cy, 0));
+      });
+
+      // Charola inferior porta-plumones
+      const trayW = w * 0.65;
+      const trayD = 0.045;
+      group.add(box(trayW, 0.008, trayD, alumMat, 0, -0.014, trayD / 2));
+      group.add(box(trayW, 0.016, 0.006, alumMat, 0, -0.006, trayD));
+
+      // Plumón Expo Negro en la charola
+      const markerBlack = cyl(0.006, 0.006, 0.12, 10, new THREE.MeshStandardMaterial({ color: 0x111827 }), -0.10, -0.004, 0.02);
+      markerBlack.rotation.z = Math.PI / 2;
+      group.add(markerBlack);
+
+      // Plumón Expo Rojo en la charola
+      const markerRed = cyl(0.006, 0.006, 0.12, 10, new THREE.MeshStandardMaterial({ color: 0xdc2626 }), 0.04, -0.004, 0.02);
+      markerRed.rotation.z = Math.PI / 2;
+      group.add(markerRed);
+
+      // Borrador magnético azul de fieltro
+      const eraserMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.6 });
+      group.add(box(0.075, 0.026, 0.035, eraserMat, 0.16, -0.002, 0.02));
       break;
     }
 

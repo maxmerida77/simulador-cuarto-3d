@@ -456,6 +456,55 @@ export const PRODUCT_ZONES = [
         ]
       }
     ]
+  },
+
+  {
+    id: 'whiteboard_zone',
+    title: '7. Pizarrón de Diagramas & Notas (ESP32 / PID / Domótica)',
+    subtitle: 'Tu pizarrón tipo TV / ancho del espejo (65×48 cm): reacomódalo frente al escritorio o déjalo tras la puerta',
+    defaultOption: 'wb_south_view',
+    cameraPreset: 'whiteboard_view',
+    options: [
+      {
+        id: 'none',
+        name: 'Sin pizarrón en la pared',
+        price: 0,
+        store: 'Pared lisa',
+        dims: '-',
+        desc: 'Sin pizarrón montado.',
+        links: [],
+        spawnItems: []
+      },
+      {
+        id: 'wb_south_view',
+        name: 'Opción A (Recomendada): Frente al Escritorio (Pared Sur)',
+        price: 0,
+        store: 'Tu pizarrón actual reutilizado',
+        dims: '65 × 48 cm (A la altura de la vista: 1.15 m)',
+        desc: 'Reubicado en la pared frente a tu silla: visible mientras programas o sueldas sin que la puerta lo tape jamás. Muestra diagramas de pines ESP32 y lazos de control PID.',
+        links: [
+          { label: 'Marcadores Borrado en Seco Expo (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=marcadores+para+pizarron+blanco+expo' },
+          { label: 'AliExpress: Organizador Magnético Plumones (~$65)', url: 'https://es.aliexpress.com/w/wholesale-magnetic-whiteboard-pen-holder.html' }
+        ],
+        spawnItems: [
+          { id: 'whiteboard_1', type: 'dry_erase_whiteboard', x: -0.38, z: 1.48, rotY: Math.PI, elevation: 1.15 }
+        ]
+      },
+      {
+        id: 'wb_door_back',
+        name: 'Opción B: Detrás de la Puerta (Posición Actual en Pared Oeste)',
+        price: 0,
+        store: 'Posición original actual',
+        dims: '65 × 48 cm (Detrás del radio de giro de la puerta)',
+        desc: 'Ubicado en la pared donde abre la puerta: cuando la puerta está abierta queda tapado y no se puede consultar desde la silla del escritorio.',
+        links: [
+          { label: 'Marcadores Borrado en Seco Expo (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=marcadores+para+pizarron+blanco+expo' }
+        ],
+        spawnItems: [
+          { id: 'whiteboard_1', type: 'dry_erase_whiteboard', x: -1.13, z: 1.05, rotY: 0, elevation: 1.15 }
+        ]
+      }
+    ]
   }
 ];
 
@@ -492,7 +541,8 @@ export const UI_LABELS = {
     shelves_zone: { icon: '📚', short: 'Repisas' },
     lighting_zone: { icon: '💡', short: 'Luces' },
     soccer_zone: { icon: '⚽', short: 'Fútbol' },
-    storage_underbed_door_zone: { icon: '📦', short: 'Guardado' }
+    storage_underbed_door_zone: { icon: '📦', short: 'Guardado' },
+    whiteboard_zone: { icon: '📋', short: 'Pizarrón' }
   },
   options: {
     none: 'Nada (actual)',
@@ -513,7 +563,9 @@ export const UI_LABELS = {
     soc_vip: '3 bufandas LED',
     st_skubb_basic: 'Estuches SKUBB',
     st_vard_trones: 'Cajones + TRONES',
-    st_pullout_cab: 'Zapatera + gabinete'
+    st_pullout_cab: 'Zapatera + gabinete',
+    wb_south_view: 'Frente escritorio',
+    wb_door_back: 'Tras la puerta'
   },
   combos: {
     actual: 'Hoy',
@@ -522,6 +574,12 @@ export const UI_LABELS = {
     studio_full_vip: 'Pro'
   }
 };
+
+export const WORKFLOW_MODES = [
+  { id: 'claude_code', name: 'Claude Code', icon: '🤖', desc: 'Codex / Claude Code CLI con agente autónomo, diffs git y tests' },
+  { id: 'pcb_kicad', name: 'KiCad PCB', icon: '⚡', desc: 'Diseño KiCad 8.0 de 4 capas: ESP32-S3, planos GND y pistas de cobre' },
+  { id: 'control_firmware', name: 'Control PID', icon: '📈', desc: 'VS Code C++ PlatformIO + Osciloscopio con curva de respuesta escalón PID' }
+];
 
 // ============================================================================
 // ESCENAS DE LUZ (DOMÓTICA SIMULADA) — 1 clic cambia todo el ambiente
@@ -539,6 +597,7 @@ export const CATALOG = {
   gray_closet: { type: 'gray_closet', name: 'Clóset Gris con Cajones', w: 1.14, d: 0.54, h: 2.18 },
   bunk_bed: { type: 'bunk_bed', name: 'Literas Tubulares Negras', w: 0.98, d: 1.94, h: 1.72 },
   mirror_cabinet: { type: 'mirror_cabinet', name: 'Mueble Negro con Espejo', w: 0.36, d: 0.64, h: 1.85 },
+  dry_erase_whiteboard: { type: 'dry_erase_whiteboard', name: 'Pizarrón Blanco para Diagramas y Notas', w: 0.65, d: 0.04, h: 0.48 },
   current_chair: { type: 'current_chair', name: 'Silla Actual con Toalla', w: 0.48, d: 0.48, h: 0.88 },
   closet_organizer_bin: { type: 'closet_organizer_bin', name: 'Organizador Gris entre Clóset y Litera', w: 0.42, d: 0.34, h: 0.72 },
 
@@ -622,7 +681,8 @@ export const QUICK_COMBOS = {
       shelves_zone: 'none',
       lighting_zone: 'none',
       soccer_zone: 'none',
-      storage_underbed_door_zone: 'none'
+      storage_underbed_door_zone: 'none',
+      whiteboard_zone: 'wb_door_back'
     }
   },
   ingeniero_esencial: {
@@ -637,7 +697,8 @@ export const QUICK_COMBOS = {
       shelves_zone: 'sh_lack_black',
       lighting_zone: 'light_xiaomi_govee',
       soccer_zone: 'soc_frame_ball',
-      storage_underbed_door_zone: 'st_skubb_basic'
+      storage_underbed_door_zone: 'st_skubb_basic',
+      whiteboard_zone: 'wb_south_view'
     }
   },
   vibecoding_dual: {
@@ -652,7 +713,8 @@ export const QUICK_COMBOS = {
       shelves_zone: 'sh_walnut_led',
       lighting_zone: 'light_bunk_ceiling',
       soccer_zone: 'soc_frame_ball',
-      storage_underbed_door_zone: 'st_vard_trones'
+      storage_underbed_door_zone: 'st_vard_trones',
+      whiteboard_zone: 'wb_south_view'
     }
   },
   studio_full_vip: {
@@ -667,7 +729,8 @@ export const QUICK_COMBOS = {
       shelves_zone: 'sh_walnut_led',
       lighting_zone: 'light_full_domotica',
       soccer_zone: 'soc_vip',
-      storage_underbed_door_zone: 'st_vard_trones'
+      storage_underbed_door_zone: 'st_vard_trones',
+      whiteboard_zone: 'wb_south_view'
     }
   }
 };
@@ -716,6 +779,59 @@ export const SUB_GADGETS_DB = {
     cameraPreset: 'desk_front',
     links: [
       { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$780)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' }
+    ]
+  },
+  alexa_echo: {
+    id: 'alexa_echo',
+    badge: '🎙️ Domótica de Voz · Amazon Echo Pop',
+    name: 'Bocina Inteligente Alexa Echo Pop (WiFi + Bluetooth)',
+    price: '~$699 MXN (Amazon MX)',
+    dims: '9.9 × 8.3 × 9.1 cm (Anillo LED Cian Resplandeciente)',
+    desc: 'Control por voz para todo tu cuarto. Dile "Alexa, modo programar" para cambiar las luces y encender tu estación, o "Alexa, apaga el multicontacto" al terminar de soldar.',
+    localOffset: [-0.06, 0.05, 0.17],
+    cameraPreset: 'desk_front',
+    links: [
+      { label: 'Bocina Inteligente Alexa Echo Pop (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=Echo+Pop+bocina+inteligente+alexa' }
+    ]
+  },
+  smart_power_strip: {
+    id: 'smart_power_strip',
+    badge: '⚡ Domótica & Energía · Tuya / Smart Life',
+    name: 'Multicontacto Inteligente WiFi Tuya (4 Tomas AC + 4 USB)',
+    price: '~$380 MXN (AliExpress / Amazon)',
+    dims: '24 × 6.5 × 2.8 cm (Monitoreo de Consumo kWh)',
+    desc: 'Control individual de cada toma AC y USB desde tu celular o con Alexa. Incluye temporizador de seguridad para corte automático de cautín y cargadores.',
+    localOffset: [-0.16, 0.04, -0.22],
+    cameraPreset: 'desk_front',
+    links: [
+      { label: 'AliExpress: Multicontacto Inteligente Tuya WiFi (~$380)', url: 'https://es.aliexpress.com/w/wholesale-Tuya-smart-power-strip-WiFi.html' },
+      { label: 'Multicontacto Inteligente WiFi 4 Tomas + USB (Amazon)', url: 'https://www.amazon.com.mx/s?k=multicontacto+inteligente+wifi+alexa' }
+    ]
+  },
+  baseus_clips: {
+    id: 'baseus_clips',
+    badge: '🧲 Gestión de Cables · AliExpress',
+    name: 'Clips Magnéticos Organizadores de Cables Baseus',
+    price: '~$75 MXN (AliExpress)',
+    dims: 'Regleta imantada con 3 broches para USB-C y Micro-USB',
+    desc: 'Mantiene las puntas de tus cables de carga y depuración listas en el borde del escritorio sin que caigan al piso.',
+    localOffset: [0.165, 0.02, 0.19],
+    cameraPreset: 'desk_front',
+    links: [
+      { label: 'AliExpress: Clips Magnéticos Cables Baseus (~$75)', url: 'https://es.aliexpress.com/w/wholesale-Baseus-magnetic-cable-organizer.html' }
+    ]
+  },
+  ftdi_debugger: {
+    id: 'ftdi_debugger',
+    badge: '🔌 Hardware & Firmware · Depuración Serial',
+    name: 'Depurador Serial FTDI FT232RL USB-UART + Jumpers Dupont',
+    price: '~$45 MXN (AliExpress)',
+    dims: 'Placa roja con LEDs TX/RX + 4 jumpers conectados al ESP32',
+    desc: 'Conexión directa entre tu PC y la protoboard para flashear firmware PlatformIO, recibir telemetría serie a 115200 baudios y calibrar lazos de control PID.',
+    localOffset: [0.08, 0.03, -0.04],
+    cameraPreset: 'desk_lab',
+    links: [
+      { label: 'AliExpress: Módulo FTDI FT232RL USB a Serial TTL (~$45)', url: 'https://es.aliexpress.com/w/wholesale-FTDI-FT232RL-USB-TTL.html' }
     ]
   },
   geekmagic_tv: {
@@ -864,7 +980,7 @@ export const ITEM_INSPECTOR_DB = {
     dims: 'Monitor 27" + Teclado MX Keys Mini + Ulanzi + GeekMagic',
     desc: 'Tu estación de programación principal en el ala izquierda del escritorio. Haz clic en cualquiera de los botones de abajo (o directamente sobre cada aparato en 3D) para ver su ficha individual y link de compra.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'ulanzi_tc001', 'geekmagic_tv', 'monitor_main'],
+    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv', 'monitor_main'],
     links: [
       { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
       { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$780)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' },
@@ -878,7 +994,7 @@ export const ITEM_INSPECTOR_DB = {
     dims: '27" Principal + 24" Vertical Código + MX Keys Mini',
     desc: 'Configuración de doble pantalla en brazo hidráulico doble: monitor 27" al frente y monitor 24" vertical a la izquierda para código, terminales e IA.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'monitor_vertical', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
+    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'monitor_vertical', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
     links: [
       { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
       { label: 'AliExpress: Brazo Doble Hidráulico NB H180 (~$790)', url: 'https://es.aliexpress.com/w/wholesale-North-Bayou-H180.html' },
@@ -891,7 +1007,7 @@ export const ITEM_INSPECTOR_DB = {
     dims: 'Monitor 34" WQHD (76×34 cm) + MX Keys Mini',
     desc: 'Monitor curvo 34" Ultrawide con tira Ambilight Skydimo sincronizada y teclado Logitech MX Keys Mini.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
+    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
     links: [
       { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
       { label: 'AliExpress: Tira Ambilight PC Skydimo 34" (~$280)', url: 'https://es.aliexpress.com/w/wholesale-Skydimo-ambilight-PC-strip.html' },
@@ -951,7 +1067,7 @@ export const ITEM_INSPECTOR_DB = {
     dims: '52 × 38 cm en el ala derecha del escritorio en L',
     desc: 'Separa tu área de hardware del teclado para que nunca caiga soldadura ni cables sobre tu laptop. Haz clic en cualquiera de los equipos de abajo (o directo en el 3D) para ver cada herramienta:',
     cameraPreset: 'desk_lab',
-    subGadgets: ['kaisi_mat', 'fnirsi_iron', 'esp32_proto', 'smd_cabinet', 'ugreen_gan'],
+    subGadgets: ['kaisi_mat', 'fnirsi_iron', 'esp32_proto', 'ftdi_debugger', 'smd_cabinet', 'ugreen_gan'],
     links: [
       { label: 'AliExpress: Tapete Silicón Magnético Kaisi (~$145)', url: 'https://es.aliexpress.com/w/wholesale-Kaisi-tapete-silicona-soldadura.html' },
       { label: 'AliExpress: Cautín USB-C FNIRSI HS-02 100W (~$590)', url: 'https://es.aliexpress.com/w/wholesale-FNIRSI-HS-02-soldering-iron.html' },
@@ -1310,6 +1426,17 @@ export const ITEM_INSPECTOR_DB = {
     desc: 'Al agregar el perchero de pared y los soportes metálicos de balón en la 2da litera, las camas quedan limpias.',
     cameraPreset: 'zoom_soccer',
     links: []
+  },
+  dry_erase_whiteboard: {
+    badge: '📋 Pizarrón de Diagramas & Notas · Tu Cuarto',
+    price: 'Equipo Existente ($0)',
+    dims: '65 × 48 cm (Marco de aluminio + charola para plumones)',
+    desc: 'Tu pizarrón blanco con diagramas de pines ESP32, lazo de control PID y notas de tareas. Recomendamos montarlo en la Pared Sur frente al escritorio para que la puerta nunca lo tape.',
+    cameraPreset: 'whiteboard_view',
+    links: [
+      { label: 'Marcadores Borrado en Seco Expo (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=marcadores+para+pizarron+blanco+expo' },
+      { label: 'AliExpress: Organizador Magnético Plumones (~$65)', url: 'https://es.aliexpress.com/w/wholesale-magnetic-whiteboard-pen-holder.html' }
+    ]
   }
 };
 
@@ -1318,6 +1445,10 @@ export function detectSubGadgetFromHit(itemType, localPt) {
   if (!localPt) return null;
   if (itemType === 'vibe_setup_27' || itemType === 'vibe_setup_dual' || itemType === 'vibe_setup_34') {
     if (localPt.y < 0.085) {
+      if (localPt.z > 0.12 && localPt.x < 0.02) return 'alexa_echo';
+      if (localPt.z < -0.15 && localPt.x < -0.05) return 'smart_power_strip';
+      if (localPt.x > 0.12 && localPt.z > 0.12) return 'baseus_clips';
+
       if (localPt.x > 0.015) {
         return localPt.z <= -0.12 ? 'mx_master_3s' : 'mx_keys_mini';
       } else {
@@ -1332,6 +1463,7 @@ export function detectSubGadgetFromHit(itemType, localPt) {
   }
 
   if (itemType === 'engineer_maker_station') {
+    if (localPt.x > 0.04 && localPt.x < 0.14 && localPt.z < 0.00) return 'ftdi_debugger';
     if (localPt.x > 0.10) return 'smd_cabinet';
     if (localPt.x < -0.14 && localPt.z < -0.02) return 'ugreen_gan';
     if (localPt.x < -0.10 && localPt.z >= -0.02) return 'fnirsi_iron';

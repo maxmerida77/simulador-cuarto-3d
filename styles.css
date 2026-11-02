@@ -512,6 +512,69 @@ body.theater-fullscreen .topbar {
   display: inline;
 }
 
+/* Selector de Flujos de Trabajo en Pantalla (Arriba Centro) */
+.workflow-bar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.wf-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 4px;
+  letter-spacing: 0.5px;
+}
+
+.wf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.wf-pill:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.wf-pill.active {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+@media (max-width: 920px) {
+  .workflow-bar {
+    top: 48px;
+    left: 10px;
+    transform: none;
+  }
+}
+
 /* Herramientas (arriba derecha) */
 .tool-bar {
   position: absolute;

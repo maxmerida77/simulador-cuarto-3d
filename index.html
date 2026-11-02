@@ -81,6 +81,14 @@
       <!-- Escenas de luz (arriba izquierda) -->
       <div class="scene-bar" id="scene-bar"></div>
 
+      <!-- Selector de Flujos de Trabajo en Pantalla (Arriba Centro) -->
+      <div class="workflow-bar" id="workflow-bar">
+        <span class="wf-label">Flujo:</span>
+        <button class="wf-pill active" data-workflow="claude_code" title="Codex / Claude Code CLI con agente autónomo">🤖 Claude Code</button>
+        <button class="wf-pill" data-workflow="pcb_kicad" title="KiCad 8.0 PCB 4 Capas ESP32-S3">⚡ KiCad PCB</button>
+        <button class="wf-pill" data-workflow="control_firmware" title="Control PID y Telemetría PlatformIO C++">📈 Control PID</button>
+      </div>
+
       <!-- Herramientas (arriba derecha) -->
       <div class="tool-bar">
         <button id="btn-undo" class="icon-btn" title="Deshacer (Ctrl+Z)" disabled>↶</button>
@@ -143,6 +151,7 @@
       <nav class="bottom-cam-bar">
         <button class="cam-pill active" data-cam-preset="orbit_3d" title="Cuarto completo">🧊<span class="cam-label">Cuarto</span></button>
         <button class="cam-pill" data-cam-preset="desk_front" title="Monitor y teclado">🖥️<span class="cam-label">Escritorio</span></button>
+        <button class="cam-pill" data-cam-preset="whiteboard_view" title="Pizarrón">📋<span class="cam-label">Pizarrón</span></button>
         <button class="cam-pill" data-cam-preset="desk_corner" title="Laptop en la esquina">💻<span class="cam-label">Laptop</span></button>
         <button class="cam-pill" data-cam-preset="desk_lab" title="Laboratorio">🛠️<span class="cam-label">Lab</span></button>
         <button class="cam-pill" data-cam-preset="desk_pegboard" title="Panel y repisas">🧰<span class="cam-label">Panel</span></button>

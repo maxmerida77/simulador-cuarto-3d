@@ -20,23 +20,25 @@ import {
   createStudioEnvironment,
   createFloorTexture,
   createZebraBlindTexture,
+  createWorkflowScreenTexture,
   buildFurnitureMesh
 } from './models.js';
 
 const HISTORY_LIMIT = 60;
 
 const CAMERA_PRESETS = {
-  orbit_3d:      { pos: [-0.15, 2.22, 2.50],  target: [0, 0.82, -0.10],      fov: 50, wallMode: 'auto' },
-  desk_front:    { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
-  desk_corner:   { pos: [-0.40, 1.10, -0.76], target: [-0.92, 0.96, -1.25],  fov: 36, wallMode: 'full' },
-  desk_lab:      { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
-  desk_pegboard: { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
-  zoom_desk:     { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
-  zoom_lab:      { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
-  zoom_shelves:  { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
-  zoom_underbed: { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
-  zoom_soccer:   { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
-  top_2d:        { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
+  orbit_3d:        { pos: [-0.15, 2.22, 2.50],  target: [0, 0.82, -0.10],      fov: 50, wallMode: 'auto' },
+  desk_front:      { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
+  desk_corner:     { pos: [-0.40, 1.10, -0.76], target: [-0.92, 0.96, -1.25],  fov: 36, wallMode: 'full' },
+  desk_lab:        { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
+  desk_pegboard:   { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
+  whiteboard_view: { pos: [-0.38, 1.16, 0.45],  target: [-0.38, 1.15, 1.48],  fov: 42, wallMode: 'full' },
+  zoom_desk:       { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
+  zoom_lab:        { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
+  zoom_shelves:    { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
+  zoom_underbed:   { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
+  zoom_soccer:     { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
+  top_2d:          { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
 };
 
 const fmtPrice = (n) => `$${n.toLocaleString('es-MX')}`;
@@ -57,6 +59,9 @@ class RoomSimulatorApp {
 
     // Escena de luz activa (domótica simulada)
     this.lightScene = 'normal';
+
+    // Flujo de trabajo en pantalla (Claude Code / KiCad PCB / Control PID)
+    this.workflowMode = 'claude_code';
 
     // Deshacer / Rehacer
     this.undoStack = [];
@@ -243,7 +248,8 @@ class RoomSimulatorApp {
       selectedZones: { ...this.selectedZones },
       room: clone(this.room),
       activeComboId: this.activeComboId,
-      lightingMode: this.lightingMode
+      lightingMode: this.lightingMode,
+      workflowMode: this.workflowMode
     };
   }
 
@@ -253,6 +259,7 @@ class RoomSimulatorApp {
     this.room = clone(snap.room);
     this.activeComboId = snap.activeComboId;
     this.lightingMode = snap.lightingMode;
+    if (snap.workflowMode) this.workflowMode = snap.workflowMode;
     if (this.selectedId && !this.items.find(i => i.id === this.selectedId)) {
       this.selectedId = null;
       this.selectedSubGadgetId = null;
@@ -548,6 +555,10 @@ class RoomSimulatorApp {
       this.furnitureMeshes.set(item.id, mesh);
     });
 
+    if (this.workflowMode) {
+      this.setWorkflowMode(this.workflowMode, { showFeedback: false });
+    }
+
     this.updateSelectionHighlight();
   }
 
@@ -573,6 +584,47 @@ class RoomSimulatorApp {
       b.classList.toggle('active', b.dataset.scene === sceneId);
     });
     this.showToast(`${LIGHT_SCENES[sceneId].icon} Escena: ${LIGHT_SCENES[sceneId].name}`);
+  }
+
+  setWorkflowMode(mode, { showFeedback = true } = {}) {
+    this.workflowMode = mode;
+    const mainTex = createWorkflowScreenTexture(mode, 'main_monitor');
+    const lapTex = createWorkflowScreenTexture(mode, 'laptop');
+    const vertTex = createWorkflowScreenTexture(mode, 'vertical_monitor');
+
+    this.furnitureGroup.traverse(obj => {
+      if (obj.isMesh && obj.material && obj.material.isMeshBasicMaterial) {
+        if (obj.userData?.isScreen === 'main_monitor') {
+          obj.material.map = mainTex;
+          obj.material.needsUpdate = true;
+        } else if (obj.userData?.isScreen === 'laptop') {
+          obj.material.map = lapTex;
+          obj.material.needsUpdate = true;
+        } else if (obj.userData?.isScreen === 'vertical_monitor') {
+          obj.material.map = vertTex;
+          obj.material.needsUpdate = true;
+        }
+      }
+    });
+
+    document.querySelectorAll('.wf-pill').forEach(b => {
+      b.classList.toggle('active', b.dataset.workflow === mode);
+    });
+
+    if (showFeedback) {
+      const labels = {
+        claude_code: '🤖 Flujo: Claude Code & Codex (Opus 5.5)',
+        pcb_kicad: '⚡ Flujo: KiCad 8.0 PCB 4 Capas (ESP32-S3)',
+        control_firmware: '📈 Flujo: Control PID en Tiempo Real (PlatformIO C++)'
+      };
+      this.showToast(labels[mode] || `Flujo: ${mode}`);
+    }
+  }
+
+  cycleWorkflowMode() {
+    const order = ['claude_code', 'pcb_kicad', 'control_firmware'];
+    const nextIdx = (order.indexOf(this.workflowMode) + 1) % order.length;
+    this.setWorkflowMode(order[nextIdx]);
   }
 
   // ==========================================================================
@@ -945,6 +997,10 @@ class RoomSimulatorApp {
       if (dist < 4 && e.target === dom && !isOnBeforeSide(e)) {
         setPointer(e);
         this.raycaster.setFromCamera(this.pointer, this.camera);
+        const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
+        if (hits.length > 0 && hits[0].object?.userData?.isScreen) {
+          this.cycleWorkflowMode();
+        }
         if (!pickFurniture()) {
           this.clearSelection();
           this.updateSelectionHighlight();
@@ -1199,6 +1255,12 @@ class RoomSimulatorApp {
 
     document.querySelectorAll('[data-cam-preset]').forEach(btn => {
       btn.addEventListener('click', () => this.setCameraPreset(btn.getAttribute('data-cam-preset')));
+    });
+
+    document.querySelectorAll('.wf-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.setWorkflowMode(btn.dataset.workflow);
+      });
     });
 
     document.getElementById('btn-close-inspector')?.addEventListener('click', () => {
