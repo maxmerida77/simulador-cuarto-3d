@@ -86,12 +86,21 @@
       <!-- Escenas de luz (arriba izquierda) -->
       <div class="scene-bar" id="scene-bar"></div>
 
-      <!-- Selector de Flujos de Trabajo en Pantalla (Arriba Centro) -->
-      <div class="workflow-bar" id="workflow-bar">
-        <span class="wf-label">Flujo:</span>
-        <button class="wf-pill active" data-workflow="claude_code" title="Codex / Claude Code CLI con agente autónomo">🤖 Claude Code</button>
-        <button class="wf-pill" data-workflow="pcb_kicad" title="KiCad 8.0 PCB 4 Capas ESP32-S3">⚡ KiCad PCB</button>
-        <button class="wf-pill" data-workflow="control_firmware" title="Control PID y Telemetría PlatformIO C++">📈 Control PID</button>
+      <!-- Selector de Disposición y Flujos de Trabajo (Arriba Centro) -->
+      <div class="top-center-dock">
+        <div class="layout-bar" id="layout-bar">
+          <span class="ctrl-dock-label">📐 Disposición:</span>
+          <button class="layout-pill active" data-layout="maker_pro" title="Disposición 1: Setup actual optimizado con L-Desk en pared oeste y Pizarrón en pared sur">1. Maker Pro</button>
+          <button class="layout-pill" data-layout="natural_light" title="Disposición 2: Escritorio orientado hacia ventana norte con luz natural">2. Luz Natural</button>
+          <button class="layout-pill" data-layout="studio_single" title="Disposición 3: Cama baja individual + Banco de electrónica dedicado en pared este">3. Estudio & Taller</button>
+        </div>
+
+        <div class="workflow-bar" id="workflow-bar">
+          <span class="wf-label">Flujo:</span>
+          <button class="wf-pill active" data-workflow="claude_code" title="Codex / Claude Code CLI con agente autónomo">🤖 Claude Code</button>
+          <button class="wf-pill" data-workflow="pcb_kicad" title="KiCad 8.0 PCB 4 Capas ESP32-S3">⚡ KiCad PCB</button>
+          <button class="wf-pill" data-workflow="control_firmware" title="Control PID y Telemetría PlatformIO C++">📈 Control PID</button>
+        </div>
       </div>
 
       <!-- Herramientas (arriba derecha) -->

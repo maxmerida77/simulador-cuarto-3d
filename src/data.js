@@ -596,6 +596,8 @@ export const CATALOG = {
   tv_wall: { type: 'tv_wall', name: 'Televisor en Pared Izquierda', w: 0.10, d: 0.84, h: 0.50 },
   gray_closet: { type: 'gray_closet', name: 'Clóset Gris con Cajones', w: 1.14, d: 0.54, h: 2.18 },
   bunk_bed: { type: 'bunk_bed', name: 'Literas Tubulares Negras', w: 0.98, d: 1.94, h: 1.72 },
+  single_platform_bed: { type: 'single_platform_bed', name: 'Cama Baja Moderna con Cabecera Tapizada y Cajoneras', w: 1.02, d: 1.96, h: 0.65 },
+  maker_electronics_workbench: { type: 'maker_electronics_workbench', name: 'Banco de Trabajo Electrónica Dedicado con Osciloscopio y Fuente DC', w: 0.62, d: 1.10, h: 0.82 },
   mirror_cabinet: { type: 'mirror_cabinet', name: 'Mueble Negro con Espejo', w: 0.36, d: 0.64, h: 1.85 },
   dry_erase_whiteboard: { type: 'dry_erase_whiteboard', name: 'Pizarrón Blanco para Diagramas y Notas', w: 0.65, d: 0.04, h: 0.48 },
   current_chair: { type: 'current_chair', name: 'Silla Actual con Toalla', w: 0.48, d: 0.48, h: 0.88 },
@@ -732,6 +734,61 @@ export const QUICK_COMBOS = {
       storage_underbed_door_zone: 'st_vard_trones',
       whiteboard_zone: 'wb_south_view'
     }
+  }
+};
+
+// ============================================================================
+// PROPUESTAS DE DISPOSICIÓN DEL ESPACIO (LAYOUTS MAESTROS 3D)
+// ============================================================================
+export const ROOM_LAYOUT_PROPOSALS = {
+  maker_pro: {
+    id: 'maker_pro',
+    name: '1. Maker Pro (Setup Actual Optimizado)',
+    shortName: '1. Maker Pro',
+    desc: 'Tu escritorio en L en pared oeste con la TV al lado, pizarrón en pared sur, literas conservadas y domótica calibrada.',
+    cameraPreset: 'orbit_3d',
+    baseItems: [
+      { id: 'desk_1', type: 'l_desk', x: -0.58, z: -0.82, rotY: 0, elevation: 0 },
+      { id: 'tv_1', type: 'tv_wall', x: -1.09, z: -0.98, rotY: 0, elevation: 1.39 },
+      { id: 'chair_1', type: 'current_chair', x: -0.44, z: -0.72, rotY: -1.80, elevation: 0 },
+      { id: 'closet_1', type: 'gray_closet', x: 0.57, z: -1.23, rotY: 0, elevation: 0 },
+      { id: 'bunk_1', type: 'bunk_bed', x: 0.65, z: 0.48, rotY: 0, elevation: 0 },
+      { id: 'mirror_1', type: 'mirror_cabinet', x: -0.96, z: 0.30, rotY: 0, elevation: 0 }
+    ],
+    defaultWhiteboardZone: 'wb_south_view'
+  },
+  natural_light: {
+    id: 'natural_light',
+    name: '2. Luz Natural (Escritorio en Ventana)',
+    shortName: '2. Luz Natural',
+    desc: 'Escritorio orientado de cara a la ventana norte con luz solar directa tamizada por la persiana. TV trasladada a pared sur frente a la cama.',
+    cameraPreset: 'natural_light_view',
+    baseItems: [
+      { id: 'desk_1', type: 'l_desk', x: -0.58, z: -0.82, rotY: 0, elevation: 0 },
+      { id: 'tv_1', type: 'tv_wall', x: 0.05, z: 1.45, rotY: Math.PI, elevation: 1.39 },
+      { id: 'chair_1', type: 'current_chair', x: -0.42, z: -0.56, rotY: 0, elevation: 0 },
+      { id: 'closet_1', type: 'gray_closet', x: 0.57, z: -1.23, rotY: 0, elevation: 0 },
+      { id: 'bunk_1', type: 'bunk_bed', x: 0.65, z: 0.48, rotY: 0, elevation: 0 },
+      { id: 'mirror_1', type: 'mirror_cabinet', x: -0.96, z: 0.30, rotY: 0, elevation: 0 }
+    ],
+    defaultWhiteboardZone: 'wb_door_back'
+  },
+  studio_single: {
+    id: 'studio_single',
+    name: '3. Estudio & Taller (Despeje de Literas)',
+    shortName: '3. Estudio & Taller',
+    desc: 'Literas sustituidas por cama baja moderna con cajoneras, liberando 4.5 m² para un banco de electrónica dedicado 100% independiente del escritorio de código.',
+    cameraPreset: 'studio_bench',
+    baseItems: [
+      { id: 'desk_1', type: 'l_desk', x: -0.58, z: -0.82, rotY: 0, elevation: 0 },
+      { id: 'tv_1', type: 'tv_wall', x: -1.09, z: -0.98, rotY: 0, elevation: 1.39 },
+      { id: 'chair_1', type: 'current_chair', x: -0.44, z: -0.72, rotY: -1.80, elevation: 0 },
+      { id: 'closet_1', type: 'gray_closet', x: 0.57, z: -1.23, rotY: 0, elevation: 0 },
+      { id: 'single_bed_1', type: 'single_platform_bed', x: 0.65, z: 0.48, rotY: 0, elevation: 0 },
+      { id: 'maker_bench_1', type: 'maker_electronics_workbench', x: 0.65, z: -0.74, rotY: 0, elevation: 0 },
+      { id: 'mirror_1', type: 'mirror_cabinet', x: -0.96, z: 0.30, rotY: 0, elevation: 0 }
+    ],
+    defaultWhiteboardZone: 'wb_south_view'
   }
 };
 
@@ -1397,6 +1454,32 @@ export const ITEM_INSPECTOR_DB = {
     desc: 'Tus literas tubulares negras. Puedes cambiar el color de los edredones desde la sección de Acabados y aprovechar tanto los 30 cm bajo la cama inferior como la pared de la 2da litera.',
     cameraPreset: 'zoom_soccer',
     links: []
+  },
+  single_platform_bed: {
+    id: 'single_platform_bed',
+    badge: '🛏️ Disposición 3 · Cama Plataforma Japandi',
+    name: 'Cama Plataforma Individual con Cajones + Buró Flotante',
+    price: '~$3,200 MXN (Amazon / Maderería)',
+    dims: '102 × 195 × 38 cm (Cabecera 75 cm + 2 cajones bajo cama)',
+    desc: 'Cama baja de líneas limpias estilo escandinavo/japandi con 2 cajones de almacenamiento inferior de deslizamiento suave. Sustituye las literas verticales para liberar 4.5 m² de volumen aéreo y luz en la habitación.',
+    cameraPreset: 'zoom_underbed',
+    links: [
+      { label: 'Amazon: Cama Plataforma Individual con Cajones', url: 'https://www.amazon.com.mx/s?k=cama+plataforma+individual+con+cajones' }
+    ]
+  },
+  maker_electronics_workbench: {
+    id: 'maker_electronics_workbench',
+    badge: '⚡ Disposición 3 · Banco de Electrónica & Taller Maker',
+    name: 'Banco de Electrónica & Robótica Dedicado (Pared Este)',
+    price: '~$2,800 MXN (Estructura metálica + Tablón madera sólida)',
+    dims: '110 × 60 × 85 cm + repisa superior para instrumentos',
+    desc: 'Estación de trabajo de grado profesional 100% independiente del escritorio de cómputo. Incluye tapete antiestático ESD de silicona disipativa (500°C), repisa superior con osciloscopio digital Rigol DS1054Z, fuente de poder regulable DC 30V 10A, cautín TS101 con soporte de latón, lámpara de lupa con aro LED y regleta multicontacto dedicada.',
+    cameraPreset: 'studio_bench',
+    links: [
+      { label: 'Amazon: Mesa de Trabajo Taller Maker 110x60', url: 'https://www.amazon.com.mx/s?k=mesa+de+trabajo+taller+madera+acero' },
+      { label: 'AliExpress: Tapete Antiestático Silicona ESD Resistente Calor', url: 'https://es.aliexpress.com/w/wholesale-esd-soldering-heat-resistant-silicone-mat.html' },
+      { label: 'Amazon: Lámpara de Mesa con Lupa y Aro LED', url: 'https://www.amazon.com.mx/s?k=lampara+lupa+led+taller' }
+    ]
   },
   mirror_cabinet: {
     badge: '🏠 Mueble Existente en tu Cuarto',
