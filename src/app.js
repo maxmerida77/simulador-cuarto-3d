@@ -14,7 +14,6 @@ import {
   ITEM_INSPECTOR_DB,
   UI_LABELS,
   LIGHT_SCENES,
-  ROOM_LAYOUT_PROPOSALS,
   detectSubGadgetFromHit
 } from './data.js';
 import {
@@ -40,8 +39,6 @@ const CAMERA_PRESETS = {
   zoom_shelves:    { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
   zoom_underbed:   { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
   zoom_soccer:     { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
-  natural_light_view: { pos: [-0.42, 1.08, -0.38], target: [-0.42, 0.98, -1.35], fov: 42, wallMode: 'full' },
-  studio_bench:        { pos: [0.08, 1.15, -0.74],  target: [0.95, 1.00, -0.74],  fov: 42, wallMode: 'full' },
   top_2d:          { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
 };
 
@@ -69,9 +66,6 @@ class RoomSimulatorApp {
 
     // Modo de la Smart TV (lofi / tech / match / ambient / off)
     this.tvMode = 'lofi';
-
-    // Propuesta de Disposición del Cuarto (maker_pro / natural_light / studio_single)
-    this.roomLayout = 'maker_pro';
 
     // Sistema de Domótica Interactiva (Tuya WiFi / Zigbee / Alexa)
     this.domotica = {
@@ -224,55 +218,13 @@ class RoomSimulatorApp {
       (opt.spawnItems || []).forEach(sp => spawned.push(clone(sp)));
     });
 
-    const proposal = ROOM_LAYOUT_PROPOSALS[this.roomLayout] || ROOM_LAYOUT_PROPOSALS.maker_pro;
-    const baseSource = proposal.baseItems || BASE_ROOM_ITEMS;
-    const baseItems = clone(baseSource).filter(it => !(replaceChair && it.type === 'current_chair'));
+    const baseItems = clone(BASE_ROOM_ITEMS).filter(it => !(replaceChair && it.type === 'current_chair'));
     const clutterItems = this.room.showClutter ? clone(CLUTTER_ROOM_ITEMS) : [];
-
-    // Reorientación de monitores si el layout está enfocado hacia la ventana norte
-    if (this.roomLayout === 'natural_light') {
-      spawned.forEach(sp => {
-        if (sp.id === 'upg_mon') {
-          sp.x = -0.42;
-          sp.z = -1.10;
-          sp.rotY = Math.PI / 2;
-        } else if (sp.id === 'upg_lap') {
-          sp.x = -0.88;
-          sp.z = -1.10;
-          sp.rotY = 1.15;
-        }
-      });
-    }
 
     this.items = [...baseItems, ...clutterItems, ...spawned];
     this.buildArchitecture();
     this.rebuildFurnitureMeshes();
     this.updateBudgetUI();
-  }
-
-  setLayoutProposal(proposalId, { record = true, animateCam = true } = {}) {
-    const prop = ROOM_LAYOUT_PROPOSALS[proposalId];
-    if (!prop) return;
-    if (this.roomLayout === proposalId) return;
-    if (record) this.pushHistory();
-    this.roomLayout = proposalId;
-
-    if (prop.defaultWhiteboardZone && this.selectedZones.whiteboard_zone !== prop.defaultWhiteboardZone) {
-      this.selectedZones.whiteboard_zone = prop.defaultWhiteboardZone;
-    }
-
-    this.rebuildSceneFromZones();
-    this.syncUIState();
-
-    document.querySelectorAll('.layout-pill').forEach(b => {
-      b.classList.toggle('active', b.dataset.layout === proposalId);
-    });
-
-    if (animateCam && prop.cameraPreset) {
-      this.setCameraPreset(prop.cameraPreset);
-    }
-
-    this.showToast(`📐 Disposición: ${prop.name}`);
   }
 
   applyCombo(comboId, { record = true } = {}) {
@@ -316,7 +268,6 @@ class RoomSimulatorApp {
       lightingMode: this.lightingMode,
       workflowMode: this.workflowMode,
       tvMode: this.tvMode,
-      roomLayout: this.roomLayout,
       domotica: clone(this.domotica)
     };
   }
@@ -329,7 +280,6 @@ class RoomSimulatorApp {
     this.lightingMode = snap.lightingMode;
     if (snap.workflowMode) this.workflowMode = snap.workflowMode;
     if (snap.tvMode) this.tvMode = snap.tvMode;
-    if (snap.roomLayout) this.roomLayout = snap.roomLayout;
     if (snap.domotica) {
       this.domotica = clone(snap.domotica);
     }
@@ -1897,12 +1847,6 @@ class RoomSimulatorApp {
       });
     });
 
-    document.querySelectorAll('[data-layout]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.setLayoutProposal(btn.dataset.layout);
-      });
-    });
-
     document.getElementById('btn-close-inspector')?.addEventListener('click', () => {
       this.clearSelection();
       this.updateSelectionHighlight();
@@ -2140,14 +2084,6 @@ class RoomSimulatorApp {
   syncUIState() {
     document.querySelectorAll('.combo-pill').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.comboId === this.activeComboId);
-    });
-
-    document.querySelectorAll('.layout-pill').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.layout === this.roomLayout);
-    });
-
-    document.querySelectorAll('.wf-pill').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.workflow === this.workflowMode);
     });
 
     const clutterSwitch = document.getElementById('switch-show-clutter');
