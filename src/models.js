@@ -1063,10 +1063,36 @@ export function createWorkflowScreenTexture(workflow = 'claude_code', target = '
 
 export function createMonitorScreenTexture(mode = 'setup') {
   if (mode === 'tv') {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 576;
-    const ctx = canvas.getContext('2d');
+    return createTVScreenTexture('lofi');
+  }
+  if (mode === 'vertical_code') {
+    return createWorkflowScreenTexture('claude_code', 'vertical_monitor');
+  }
+  const wf = (mode === 'claude_code' || mode === 'pcb_kicad' || mode === 'control_firmware') ? mode : 'claude_code';
+  return createWorkflowScreenTexture(wf, 'main_monitor');
+}
+
+export function createTVScreenTexture(mode = 'lofi') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 576;
+  const ctx = canvas.getContext('2d');
+
+  if (mode === 'off') {
+    ctx.fillStyle = '#06070a';
+    ctx.fillRect(0, 0, 1024, 576);
+    const rGrad = ctx.createLinearGradient(0, 0, 1024, 576);
+    rGrad.addColorStop(0, 'rgba(255,255,255,0.02)');
+    rGrad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+    rGrad.addColorStop(1, 'rgba(255,255,255,0.01)');
+    ctx.fillStyle = rGrad;
+    ctx.fillRect(0, 0, 1024, 576);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  if (mode === 'match') {
     const grad = ctx.createLinearGradient(0, 0, 1024, 576);
     grad.addColorStop(0, '#090f1d');
     grad.addColorStop(0.5, '#111c32');
@@ -1074,33 +1100,207 @@ export function createMonitorScreenTexture(mode = 'setup') {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 1024, 576);
 
-    const pitchGrad = ctx.createLinearGradient(0, 80, 0, 520);
+    const pitchGrad = ctx.createLinearGradient(0, 60, 0, 520);
     pitchGrad.addColorStop(0, '#0f172a');
-    pitchGrad.addColorStop(0.35, '#14532d');
-    pitchGrad.addColorStop(1, '#166534');
+    pitchGrad.addColorStop(0.30, '#15803d');
+    pitchGrad.addColorStop(0.70, '#166534');
+    pitchGrad.addColorStop(1, '#14532d');
     ctx.fillStyle = pitchGrad;
     ctx.fillRect(28, 28, 968, 520);
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.lineWidth = 5;
-    ctx.strokeRect(90, 180, 844, 310);
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(80, 140, 864, 370);
     ctx.beginPath();
-    ctx.arc(512, 335, 75, 0, Math.PI * 2);
+    ctx.arc(512, 325, 80, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-    ctx.fillRect(68, 56, 290, 52);
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 26px sans-serif';
-    ctx.fillText('UCL  2 - 1  84:12', 88, 91);
 
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+    ctx.fillRect(60, 50, 420, 58);
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('⚽ LIGA MX / UCL EN VIVO', 80, 86);
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 24px monospace';
+    ctx.fillText('AME 2 - 1 GDL  78:40', 270, 87);
+  } else if (mode === 'tech') {
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(0, 0, 1024, 576);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(20, 20, 984, 536);
+
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(36, 36, 680, 440);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let x = 40; x < 710; x += 6) {
+      const y = 250 + Math.sin(x * 0.04) * 60 + Math.cos(x * 0.09) * 25;
+      if (x === 40) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText('CH1: 24.5 kHz PWM  |  Vpp: 3.32V  |  Duty: 64%', 54, 70);
+
+    ctx.fillStyle = '#334155';
+    for (let i = 0; i < 4; i++) {
+      ctx.fillRect(734, 46 + i * 110, 254, 96);
+    }
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('▶ YouTube: Ben Eater 6502 & KiCad 8.0 Layout', 46, 516);
+  } else if (mode === 'ambient') {
+    ctx.fillStyle = '#1c1917';
+    ctx.fillRect(0, 0, 1024, 576);
+    ctx.fillStyle = '#f5f5f4';
+    ctx.fillRect(40, 40, 944, 496);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(60, 60, 904, 456);
+
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath(); ctx.arc(420, 288, 140, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath(); ctx.arc(600, 288, 110, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath(); ctx.arc(512, 220, 65, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '300 48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('10:42 AM', 512, 450);
+    ctx.font = '16px sans-serif';
+    ctx.fillText('CDMX · 22°C Despejado · The Frame Art Mode', 512, 480);
+    ctx.textAlign = 'left';
+  } else {
+    // Modo lofi (Default para programar)
+    const bgGrad = ctx.createLinearGradient(0, 0, 1024, 576);
+    bgGrad.addColorStop(0, '#110e24');
+    bgGrad.addColorStop(0.5, '#1e1b4b');
+    bgGrad.addColorStop(1, '#0b0d17');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1024, 576);
+
+    const sunGrad = ctx.createLinearGradient(512, 100, 512, 380);
+    sunGrad.addColorStop(0, '#f43f5e');
+    sunGrad.addColorStop(0.5, '#fb923c');
+    sunGrad.addColorStop(1, '#fbbf24');
+    ctx.fillStyle = sunGrad;
+    ctx.beginPath();
+    ctx.arc(512, 240, 120, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let x = 60; x <= 964; x += 60) {
+      ctx.moveTo(512, 240);
+      ctx.lineTo(x, 576);
+    }
+    for (let y = 300; y <= 576; y += 32) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(1024, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.fillRect(40, 40, 520, 80);
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath(); ctx.arc(75, 80, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('YouTube Music · Lo-Fi Synthwave Coding Stream', 105, 75);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '15px monospace';
+    ctx.fillText('🎵 "Midnight City" - Chill beats to program / study', 105, 102);
   }
-  if (mode === 'vertical_code') {
-    return createWorkflowScreenTexture('claude_code', 'vertical_monitor');
-  }
-  const wf = (mode === 'claude_code' || mode === 'pcb_kicad' || mode === 'control_firmware') ? mode : 'claude_code';
-  return createWorkflowScreenTexture(wf, 'main_monitor');
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createTabletScreenTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 768;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 512, 768);
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(0, 0, 512, 44);
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText('9:41', 24, 28);
+  ctx.textAlign = 'right';
+  ctx.fillText('🔋 96%  |  Wi-Fi 6', 488, 28);
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 19px sans-serif';
+  ctx.fillText('⚡ ESP32-S3 Hardware Pinout', 24, 82);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '13px monospace';
+  ctx.fillText('KiCad 8.0 Companion · Schematics Viewer', 24, 104);
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(20, 124, 472, 380);
+  ctx.strokeStyle = '#334155';
+  ctx.strokeRect(20, 124, 472, 380);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(160, 160, 192, 280);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('ESP32-S3', 256, 280);
+  ctx.font = '12px monospace';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('Xtensa Dual 240MHz', 256, 305);
+  ctx.textAlign = 'left';
+
+  const pins = ['3V3', 'GND', 'IO1 (TX)', 'IO2 (RX)', 'IO10 (SDA)', 'IO11 (SCL)', 'IO14 (PWM)'];
+  pins.forEach((p, i) => {
+    ctx.fillStyle = p.includes('3V3') ? '#ef4444' : p.includes('GND') ? '#64748b' : '#22c55e';
+    ctx.fillRect(36, 170 + i * 36, 95, 24);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(p, 42, 186 + i * 36);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(380, 170 + i * 36, 95, 24);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('ADC_' + (i + 1), 395, 186 + i * 36);
+  });
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(20, 524, 472, 210);
+  ctx.fillStyle = '#22c55e';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText('🎧 Spotify Companion', 40, 558);
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('Resonance (Synthwave)', 40, 595);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('HOME · Odyssey Album', 40, 622);
+
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(40, 650, 432, 6);
+  ctx.fillStyle = '#22c55e';
+  ctx.fillRect(40, 650, 270, 6);
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = '24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⏮   ⏸   ⏭', 256, 705);
+  ctx.textAlign = 'left';
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
 
 function box(w, h, d, mat, x = 0, y = 0, z = 0, castShadow = true) {
@@ -1246,8 +1446,10 @@ export function buildFurnitureMesh(itemData, roomState) {
     case 'tv_wall': {
       group.add(box(0.05, 0.18, 0.24, darkMetal, -w / 2 + 0.025, h / 2, 0));
       group.add(box(0.035, h, d, blackMelamine, 0.02, h / 2, 0));
-      const scrMat = new THREE.MeshBasicMaterial({ map: sharedTvScrTex });
-      group.add(box(0.008, h - 0.035, d - 0.035, scrMat, 0.04, h / 2, 0));
+      const tvMat = new THREE.MeshBasicMaterial({ map: createTVScreenTexture('lofi') });
+      const tvMesh = box(0.008, h - 0.035, d - 0.035, tvMat, 0.04, h / 2, 0);
+      tvMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'tv' };
+      group.add(tvMesh);
       break;
     }
 
@@ -1498,7 +1700,9 @@ export function buildFurnitureMesh(itemData, roomState) {
       }
 
       const barZ = isDual ? -0.06 : 0;
-      group.add(box(0.024, 0.016, 0.42, new THREE.MeshBasicMaterial({ color: 0xfef3c7 }), -0.02, 0.455, barZ));
+      const barMesh = box(0.024, 0.016, 0.42, new THREE.MeshBasicMaterial({ color: 0xfef3c7 }), -0.02, 0.455, barZ);
+      barMesh.userData = { isMonitorLightBarMesh: true };
+      group.add(barMesh);
       group.add(cyl(0.020, 0.020, 0.016, 16, darkMetal, 0.01, 0.010, -0.10));
 
       addLogitechMxKeysMini(group, darkMetal, chromeMat);
@@ -1566,6 +1770,41 @@ export function buildFurnitureMesh(itemData, roomState) {
 
       // 4. Memoria USB Metálica Kingston
       group.add(box(0.028, 0.005, 0.012, chromeMat, 0.015, 0.013, -0.06));
+
+      // 5. Tablet de Ingeniería en Base de Aluminio + Stylus Magnético
+      const tabletGroup = new THREE.Group();
+      tabletGroup.position.set(0.08, 0.004, 0.28);
+      tabletGroup.rotation.y = -0.22;
+
+      // Base y soporte de aluminio espacial
+      const aluMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
+      tabletGroup.add(box(0.11, 0.005, 0.13, aluMat, 0, 0.0025, 0));
+      const aluArm = box(0.02, 0.10, 0.035, aluMat, -0.01, 0.050, 0);
+      aluArm.rotation.x = -0.25;
+      tabletGroup.add(aluArm);
+      const aluPlate = box(0.008, 0.15, 0.11, aluMat, 0.012, 0.10, 0);
+      aluPlate.rotation.z = -0.35;
+      tabletGroup.add(aluPlate);
+
+      // Cuerpo de la Tablet (Gris espacial, bisel fino)
+      const tabletBodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+      const tabletBody = box(0.007, 0.23, 0.16, tabletBodyMat, 0.020, 0.115, 0);
+      tabletBody.rotation.z = -0.35;
+
+      // Pantalla IPS de la Tablet con esquema de KiCad y Spotify
+      const tabletScreenMat = new THREE.MeshBasicMaterial({ map: createTabletScreenTexture() });
+      const tabletScreen = box(0.002, 0.22, 0.152, tabletScreenMat, 0.004, 0, 0);
+      tabletBody.add(tabletScreen);
+
+      // Stylus capacitivo magnético en el borde
+      const stylusMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+      const stylus = cyl(0.0035, 0.0035, 0.15, 12, stylusMat, 0.005, 0.118, 0);
+      stylus.rotation.x = Math.PI / 2;
+      tabletBody.add(stylus);
+
+      tabletGroup.add(tabletBody);
+      tabletGroup.userData = { isSubGadget: 'tablet_companion' };
+      group.add(tabletGroup);
       break;
     }
 

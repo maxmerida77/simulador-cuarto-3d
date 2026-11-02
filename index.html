@@ -222,7 +222,7 @@
                   <span class="outlet-num">2</span>
                   <div class="outlet-desc">
                     <strong>Luz Monitor + Tira LED</strong>
-                    <span class="outlet-spec">24W · Luz focal escritorio</span>
+                    <span class="outlet-spec">22W · Barra Baseus + Tira LED focal</span>
                   </div>
                 </div>
                 <label class="switch">
@@ -236,7 +236,7 @@
                   <span class="outlet-num">3</span>
                   <div class="outlet-desc">
                     <strong>Cargador GaN 100W Laptop TUF</strong>
-                    <span class="outlet-spec">58W · Carga rápida + Celular</span>
+                    <span class="outlet-spec">92W · Laptop Gaming + Celular Carga Rápida</span>
                   </div>
                 </div>
                 <label class="switch">
@@ -250,7 +250,7 @@
                   <span class="outlet-num">4</span>
                   <div class="outlet-desc">
                     <strong>Ventilador USB / Periféricos</strong>
-                    <span class="outlet-spec">12W · Enfriamiento de mesa</span>
+                    <span class="outlet-spec">28W · Enfriamiento de mesa</span>
                   </div>
                 </div>
                 <label class="switch">
@@ -259,6 +259,48 @@
                 </label>
               </div>
             </div>
+          </div>
+
+          <!-- Smart TV Coordinada -->
+          <div class="domo-card">
+            <div class="domo-card-title">
+              <span>📺 Smart TV 43" (Contenido Dinámico)</span>
+            </div>
+            <p class="blind-hint" style="margin-bottom:8px;">Coordinada con tu modo de trabajo o selección manual:</p>
+            <div class="tv-mode-grid">
+              <button class="tv-mode-pill active" data-tv-mode="lofi">🎧 Lo-Fi Radio</button>
+              <button class="tv-mode-pill" data-tv-mode="tech">⚡ YouTube Tech</button>
+              <button class="tv-mode-pill" data-tv-mode="ambient">🖼️ The Frame</button>
+              <button class="tv-mode-pill" data-tv-mode="match">⚽ Fútbol UCL</button>
+              <button class="tv-mode-pill" data-tv-mode="off">🔌 Apagar TV</button>
+            </div>
+          </div>
+
+          <!-- Puerta Inteligente y Sensor Magnético -->
+          <div class="domo-card">
+            <div class="domo-card-title">
+              <span>🚪 Puerta Principal (Sensor Zigbee)</span>
+              <span id="domo-door-badge" class="pct-badge success">🔒 Cerrada</span>
+            </div>
+            <div class="domo-action-row">
+              <button id="btn-toggle-door" class="domo-action-btn">Abrir puerta</button>
+              <span class="sensor-sub-note">Sensor magnético de contacto Tuya/Aqara</span>
+            </div>
+          </div>
+
+          <!-- Sensor de Presencia mmWave (Radar 24GHz) -->
+          <div class="domo-card">
+            <div class="domo-card-title">
+              <span>📡 Radar Humano mmWave (24GHz)</span>
+              <span id="domo-presence-badge" class="pct-badge success">🟢 En escritorio</span>
+            </div>
+            <div class="domo-action-row" style="margin-bottom:8px;">
+              <button id="btn-simulate-presence" class="domo-action-btn">🚶 Simular: Salir del cuarto</button>
+            </div>
+            <label class="mini-toggle-row">
+              <span>⚡ Auto-apagar luces si sales (5 min)</span>
+              <input type="checkbox" id="switch-presence-auto" checked>
+            </label>
           </div>
 
           <!-- Persiana Zebra Motorizada Inteligente -->

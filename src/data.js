@@ -847,6 +847,46 @@ export const SUB_GADGETS_DB = {
       { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' }
     ]
   },
+  tablet_companion: {
+    id: 'tablet_companion',
+    badge: '📱 Companion Screen · Tablet + Stylus',
+    name: 'Tablet de Ingeniería / Pantalla Secundaria',
+    price: '~$4,500 - $7,900 MXN',
+    dims: 'Pantalla 11" 120Hz · Base magnética de aluminio ajustable · Stylus capacitivo',
+    desc: 'Tu tablet colocada en base ergonómica de aluminio junto al teclado. Usada como pantalla táctil complementaria para consultar datasheets de componentes, esquemáticos de KiCad, depuración UART y control multimedia Spotify mientras programas en el monitor principal.',
+    localOffset: [0.06, 0.08, 0.28],
+    cameraPreset: 'desk_front',
+    links: [
+      { label: 'Base de aluminio articulada para Tablet (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=soporte+aluminio+tablet+escritorio' },
+      { label: 'AliExpress: Soporte de escritorio giratorio 360° (~$180)', url: 'https://es.aliexpress.com/w/wholesale-aluminum-tablet-stand-360-desk.html' }
+    ]
+  },
+  mmwave_presence_sensor: {
+    id: 'mmwave_presence_sensor',
+    badge: '📡 Domótica Avanzada · Radar mmWave 24GHz',
+    name: 'Sensor de Presencia Humana Tuya Zigbee 3.0',
+    price: '~$320 MXN (AliExpress)',
+    dims: '6.5 × 6.5 × 2.2 cm · Detección por micromovimiento y respiración',
+    desc: 'A diferencia de los PIR comunes, este radar Doppler de microondas detecta presencia incluso si estás completamente quieto programando o soldando. Automatiza el encendido y apagado de luces y pantallas cuando entras o sales.',
+    localOffset: [0, 2.15, 0],
+    cameraPreset: 'orbit_3d',
+    links: [
+      { label: 'AliExpress: Sensor Presencia Humana mmWave Zigbee (~$320)', url: 'https://es.aliexpress.com/w/wholesale-Tuya-Zigbee-mmWave-human-presence-sensor.html' }
+    ]
+  },
+  door_contact_sensor: {
+    id: 'door_contact_sensor',
+    badge: '🚪 Seguridad & Automatización · Sensor Magnético',
+    name: 'Sensor Magnético de Puerta Zigbee Tuya / Aqara',
+    price: '~$140 MXN (AliExpress)',
+    dims: '4.1 × 2.2 × 1.1 cm con contacto reed switch',
+    desc: 'Registra el estado de la puerta (abierta / cerrada). Envía alertas instantáneas a tu celular y dispara rutinas: por ejemplo, encender la luz de bienvenida al llegar a casa de noche.',
+    localOffset: [-1.15, 1.95, 1.05],
+    cameraPreset: 'orbit_3d',
+    links: [
+      { label: 'AliExpress: Sensor Puerta Ventana Tuya Zigbee (~$140)', url: 'https://es.aliexpress.com/w/wholesale-Tuya-door-sensor-Zigbee.html' }
+    ]
+  },
   monitor_main: {
     id: 'monitor_main',
     badge: '🖥️ Pantalla + Brazo Hidráulico',
