@@ -83,24 +83,27 @@
         <div id="compare-handle" class="compare-handle"><span>⇆</span></div>
       </div>
 
-      <!-- Escenas de luz (arriba izquierda) -->
-      <div class="scene-bar" id="scene-bar"></div>
+      <!-- Controles Superiores Flotantes: Escenas + Flujo + Herramientas -->
+      <div class="viewport-top-dock">
+        <!-- Escenas de luz (izquierda) -->
+        <div class="scene-bar" id="scene-bar"></div>
 
-      <!-- Selector de Flujos de Trabajo en Pantalla (Arriba Centro) -->
-      <div class="workflow-bar" id="workflow-bar">
-        <span class="wf-label">Flujo:</span>
-        <button class="wf-pill active" data-workflow="claude_code" title="Codex / Claude Code CLI con agente autónomo">🤖 Claude Code</button>
-        <button class="wf-pill" data-workflow="pcb_kicad" title="KiCad 8.0 PCB 4 Capas ESP32-S3">⚡ KiCad PCB</button>
-        <button class="wf-pill" data-workflow="control_firmware" title="Control PID y Telemetría PlatformIO C++">📈 Control PID</button>
-      </div>
+        <!-- Selector de Flujos de Trabajo en Pantalla (centro) -->
+        <div class="workflow-bar" id="workflow-bar">
+          <span class="wf-label">Flujo:</span>
+          <button class="wf-pill active" data-workflow="claude_code" title="Codex / Claude Code CLI con agente autónomo">🤖 Claude Code</button>
+          <button class="wf-pill" data-workflow="pcb_kicad" title="KiCad 8.0 PCB 4 Capas ESP32-S3">⚡ KiCad PCB</button>
+          <button class="wf-pill" data-workflow="control_firmware" title="Control PID y Telemetría PlatformIO C++">📈 Control PID</button>
+        </div>
 
-      <!-- Herramientas (arriba derecha) -->
-      <div class="tool-bar">
-        <button id="btn-undo" class="icon-btn" title="Deshacer (Ctrl+Z)" disabled>↶</button>
-        <button id="btn-redo" class="icon-btn" title="Rehacer (Ctrl+Y)" disabled>↷</button>
-        <span class="tool-sep"></span>
-        <button id="btn-compare" class="icon-btn" title="Antes / Después">◐</button>
-        <button id="btn-fullscreen" class="icon-btn" title="Pantalla completa">⛶</button>
+        <!-- Herramientas (derecha) -->
+        <div class="tool-bar">
+          <button id="btn-undo" class="icon-btn" title="Deshacer (Ctrl+Z)" disabled>↶</button>
+          <button id="btn-redo" class="icon-btn" title="Rehacer (Ctrl+Y)" disabled>↷</button>
+          <span class="tool-sep"></span>
+          <button id="btn-compare" class="icon-btn" title="Antes / Después">◐</button>
+          <button id="btn-fullscreen" class="icon-btn" title="Pantalla completa">⛶</button>
+        </div>
       </div>
 
       <!-- Aviso breve -->

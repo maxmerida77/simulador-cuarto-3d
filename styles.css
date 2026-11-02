@@ -463,12 +463,31 @@ body.theater-fullscreen .topbar {
   height: 100% !important;
 }
 
-/* Escenas de luz (arriba izquierda) */
-.scene-bar {
+/* Contenedor Superior Flotante: Escenas + Flujo + Herramientas */
+.viewport-top-dock {
   position: absolute;
   top: 10px;
   left: 10px;
+  right: 10px;
   z-index: 12;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.viewport-top-dock > * {
+  pointer-events: auto;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+}
+
+/* Escenas de luz (izquierda) */
+.scene-bar {
   display: flex;
   gap: 3px;
   padding: 3px;
@@ -476,6 +495,7 @@ body.theater-fullscreen .topbar {
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
   border-radius: 11px;
+  flex-shrink: 0;
 }
 
 .scene-btn {
@@ -512,13 +532,8 @@ body.theater-fullscreen .topbar {
   display: inline;
 }
 
-/* Selector de Flujos de Trabajo en Pantalla (Arriba Centro) */
+/* Selector de Flujos de Trabajo en Pantalla */
 .workflow-bar {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 12;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -527,6 +542,7 @@ body.theater-fullscreen .topbar {
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: 11px;
+  flex-shrink: 0;
 }
 
 .wf-label {
@@ -567,23 +583,24 @@ body.theater-fullscreen .topbar {
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
 }
 
-@media (max-width: 920px) {
-  .workflow-bar {
-    top: 48px;
-    left: 10px;
-    transform: none;
-  }
-}
-
-/* Herramientas (arriba derecha) */
+/* Herramientas (derecha) */
 .tool-bar {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 12;
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-shrink: 0;
+}
+
+/* Responsivo para evitar encimamientos */
+@media (max-width: 1280px) {
+  .viewport-top-dock {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .workflow-bar {
+    order: 3;
+    margin-top: 4px;
+  }
 }
 
 .tool-sep {
