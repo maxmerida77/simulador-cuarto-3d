@@ -477,8 +477,61 @@ export const LED_COLORS = [
   { id: 'warm_amber', name: 'Cálido 3000K (Estudio)', hex: 0xfbbf24, css: '#fbbf24' },
   { id: 'ice_blue', name: 'Azul Cian (Vibecoding)', hex: 0x38bdf8, css: '#38bdf8' },
   { id: 'pure_white', name: 'Blanco Neutro 4500K', hex: 0xf8fafc, css: '#f8fafc' },
-  { id: 'pitch_green', name: 'Verde Cancha', hex: 0x22c55e, css: '#22c55e' }
+  { id: 'pitch_green', name: 'Verde Cancha', hex: 0x22c55e, css: '#22c55e' },
+  { id: 'team_blue', name: 'Azul Afición', hex: 0x2563eb, css: '#2563eb' }
 ];
+
+// ============================================================================
+// ETIQUETAS CORTAS PARA LA INTERFAZ MINIMALISTA
+// (el texto largo solo aparece al abrir la ficha / botón ⓘ)
+// ============================================================================
+export const UI_LABELS = {
+  zones: {
+    vibecoding_zone: { icon: '💻', short: 'Setup' },
+    engineer_pegboard_zone: { icon: '🛠️', short: 'Lab y panel' },
+    shelves_zone: { icon: '📚', short: 'Repisas' },
+    lighting_zone: { icon: '💡', short: 'Luces' },
+    soccer_zone: { icon: '⚽', short: 'Fútbol' },
+    storage_underbed_door_zone: { icon: '📦', short: 'Guardado' }
+  },
+  options: {
+    none: 'Nada (actual)',
+    vibe_27_mx: 'Monitor 27"',
+    vibe_dual_vertical: 'Doble monitor',
+    vibe_34_ultra: 'Ultrawide 34"',
+    eng_yolispa_lab: 'Panel + kit soldar',
+    eng_skadis_ugreen: 'Panel doble + ZOYI',
+    eng_alex_full: 'Cajonera + silla',
+    sh_lack_black: 'LACK negra',
+    sh_duo_ledge: '2 con borde',
+    sh_walnut_led: 'Nogal + LED',
+    light_xiaomi_govee: 'Barra monitor + tira',
+    light_bunk_ceiling: 'LED litera + plafón',
+    light_full_domotica: 'Domótica completa',
+    soc_frame_ball: '2 bufandas + aros',
+    soc_shelf_pro: 'Bufandas + repisa',
+    soc_vip: '3 bufandas LED',
+    st_skubb_basic: 'Estuches SKUBB',
+    st_vard_trones: 'Cajones + TRONES',
+    st_pullout_cab: 'Zapatera + gabinete'
+  },
+  combos: {
+    actual: 'Hoy',
+    ingeniero_esencial: 'Esencial',
+    vibecoding_dual: 'Dual',
+    studio_full_vip: 'Pro'
+  }
+};
+
+// ============================================================================
+// ESCENAS DE LUZ (DOMÓTICA SIMULADA) — 1 clic cambia todo el ambiente
+// ============================================================================
+export const LIGHT_SCENES = {
+  normal: { id: 'normal', icon: '☀️', name: 'Normal', led: null },
+  code: { id: 'code', icon: '💻', name: 'Programar', led: 'ice_blue' },
+  match: { id: 'match', icon: '⚽', name: 'Partido', led: 'team_blue' },
+  sleep: { id: 'sleep', icon: '🌙', name: 'Dormir', led: 'warm_amber' }
+};
 
 export const CATALOG = {
   l_desk: { type: 'l_desk', name: 'Escritorio en L Negro', w: 1.12, d: 1.32, h: 0.75 },

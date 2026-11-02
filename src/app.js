@@ -12,6 +12,8 @@ import {
   QUICK_COMBOS,
   SUB_GADGETS_DB,
   ITEM_INSPECTOR_DB,
+  UI_LABELS,
+  LIGHT_SCENES,
   detectSubGadgetFromHit
 } from './data.js';
 import {
@@ -21,28 +23,51 @@ import {
   buildFurnitureMesh
 } from './models.js';
 
+const HISTORY_LIMIT = 60;
+
+const CAMERA_PRESETS = {
+  orbit_3d:      { pos: [-0.15, 2.22, 2.50],  target: [0, 0.82, -0.10],      fov: 50, wallMode: 'auto' },
+  desk_front:    { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
+  desk_corner:   { pos: [-0.40, 1.10, -0.76], target: [-0.92, 0.96, -1.25],  fov: 36, wallMode: 'full' },
+  desk_lab:      { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
+  desk_pegboard: { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
+  zoom_desk:     { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
+  zoom_lab:      { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
+  zoom_shelves:  { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
+  zoom_underbed: { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
+  zoom_soccer:   { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
+  top_2d:        { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
+};
+
+const fmtPrice = (n) => `$${n.toLocaleString('es-MX')}`;
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
 class RoomSimulatorApp {
   constructor() {
-    this.room = JSON.parse(JSON.stringify(DEFAULT_ROOM));
+    this.room = clone(DEFAULT_ROOM);
     this.activeComboId = 'ingeniero_esencial';
     this.drawerOpen = true;
     this.isTheaterFullscreen = false;
 
-    this.selectedZones = {
-      vibecoding_zone: 'vibe_27_mx',
-      engineer_pegboard_zone: 'eng_yolispa_lab',
-      shelves_zone: 'sh_lack_black',
-      lighting_zone: 'light_xiaomi_govee',
-      soccer_zone: 'soc_frame_ball',
-      storage_underbed_door_zone: 'st_skubb_basic'
-    };
-
+    this.selectedZones = {};
     this.items = [];
     this.selectedId = null;
     this.selectedSubGadgetId = null;
     this.lightingMode = 'warm_minimal';
 
-    // Navegación y animación suave de cámara (Fly-To)
+    // Escena de luz activa (domótica simulada)
+    this.lightScene = 'normal';
+
+    // Deshacer / Rehacer
+    this.undoStack = [];
+    this.redoStack = [];
+
+    // Antes / Después
+    this.compareMode = false;
+    this.compareSplit = 0.5;
+    this.beforeBuilt = false;
+
+    // Navegación
     this.navMode = 'orbit';
     this.camAnim = null;
     this.walkYaw = -3.05;
@@ -59,22 +84,47 @@ class RoomSimulatorApp {
     this.pointer = new THREE.Vector2();
     this.pointerDownPos = new THREE.Vector2();
 
-    // Grupos Three.js
+    // Grupos "Después" (estado actual configurable)
     this.furnitureMeshes = new Map();
     this.wallGroups = {};
+    this.ceilingMesh = null;
     this.architectureGroup = new THREE.Group();
     this.furnitureGroup = new THREE.Group();
     this.lightsGroup = new THREE.Group();
     this.selectionGroup = new THREE.Group();
 
+    // Grupo "Antes" (tu cuarto según las fotos)
+    this.beforeRoot = new THREE.Group();
+    this.beforeRoot.visible = false;
+    this.beforeArch = new THREE.Group();
+    this.beforeLights = new THREE.Group();
+    this.beforeFurniture = new THREE.Group();
+    this.beforeRoot.add(this.beforeArch, this.beforeLights, this.beforeFurniture);
+    this.beforeWallGroups = {};
+    this.beforeCeiling = null;
+    this.beforeFurnitureMeshes = new Map();
+
     this.initScene();
-    this.applyCombo('ingeniero_esencial');
+    this.applyCombo('ingeniero_esencial', { record: false });
     this.setupInteraction();
-    this.setupWalkControls();
+    this.setupKeyboard();
     this.initUI();
+    this.applyUrlParams();
     this.animate();
   }
 
+  // Permite abrir directo una escena / vista: ?scene=match&compare=1&cam=desk_front
+  applyUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('scene') && LIGHT_SCENES[params.get('scene')]) this.setLightScene(params.get('scene'));
+    if (params.get('cam')) this.setCameraPreset(params.get('cam'));
+    if (params.get('compare') === '1') this.toggleCompare(true);
+    if (params.get('menu') === '0') this.toggleDrawer(false);
+  }
+
+  // ==========================================================================
+  // ESCENA / RENDER
+  // ==========================================================================
   initScene() {
     this.container = document.getElementById('viewport-container');
     const w = this.container.clientWidth || window.innerWidth;
@@ -82,16 +132,14 @@ class RoomSimulatorApp {
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0b0e14);
-    // Mapa de entorno PBR Studio para reflejos realistas en metales, pantallas, cristal y madera
     this.scene.environment = createStudioEnvironment();
 
-    // near = 0.02 permite hacer zoom extremo a 12 cm de cualquier gadget sin recortar geometría
     this.camera = new THREE.PerspectiveCamera(50, w / h, 0.02, 35);
-    this.camera.position.set(-0.15, 2.25, 2.55);
+    this.camera.position.set(...CAMERA_PRESETS.orbit_3d.pos);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setSize(w, h, false);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -101,125 +149,66 @@ class RoomSimulatorApp {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
-    this.controls.target.set(0, 0.82, -0.10);
+    this.controls.target.set(...CAMERA_PRESETS.orbit_3d.target);
     this.controls.maxPolarAngle = Math.PI * 0.495;
     this.controls.minDistance = 0.12;
     this.controls.maxDistance = 8.0;
+    this.controls.addEventListener('start', () => { this.camAnim = null; });
 
-    // Cancelar animación automática si el usuario mueve el mouse manualmente
-    this.controls.addEventListener('start', () => {
-      this.camAnim = null;
-    });
-
-    this.scene.add(this.architectureGroup);
-    this.scene.add(this.furnitureGroup);
-    this.scene.add(this.lightsGroup);
-    this.scene.add(this.selectionGroup);
+    this.scene.add(this.architectureGroup, this.furnitureGroup, this.lightsGroup, this.selectionGroup, this.beforeRoot);
 
     window.addEventListener('resize', () => this.onResize());
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => this.onResize());
-      this.resizeObserver.observe(this.container);
+      new ResizeObserver(() => this.onResize()).observe(this.container);
     }
   }
 
   onResize() {
     if (!this.container || !this.renderer || !this.camera) return;
     const rect = this.container.getBoundingClientRect();
-    const w = Math.floor(rect.width) || this.container.clientWidth || window.innerWidth;
-    const h = Math.floor(rect.height) || this.container.clientHeight || window.innerHeight;
+    const w = Math.floor(rect.width);
+    const h = Math.floor(rect.height);
     if (w <= 10 || h <= 10) return;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);
   }
 
-  toggleDrawer(forceState) {
-    this.drawerOpen = typeof forceState === 'boolean' ? forceState : !this.drawerOpen;
-    const layout = document.getElementById('main-layout');
-    if (layout) {
-      layout.classList.toggle('drawer-closed', !this.drawerOpen);
-    }
-    const floatBtn = document.getElementById('btn-toggle-drawer-float');
-    if (floatBtn) {
-      floatBtn.textContent = this.drawerOpen
-        ? '☰ Ocultar Catálogo'
-        : '☰ Abrir Catálogo';
-    }
-    const topBtn = document.getElementById('btn-toggle-drawer-top');
-    if (topBtn) {
-      topBtn.textContent = this.drawerOpen
-        ? '☰ Catálogo'
-        : '☰ Abrir Catálogo';
-    }
-    requestAnimationFrame(() => this.onResize());
-    setTimeout(() => this.onResize(), 60);
-    setTimeout(() => this.onResize(), 200);
+  // Estado del cuarto con el color LED de la escena aplicado
+  getRenderRoom() {
+    const sc = LIGHT_SCENES[this.lightScene] || LIGHT_SCENES.normal;
+    return { ...this.room, ledColorMode: sc.led || this.room.ledColorMode };
   }
 
-  toggleFullscreen() {
-    const fsBtn = document.getElementById('btn-fullscreen');
-    const isNativeFs = !!document.fullscreenElement;
-
-    if (!isNativeFs && !this.isTheaterFullscreen) {
-      this.isTheaterFullscreen = true;
-      document.body.classList.add('theater-fullscreen');
-      this.toggleDrawer(false);
-
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-      if (fsBtn) fsBtn.textContent = '✕ Salir Pantalla Completa';
-    } else {
-      this.isTheaterFullscreen = false;
-      document.body.classList.remove('theater-fullscreen');
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      }
-      this.toggleDrawer(true);
-      if (fsBtn) fsBtn.textContent = '⛶ Pantalla Completa';
-    }
-    requestAnimationFrame(() => this.onResize());
-    setTimeout(() => this.onResize(), 60);
-    setTimeout(() => this.onResize(), 220);
-  }
-
+  // ==========================================================================
+  // ESTADO: ZONAS, COMBOS, HISTORIAL
+  // ==========================================================================
   rebuildSceneFromZones() {
     let replaceChair = false;
     this.lightingMode = 'current_bulb';
+    const spawned = [];
 
-    const spawnedUpgrades = [];
     PRODUCT_ZONES.forEach(zone => {
-      const chosenOptId = this.selectedZones[zone.id] || 'none';
-      const opt = zone.options.find(o => o.id === chosenOptId);
+      const opt = zone.options.find(o => o.id === (this.selectedZones[zone.id] || 'none'));
       if (!opt) return;
       if (opt.replaceChair) replaceChair = true;
       if (opt.lightingMode) this.lightingMode = opt.lightingMode;
-      if (opt.spawnItems && opt.spawnItems.length > 0) {
-        opt.spawnItems.forEach(sp => {
-          spawnedUpgrades.push(JSON.parse(JSON.stringify(sp)));
-        });
-      }
+      (opt.spawnItems || []).forEach(sp => spawned.push(clone(sp)));
     });
 
-    const baseItems = JSON.parse(JSON.stringify(BASE_ROOM_ITEMS)).filter(it => {
-      if (replaceChair && it.type === 'current_chair') return false;
-      return true;
-    });
+    const baseItems = clone(BASE_ROOM_ITEMS).filter(it => !(replaceChair && it.type === 'current_chair'));
+    const clutterItems = this.room.showClutter ? clone(CLUTTER_ROOM_ITEMS) : [];
 
-    const clutterItems = this.room.showClutter
-      ? JSON.parse(JSON.stringify(CLUTTER_ROOM_ITEMS))
-      : [];
-
-    this.items = [...baseItems, ...clutterItems, ...spawnedUpgrades];
+    this.items = [...baseItems, ...clutterItems, ...spawned];
     this.buildArchitecture();
     this.rebuildFurnitureMeshes();
     this.updateBudgetUI();
   }
 
-  applyCombo(comboId) {
+  applyCombo(comboId, { record = true } = {}) {
     const combo = QUICK_COMBOS[comboId];
     if (!combo) return;
+    if (record) this.pushHistory();
     this.activeComboId = comboId;
     this.room.showClutter = combo.showClutter;
     this.room.beddingTheme = combo.beddingTheme;
@@ -231,13 +220,14 @@ class RoomSimulatorApp {
     this.room.accentWall = pal.accentWall;
 
     this.selectedZones = { ...combo.zones };
-    this.selectedId = null;
-
+    this.clearSelection();
     this.rebuildSceneFromZones();
     this.syncUIState();
   }
 
   selectZoneOption(zoneId, optionId) {
+    if (this.selectedZones[zoneId] === optionId) return;
+    this.pushHistory();
     this.activeComboId = 'custom';
     this.selectedZones[zoneId] = optionId;
     if (optionId !== 'none' && (zoneId === 'storage_underbed_door_zone' || zoneId === 'soccer_zone')) {
@@ -247,55 +237,123 @@ class RoomSimulatorApp {
     this.syncUIState();
   }
 
-  buildArchitecture() {
-    while (this.architectureGroup.children.length > 0) {
-      this.architectureGroup.remove(this.architectureGroup.children[0]);
-    }
-    while (this.lightsGroup.children.length > 0) {
-      this.lightsGroup.remove(this.lightsGroup.children[0]);
-    }
+  snapshot() {
+    return {
+      items: clone(this.items),
+      selectedZones: { ...this.selectedZones },
+      room: clone(this.room),
+      activeComboId: this.activeComboId,
+      lightingMode: this.lightingMode
+    };
+  }
 
-    const { width: W, depth: D, height: H } = this.room;
+  restore(snap) {
+    this.items = clone(snap.items);
+    this.selectedZones = { ...snap.selectedZones };
+    this.room = clone(snap.room);
+    this.activeComboId = snap.activeComboId;
+    this.lightingMode = snap.lightingMode;
+    if (this.selectedId && !this.items.find(i => i.id === this.selectedId)) {
+      this.selectedId = null;
+      this.selectedSubGadgetId = null;
+    }
+    this.buildArchitecture();
+    this.rebuildFurnitureMeshes();
+    this.updateBudgetUI();
+    this.syncUIState();
+  }
+
+  pushHistory() {
+    this.undoStack.push(this.snapshot());
+    if (this.undoStack.length > HISTORY_LIMIT) this.undoStack.shift();
+    this.redoStack = [];
+    this.updateHistoryButtons();
+  }
+
+  undo() {
+    if (!this.undoStack.length) return;
+    this.redoStack.push(this.snapshot());
+    this.restore(this.undoStack.pop());
+    this.updateHistoryButtons();
+    this.showToast('↶ Cambio deshecho');
+  }
+
+  redo() {
+    if (!this.redoStack.length) return;
+    this.undoStack.push(this.snapshot());
+    this.restore(this.redoStack.pop());
+    this.updateHistoryButtons();
+    this.showToast('↷ Cambio rehecho');
+  }
+
+  updateHistoryButtons() {
+    const u = document.getElementById('btn-undo');
+    const r = document.getElementById('btn-redo');
+    if (u) {
+      u.disabled = this.undoStack.length === 0;
+      u.title = `Deshacer (Ctrl+Z)${this.undoStack.length ? ` · ${this.undoStack.length}` : ''}`;
+    }
+    if (r) r.disabled = this.redoStack.length === 0;
+  }
+
+  showToast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => t.classList.add('hidden'), 1400);
+  }
+
+  // ==========================================================================
+  // ARQUITECTURA E ILUMINACIÓN (reutilizable para "Antes" y "Después")
+  // ==========================================================================
+  buildArchitecture() {
+    const res = this.buildArchitectureInto(
+      this.architectureGroup, this.lightsGroup, this.getRenderRoom(), this.lightingMode, this.lightScene
+    );
+    this.wallGroups = res.wallGroups;
+    this.ceilingMesh = res.ceilingMesh;
+    this.renderer.toneMappingExposure = this.lightScene === 'sleep' ? 1.0 : 1.18;
+  }
+
+  buildArchitectureInto(archGroup, lightsGroup, roomState, lightingMode, sceneId) {
+    archGroup.clear();
+    lightsGroup.clear();
+
+    const { width: W, depth: D, height: H } = roomState;
     const wallT = 0.075;
 
-    const floorTex = createFloorTexture(this.room.floorType);
     const floorMat = new THREE.MeshStandardMaterial({
-      map: floorTex,
-      roughness: 0.36,
-      metalness: 0.10
+      map: createFloorTexture(roomState.floorType), roughness: 0.36, metalness: 0.10
     });
     const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(W + wallT * 2, 0.06, D + wallT * 2), floorMat);
     floorMesh.position.set(0, -0.03, 0);
     floorMesh.receiveShadow = true;
-    this.architectureGroup.add(floorMesh);
+    archGroup.add(floorMesh);
 
-    const getWallMat = (side) => {
-      const isAccent = this.room.accentWall === side;
-      const col = isAccent ? this.room.accentColor : this.room.wallColor;
-      return new THREE.MeshStandardMaterial({
-        color: new THREE.Color(col),
-        roughness: 0.72,
-        metalness: 0.03
-      });
-    };
-
+    const getWallMat = (side) => new THREE.MeshStandardMaterial({
+      color: new THREE.Color(roomState.accentWall === side ? roomState.accentColor : roomState.wallColor),
+      roughness: 0.72,
+      metalness: 0.03
+    });
     const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x1e2128, roughness: 0.45 });
 
-    this.wallGroups = {
+    const wallGroups = {
       north: new THREE.Group(),
       south: new THREE.Group(),
       west: new THREE.Group(),
       east: new THREE.Group()
     };
 
-    // --- PARED NORTE (Ventana a la izq + Clóset a la der) ---
+    // Pared Norte (ventana + clóset)
     const northWall = new THREE.Mesh(new THREE.BoxGeometry(W + wallT * 2, H, wallT), getWallMat('north'));
     northWall.position.set(0, H / 2, -D / 2 - wallT / 2);
     northWall.receiveShadow = true;
-    this.wallGroups.north.add(northWall);
+    wallGroups.north.add(northWall);
     const northBase = new THREE.Mesh(new THREE.BoxGeometry(W, 0.07, 0.015), baseboardMat);
     northBase.position.set(0, 0.035, -D / 2 + 0.008);
-    this.wallGroups.north.add(northBase);
+    wallGroups.north.add(northBase);
 
     const winW = 1.08;
     const winH = 1.26;
@@ -305,33 +363,33 @@ class RoomSimulatorApp {
     const blindMat = new THREE.MeshStandardMaterial({
       map: createZebraBlindTexture(),
       roughness: 0.50,
-      emissive: new THREE.Color(0x1e293b),
+      emissive: new THREE.Color(sceneId === 'sleep' ? 0x0b1530 : 0x1e293b),
       emissiveIntensity: 0.12
     });
     const headRail = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.04, 0.065, 0.065), frameMat);
     headRail.position.set(winX, winY + winH / 2 + 0.02, -D / 2 + 0.03);
-    this.wallGroups.north.add(headRail);
+    wallGroups.north.add(headRail);
     const blindMesh = new THREE.Mesh(new THREE.BoxGeometry(winW, winH, 0.02), blindMat);
     blindMesh.position.set(winX, winY, -D / 2 + 0.015);
-    this.wallGroups.north.add(blindMesh);
+    wallGroups.north.add(blindMesh);
 
-    // --- PARED SUR (Puerta a la izq, Mueble/Jersey al centro, Pie Literas a la der) ---
+    // Pared Sur
     const southWall = new THREE.Mesh(new THREE.BoxGeometry(W + wallT * 2, H, wallT), getWallMat('south'));
     southWall.position.set(0, H / 2, D / 2 + wallT / 2);
     southWall.receiveShadow = true;
-    this.wallGroups.south.add(southWall);
+    wallGroups.south.add(southWall);
     const southBase = new THREE.Mesh(new THREE.BoxGeometry(W, 0.07, 0.015), baseboardMat);
     southBase.position.set(0, 0.035, D / 2 - 0.008);
-    this.wallGroups.south.add(southBase);
+    wallGroups.south.add(southBase);
 
-    // --- PARED OESTE (TV + Escritorio + Panel Yolispa + Mueble Espejo + Puerta) ---
+    // Pared Oeste (TV, escritorio, espejo, puerta)
     const westWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, H, D), getWallMat('west'));
     westWall.position.set(-W / 2 - wallT / 2, H / 2, 0);
     westWall.receiveShadow = true;
-    this.wallGroups.west.add(westWall);
+    wallGroups.west.add(westWall);
     const westBase = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.07, D - 0.85), baseboardMat);
     westBase.position.set(-W / 2 + 0.008, 0.035, -0.42);
-    this.wallGroups.west.add(westBase);
+    wallGroups.west.add(westBase);
 
     const doorW = 0.80;
     const doorH = 2.04;
@@ -340,7 +398,7 @@ class RoomSimulatorApp {
     const doorCenterZ = D / 2 - doorW / 2 - 0.04;
     const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.02, doorH, doorW), doorFrameMat);
     doorFrame.position.set(-W / 2 + 0.01, doorH / 2, doorCenterZ);
-    this.wallGroups.west.add(doorFrame);
+    wallGroups.west.add(doorFrame);
 
     const doorPivot = new THREE.Group();
     doorPivot.position.set(-W / 2 + 0.02, 0, D / 2 - 0.04);
@@ -355,40 +413,59 @@ class RoomSimulatorApp {
     );
     handle.position.set(0.03, 0.96, -doorW + 0.09);
     doorPivot.add(handle);
-    this.wallGroups.west.add(doorPivot);
+    wallGroups.west.add(doorPivot);
 
-    // --- PARED ESTE (Costado Clóset + Literas) ---
+    // Pared Este (literas)
     const eastWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, H, D), getWallMat('east'));
     eastWall.position.set(W / 2 + wallT / 2, H / 2, 0);
     eastWall.receiveShadow = true;
-    this.wallGroups.east.add(eastWall);
+    wallGroups.east.add(eastWall);
     const eastBase = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.07, D), baseboardMat);
     eastBase.position.set(W / 2 - 0.008, 0.035, 0);
-    this.wallGroups.east.add(eastBase);
+    wallGroups.east.add(eastBase);
 
-    Object.values(this.wallGroups).forEach(g => this.architectureGroup.add(g));
+    Object.values(wallGroups).forEach(g => archGroup.add(g));
 
-    this.ceilingMesh = new THREE.Mesh(
+    const ceilingMesh = new THREE.Mesh(
       new THREE.BoxGeometry(W + wallT * 2, 0.05, D + wallT * 2),
       new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.85 })
     );
-    this.ceilingMesh.position.set(0, H + 0.025, 0);
-    this.architectureGroup.add(this.ceilingMesh);
+    ceilingMesh.position.set(0, H + 0.025, 0);
+    archGroup.add(ceilingMesh);
 
-    this.buildLighting(W, D, H);
+    this.buildLightingInto(lightsGroup, roomState, lightingMode, sceneId);
+    return { wallGroups, ceilingMesh };
   }
 
-  buildLighting(W, D, H) {
-    const mode = this.lightingMode;
-    const ledObj = LED_COLORS.find(l => l.id === this.room.ledColorMode) || LED_COLORS[0];
+  buildLightingInto(lightsGroup, roomState, lightingMode, sceneId) {
+    const { width: W, depth: D, height: H } = roomState;
+    const mode = lightingMode;
+    const ledObj = LED_COLORS.find(l => l.id === roomState.ledColorMode) || LED_COLORS[0];
 
-    const ambIntensity = mode === 'setup_night' ? 0.55 : mode === 'warm_minimal' ? 0.75 : 0.85;
-    this.lightsGroup.add(new THREE.AmbientLight(0xffffff, ambIntensity));
+    // Valores base según la iluminación elegida en el catálogo
+    let ambI = mode === 'setup_night' ? 0.55 : mode === 'warm_minimal' ? 0.75 : 0.85;
+    let hemiI = 0.65;
+    let mainColor = mode === 'current_bulb' ? 0xf8fafc : mode === 'warm_minimal' ? 0xffedd5 : 0xe0f2fe;
+    let mainI = mode === 'setup_night' ? 0.90 : 2.0;
+    let winColor = 0xfef3c7;
+    let winI = 0.50;
 
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x334155, 0.65);
+    // Ajustes por escena de luz
+    if (sceneId === 'code') {
+      ambI = 0.50; hemiI = 0.40; mainColor = 0xe0f2fe; mainI = 0.95; winI = 0.18;
+    } else if (sceneId === 'match') {
+      ambI = 0.28; hemiI = 0.22; mainColor = 0xffedd5; mainI = 0.30; winI = 0.04;
+    } else if (sceneId === 'sleep') {
+      ambI = 0.10; hemiI = 0.07; mainI = 0; winColor = 0x93c5fd; winI = 0.16;
+    }
+
+    lightsGroup.add(new THREE.AmbientLight(0xffffff, ambI));
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x334155, hemiI);
     hemi.position.set(0, H, 0);
-    this.lightsGroup.add(hemi);
+    lightsGroup.add(hemi);
 
+    // Lámpara de techo (se ve apagada si la escena la apaga)
+    const fixtureOn = mainI > 0.05;
     const ceilingFixture = new THREE.Group();
     ceilingFixture.position.set(0, H, 0);
     if (mode === 'current_bulb') {
@@ -401,7 +478,7 @@ class RoomSimulatorApp {
       ceilingFixture.add(cord);
       const bulb = new THREE.Mesh(
         new THREE.SphereGeometry(0.045, 16, 16),
-        new THREE.MeshBasicMaterial({ color: 0xffffff })
+        new THREE.MeshBasicMaterial({ color: fixtureOn ? 0xffffff : 0x3a3f48 })
       );
       bulb.position.y = -0.17;
       ceilingFixture.add(bulb);
@@ -414,38 +491,59 @@ class RoomSimulatorApp {
       ceilingFixture.add(rim);
       const diffuser = new THREE.Mesh(
         new THREE.CylinderGeometry(0.19, 0.19, 0.032, 28),
-        new THREE.MeshBasicMaterial({ color: mode === 'setup_night' ? ledObj.hex : 0xfff7ed })
+        new THREE.MeshBasicMaterial({ color: !fixtureOn ? 0x2a2e36 : mode === 'setup_night' ? ledObj.hex : 0xfff7ed })
       );
       diffuser.position.y = -0.016;
       ceilingFixture.add(diffuser);
     }
-    this.lightsGroup.add(ceilingFixture);
+    lightsGroup.add(ceilingFixture);
 
-    const mainLightColor = mode === 'current_bulb' ? 0xf8fafc : mode === 'warm_minimal' ? 0xffedd5 : 0xe0f2fe;
-    const mainLightIntensity = mode === 'setup_night' ? 0.90 : 2.0;
-    const mainLight = new THREE.PointLight(mainLightColor, mainLightIntensity, 7.5, 1.2);
+    const mainLight = new THREE.PointLight(mainColor, mainI, 7.5, 1.2);
     mainLight.position.set(0, H - 0.22, 0);
-    mainLight.castShadow = true;
-    mainLight.shadow.mapSize.width = 1024;
-    mainLight.shadow.mapSize.height = 1024;
+    mainLight.castShadow = fixtureOn;
+    mainLight.shadow.mapSize.set(1024, 1024);
     mainLight.shadow.bias = -0.0015;
-    this.lightsGroup.add(mainLight);
+    lightsGroup.add(mainLight);
 
-    const winLight = new THREE.DirectionalLight(0xfef3c7, 0.50);
+    const winLight = new THREE.DirectionalLight(winColor, winI);
     winLight.position.set(-0.5, 1.8, -D / 2 - 0.8);
-    this.lightsGroup.add(winLight);
+    lightsGroup.add(winLight);
+
+    // Luces extra de cada escena
+    if (sceneId === 'code') {
+      // Barra de luz del monitor iluminando teclado y escritorio
+      const deskLight = new THREE.PointLight(0xf1f5ff, 1.1, 1.4, 1.6);
+      deskLight.position.set(-0.86, 1.28, -0.66);
+      lightsGroup.add(deskLight);
+    } else if (sceneId === 'match') {
+      // Resplandor de la TV con el partido + LED de afición
+      const tvGlow = new THREE.PointLight(0x9fd3ff, 1.5, 2.0, 1.5);
+      tvGlow.position.set(-0.92, 1.64, -0.98);
+      lightsGroup.add(tvGlow);
+      const fanGlow = new THREE.PointLight(ledObj.hex, 1.2, 2.6, 1.4);
+      fanGlow.position.set(0.20, 1.95, 0.48);
+      lightsGroup.add(fanGlow);
+    } else if (sceneId === 'sleep') {
+      // Luz tenue cálida bajo la litera superior
+      const nightLight = new THREE.PointLight(0xffb347, 0.45, 1.5, 1.6);
+      nightLight.position.set(0.62, 1.14, 0.48);
+      lightsGroup.add(nightLight);
+    }
   }
 
+  // ==========================================================================
+  // MUEBLES
+  // ==========================================================================
   rebuildFurnitureMeshes() {
-    while (this.furnitureGroup.children.length > 0) {
-      this.furnitureGroup.remove(this.furnitureGroup.children[0]);
-    }
+    this.furnitureGroup.clear();
     this.furnitureMeshes.clear();
+    const roomState = this.getRenderRoom();
 
     this.items.forEach(item => {
-      const mesh = buildFurnitureMesh(item, this.room);
+      const mesh = buildFurnitureMesh(item, roomState);
       mesh.position.set(item.x, item.elevation || 0, item.z);
       mesh.rotation.y = item.rotY || 0;
+      this.applySceneToMesh(mesh);
       this.furnitureGroup.add(mesh);
       this.furnitureMeshes.set(item.id, mesh);
     });
@@ -453,192 +551,260 @@ class RoomSimulatorApp {
     this.updateSelectionHighlight();
   }
 
+  // Apaga pantallas al dormir y ajusta intensidad de las tiras LED según la escena
+  applySceneToMesh(mesh) {
+    const sc = this.lightScene;
+    if (sc === 'normal') return;
+    const ledFactor = sc === 'sleep' ? 0.35 : sc === 'match' ? 1.35 : 1.0;
+    mesh.traverse(obj => {
+      if (obj.isPointLight) obj.intensity *= ledFactor;
+      if (sc === 'sleep' && obj.isMesh && obj.material && obj.material.isMeshBasicMaterial && obj.material.map) {
+        obj.material.color.setHex(0x0c0d10);
+      }
+    });
+  }
+
+  setLightScene(sceneId) {
+    if (!LIGHT_SCENES[sceneId]) return;
+    this.lightScene = sceneId;
+    this.buildArchitecture();
+    this.rebuildFurnitureMeshes();
+    document.querySelectorAll('.scene-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.scene === sceneId);
+    });
+    this.showToast(`${LIGHT_SCENES[sceneId].icon} Escena: ${LIGHT_SCENES[sceneId].name}`);
+  }
+
+  // ==========================================================================
+  // ANTES / DESPUÉS
+  // ==========================================================================
+  buildBeforeState() {
+    const actual = QUICK_COMBOS.actual;
+    const pal = WALL_PALETTES.find(p => p.id === actual.wallPalette) || WALL_PALETTES[0];
+    const beforeRoom = {
+      ...clone(DEFAULT_ROOM),
+      showClutter: true,
+      beddingTheme: actual.beddingTheme,
+      ledColorMode: actual.ledColorMode,
+      wallColor: pal.wall,
+      accentColor: pal.accent,
+      accentWall: pal.accentWall,
+      floorType: 'dark_wood_tile'
+    };
+
+    const res = this.buildArchitectureInto(this.beforeArch, this.beforeLights, beforeRoom, 'current_bulb', 'normal');
+    this.beforeWallGroups = res.wallGroups;
+    this.beforeCeiling = res.ceilingMesh;
+
+    this.beforeFurniture.clear();
+    this.beforeFurnitureMeshes.clear();
+    [...clone(BASE_ROOM_ITEMS), ...clone(CLUTTER_ROOM_ITEMS)].forEach(item => {
+      const mesh = buildFurnitureMesh(item, beforeRoom);
+      mesh.position.set(item.x, item.elevation || 0, item.z);
+      mesh.rotation.y = item.rotY || 0;
+      this.beforeFurniture.add(mesh);
+      this.beforeFurnitureMeshes.set(item.id, mesh);
+    });
+    this.beforeBuilt = true;
+  }
+
+  toggleCompare(force) {
+    this.compareMode = typeof force === 'boolean' ? force : !this.compareMode;
+    if (this.compareMode && !this.beforeBuilt) this.buildBeforeState();
+    document.getElementById('compare-overlay')?.classList.toggle('hidden', !this.compareMode);
+    document.getElementById('btn-compare')?.classList.toggle('active', this.compareMode);
+    this.updateCompareHandle();
+    if (this.compareMode) this.showToast('◐ Desliza la barra para comparar');
+  }
+
+  updateCompareHandle() {
+    const handle = document.getElementById('compare-handle');
+    if (handle) handle.style.left = `${this.compareSplit * 100}%`;
+  }
+
+  setAfterVisible(v) {
+    this.architectureGroup.visible = v;
+    this.furnitureGroup.visible = v;
+    this.lightsGroup.visible = v;
+    this.selectionGroup.visible = v;
+  }
+
+  // ==========================================================================
+  // SELECCIÓN Y FICHA
+  // ==========================================================================
+  clearSelection() {
+    this.selectedId = null;
+    this.selectedSubGadgetId = null;
+  }
+
   updateSelectionHighlight() {
-    while (this.selectionGroup.children.length > 0) {
-      this.selectionGroup.remove(this.selectionGroup.children[0]);
-    }
+    this.selectionGroup.clear();
     const inspector = document.getElementById('room-item-inspector');
     const pinEl = document.getElementById('floating-3d-pin');
 
-    if (!this.selectedId) {
-      if (inspector) inspector.classList.add('hidden');
-      if (pinEl) pinEl.classList.add('hidden');
-      return;
-    }
-
-    const item = this.items.find(i => i.id === this.selectedId);
-    const mesh = this.furnitureMeshes.get(this.selectedId);
+    const item = this.selectedId ? this.items.find(i => i.id === this.selectedId) : null;
+    const mesh = this.selectedId ? this.furnitureMeshes.get(this.selectedId) : null;
     if (!item || !mesh) {
-      if (inspector) inspector.classList.add('hidden');
-      if (pinEl) pinEl.classList.add('hidden');
+      inspector?.classList.add('hidden');
+      pinEl?.classList.add('hidden');
       return;
     }
 
-    const boxHelper = new THREE.BoxHelper(mesh, 0xf59e0b);
-    this.selectionGroup.add(boxHelper);
+    this.selectionGroup.add(new THREE.BoxHelper(mesh, 0xf59e0b));
 
     const spec = CATALOG[item.type] || { name: item.type, w: 0.4, d: 0.4, h: 0.4 };
     const parentInfo = ITEM_INSPECTOR_DB[item.type] || {
-      badge: '📦 Artículo del Cuarto',
+      badge: '📦 Artículo',
       price: '-',
       dims: `${Math.round(spec.w * 100)} × ${Math.round(spec.d * 100)} × ${Math.round(spec.h * 100)} cm`,
       desc: spec.name,
       cameraPreset: 'orbit_3d',
       links: []
     };
-
     const subInfo = this.selectedSubGadgetId ? SUB_GADGETS_DB[this.selectedSubGadgetId] : null;
-    const activeBadge = subInfo ? subInfo.badge : parentInfo.badge;
-    const activeTitle = subInfo ? subInfo.name : spec.name;
-    const activePrice = subInfo ? subInfo.price : parentInfo.price;
-    const activeDims = subInfo ? subInfo.dims : parentInfo.dims;
-    const activeDesc = subInfo ? subInfo.desc : parentInfo.desc;
-    const activeLinks = subInfo ? subInfo.links : (parentInfo.links || []);
+    const active = subInfo
+      ? { badge: subInfo.badge, title: subInfo.name, price: subInfo.price, dims: subInfo.dims, desc: subInfo.desc, links: subInfo.links || [] }
+      : { badge: parentInfo.badge, title: spec.name, price: parentInfo.price, dims: parentInfo.dims, desc: parentInfo.desc, links: parentInfo.links || [] };
     this.activeInspectorCameraPreset = (subInfo && subInfo.cameraPreset) || parentInfo.cameraPreset || 'orbit_3d';
 
     if (inspector) {
-      document.getElementById('insp-badge').textContent = activeBadge;
-      document.getElementById('insp-title').textContent = activeTitle;
-      document.getElementById('insp-price').textContent = activePrice;
-      document.getElementById('insp-dims').textContent = `📐 ${activeDims}`;
-      document.getElementById('insp-desc').textContent = activeDesc;
+      document.getElementById('insp-badge').textContent = active.badge;
+      document.getElementById('insp-title').textContent = active.title;
+      document.getElementById('insp-price').textContent = active.price;
+      document.getElementById('insp-dims').textContent = `📐 ${active.dims}`;
+      document.getElementById('insp-desc').textContent = active.desc;
 
-      // Renderizar píldoras de sub-gadgets si el artículo tiene varios componentes
       const subWrap = document.getElementById('insp-subgadgets-wrap');
       const subList = document.getElementById('insp-subgadgets-list');
-      if (parentInfo.subGadgets && parentInfo.subGadgets.length > 0 && subWrap && subList) {
+      if (parentInfo.subGadgets && parentInfo.subGadgets.length && subWrap && subList) {
         subWrap.classList.remove('hidden');
         subList.innerHTML = '';
-
-        const allBtn = document.createElement('button');
-        allBtn.className = `subgadget-pill ${!this.selectedSubGadgetId ? 'active' : ''}`;
-        allBtn.textContent = '📦 Kit Completo';
-        allBtn.addEventListener('click', () => {
-          this.selectedSubGadgetId = null;
-          this.updateSelectionHighlight();
-        });
-        subList.appendChild(allBtn);
-
-        parentInfo.subGadgets.forEach(sgId => {
-          const sg = SUB_GADGETS_DB[sgId];
-          if (!sg) return;
-          const btn = document.createElement('button');
-          btn.className = `subgadget-pill ${this.selectedSubGadgetId === sgId ? 'active' : ''}`;
-          btn.textContent = sg.name.split(' (')[0].replace('Teclado ', '⌨️ ').replace('Mouse Ergonómico ', '🖱️ ').replace('Reloj Inteligente Pixel ', '🕒 ').replace('Mini Monitor ', '📺 ').replace('Monitor Principal ', '🖥️ ').replace('Monitor 24" ', '💻 ').replace('Tapete de Silicón Térmico y Magnético ', '🟦 ').replace('Cautín Inteligente USB-C ', '🔥 ').replace('Prototipo de Brazo Robótico + ', '🤖 ').replace('Gavetero Organizador de 12 Cajones ', '🗄️ ').replace('Estación de Carga ', '⚡ ').replace('Organizador de Pared Perforado ', '🧰 ').replace('Osciloscopio + Multímetro Digital ', '📟 ');
-          btn.addEventListener('click', () => {
-            this.selectedSubGadgetId = sgId;
+        const mkPill = (label, id) => {
+          const b = document.createElement('button');
+          b.className = `subgadget-pill ${this.selectedSubGadgetId === id ? 'active' : ''}`;
+          b.textContent = label;
+          b.addEventListener('click', () => {
+            this.selectedSubGadgetId = id;
             this.updateSelectionHighlight();
           });
-          subList.appendChild(btn);
+          subList.appendChild(b);
+        };
+        mkPill('Todo', null);
+        parentInfo.subGadgets.forEach(id => {
+          const sg = SUB_GADGETS_DB[id];
+          if (sg) mkPill(sg.short || this.shortGadgetName(sg.name), id);
         });
-      } else if (subWrap) {
-        subWrap.classList.add('hidden');
+      } else {
+        subWrap?.classList.add('hidden');
       }
 
-      // Renderizar links de compra directos dentro de la ficha 3D
       const linksBox = document.getElementById('insp-links-wrap');
       if (linksBox) {
-        if (activeLinks && activeLinks.length > 0) {
-          linksBox.innerHTML = activeLinks.map(lk => {
-            const isAli = lk.url.includes('aliexpress.com');
-            return `<a href="${lk.url}" target="_blank" rel="noopener noreferrer" class="opt-link-chip ${isAli ? 'aliexpress' : ''}">${isAli ? '🟠' : '🔗'} ${lk.label} ↗</a>`;
-          }).join('');
-          linksBox.classList.remove('hidden');
-        } else {
-          linksBox.innerHTML = '';
-          linksBox.classList.add('hidden');
-        }
+        linksBox.innerHTML = this.linksHtml(active.links);
+        linksBox.classList.toggle('hidden', !active.links.length);
       }
-
       inspector.classList.remove('hidden');
     }
 
     if (pinEl) {
-      document.getElementById('pin-3d-name').textContent = activeTitle;
-      document.getElementById('pin-3d-price').textContent = activePrice;
+      document.getElementById('pin-3d-name').textContent = subInfo ? this.shortGadgetName(subInfo.name) : this.shortGadgetName(spec.name);
+      document.getElementById('pin-3d-price').textContent = active.price.split(' (')[0];
       pinEl.classList.remove('hidden');
       this.updateFloating3DPin();
     }
   }
 
+  shortGadgetName(name) {
+    return name
+      .split(' (')[0]
+      .replace(/^(Teclado|Mouse Ergonómico|Reloj Inteligente Pixel|Mini Monitor|Monitor Principal|Tapete de Silicón Térmico y Magnético|Cautín Inteligente|Organizador de Pared Perforado|Osciloscopio \+ Multímetro Digital|Estación de Carga)\s+/i, '')
+      .split(' + ')[0]
+      .slice(0, 34);
+  }
+
+  linksHtml(links) {
+    return (links || []).map(lk => {
+      const isAli = lk.url.includes('aliexpress.com');
+      const label = lk.label.replace(/^AliExpress:\s*/i, '');
+      return `<a href="${lk.url}" target="_blank" rel="noopener noreferrer" class="opt-link-chip ${isAli ? 'aliexpress' : ''}">${isAli ? '🟠' : '🔗'} ${label} ↗</a>`;
+    }).join('');
+  }
+
   updateFloating3DPin() {
     const pinEl = document.getElementById('floating-3d-pin');
     if (!pinEl || !this.selectedId || pinEl.classList.contains('hidden')) return;
-
     const item = this.items.find(i => i.id === this.selectedId);
     const mesh = this.furnitureMeshes.get(this.selectedId);
-    if (!item || !mesh || !this.container) {
+    if (!item || !mesh) {
       pinEl.classList.add('hidden');
       return;
     }
 
     const spec = CATALOG[item.type] || { h: 0.3 };
     const subInfo = this.selectedSubGadgetId ? SUB_GADGETS_DB[this.selectedSubGadgetId] : null;
-    const anchorWorld = new THREE.Vector3();
-
+    const p = new THREE.Vector3();
     if (subInfo && subInfo.localOffset) {
-      anchorWorld.set(...subInfo.localOffset);
-      mesh.localToWorld(anchorWorld);
-      anchorWorld.y += 0.08;
+      p.set(...subInfo.localOffset);
+      mesh.localToWorld(p);
+      p.y += 0.08;
     } else {
-      anchorWorld.set(item.x, (item.elevation || 0) + (spec.h || 0.3) * 0.85, item.z);
+      p.set(item.x, (item.elevation || 0) + (spec.h || 0.3) * 0.85, item.z);
     }
-
-    anchorWorld.project(this.camera);
-    if (anchorWorld.z > 1) {
+    p.project(this.camera);
+    if (p.z > 1) {
       pinEl.style.opacity = '0';
       return;
     }
-
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
-    const px = (anchorWorld.x * 0.5 + 0.5) * w;
-    const py = (-anchorWorld.y * 0.5 + 0.5) * h;
-
     pinEl.style.opacity = '1';
-    pinEl.style.left = `${Math.max(70, Math.min(w - 70, px))}px`;
-    pinEl.style.top = `${Math.max(58, Math.min(h - 55, py))}px`;
+    pinEl.style.left = `${Math.max(60, Math.min(w - 60, (p.x * 0.5 + 0.5) * w))}px`;
+    pinEl.style.top = `${Math.max(56, Math.min(h - 60, (-p.y * 0.5 + 0.5) * h))}px`;
   }
 
+  // ==========================================================================
+  // PAREDES INTELIGENTES
+  // ==========================================================================
   updateSmartWalls() {
-    if (!this.wallGroups.north) return;
-    const mode = this.room.wallMode;
     const camPos = this.camera.position;
     const { width: W, depth: D, height: H } = this.room;
+    const mode = this.room.wallMode;
 
     const insideRoom =
       this.navMode === 'walk' ||
       (Math.abs(camPos.x) < W / 2 - 0.02 && Math.abs(camPos.z) < D / 2 - 0.02 && camPos.y < H - 0.05);
 
-    if (this.ceilingMesh) {
-      this.ceilingMesh.visible = insideRoom && camPos.y < 1.85;
-    }
-
-    // Solo bajar una pared cuando la cámara está fuera del cuarto mirando hacia adentro
     const states = {
       north: mode === 'full' || insideRoom ? 1 : camPos.z < -D / 2 - 0.05 ? 0.06 : 1,
       south: mode === 'full' || insideRoom ? 1 : camPos.z > D / 2 + 0.05 ? 0.06 : 1,
       west:  mode === 'full' || insideRoom ? 1 : camPos.x < -W / 2 - 0.05 ? 0.06 : 1,
       east:  mode === 'full' || insideRoom ? 1 : camPos.x > W / 2 + 0.05 ? 0.06 : 1
     };
+    const ceilingVisible = insideRoom && camPos.y < 1.85;
 
-    Object.entries(states).forEach(([side, scaleY]) => {
-      const grp = this.wallGroups[side];
-      if (!grp) return;
-      grp.scale.y = THREE.MathUtils.lerp(grp.scale.y, scaleY, 0.25);
-    });
+    const apply = (groups, ceiling) => {
+      Object.entries(states).forEach(([side, s]) => {
+        const g = groups[side];
+        if (g) g.scale.y = THREE.MathUtils.lerp(g.scale.y, s, 0.25);
+      });
+      if (ceiling) ceiling.visible = ceilingVisible;
+    };
+    apply(this.wallGroups, this.ceilingMesh);
+    if (this.beforeBuilt) apply(this.beforeWallGroups, this.beforeCeiling);
 
-    // Ocultar automáticamente el respaldo de la silla cuando la cámara está en vista de cerca del escritorio
-    const distToChair = Math.hypot(camPos.x - (-0.40), camPos.z - (-0.68));
-    const hideChairForCloseUp = distToChair < 0.56 && camPos.y < 1.40;
-    ['chair_1', 'upg_ds_3'].forEach(chairId => {
-      const chairMesh = this.furnitureMeshes.get(chairId);
-      if (chairMesh) {
-        chairMesh.visible = !hideChairForCloseUp;
-      }
+    // Ocultar la silla cuando la cámara está pegada al escritorio
+    const hideChair = Math.hypot(camPos.x + 0.40, camPos.z + 0.68) < 0.56 && camPos.y < 1.40;
+    ['chair_1', 'upg_ds_3'].forEach(id => {
+      const m1 = this.furnitureMeshes.get(id);
+      if (m1) m1.visible = !hideChair;
+      const m2 = this.beforeFurnitureMeshes.get(id);
+      if (m2) m2.visible = !hideChair;
     });
   }
 
+  // ==========================================================================
+  // INTERACCIÓN CON EL MOUSE
+  // ==========================================================================
   setupInteraction() {
     const dom = this.renderer.domElement;
     const hoverTip = document.getElementById('hover-3d-tooltip');
@@ -646,10 +812,27 @@ class RoomSimulatorApp {
     let lastLookY = 0;
     let dragArmed = false;
 
-    const getNormalizedPointer = (e) => {
+    const setPointer = (e) => {
       const rect = dom.getBoundingClientRect();
       this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    };
+
+    // En modo comparar, la mitad izquierda es "Antes" (solo vista, no editable)
+    const isOnBeforeSide = (e) => {
+      if (!this.compareMode) return false;
+      const rect = dom.getBoundingClientRect();
+      return (e.clientX - rect.left) / rect.width < this.compareSplit;
+    };
+
+    const pickFurniture = () => {
+      const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
+      for (const hit of hits) {
+        let obj = hit.object;
+        while (obj && !obj.userData?.isFurniture) obj = obj.parent;
+        if (obj && obj.visible && obj.userData?.id) return { obj, point: hit.point };
+      }
+      return null;
     };
 
     dom.addEventListener('pointerdown', (e) => {
@@ -658,118 +841,94 @@ class RoomSimulatorApp {
       lastLookX = e.clientX;
       lastLookY = e.clientY;
       dragArmed = false;
+      if (isOnBeforeSide(e)) return;
 
-      getNormalizedPointer(e);
+      setPointer(e);
       this.raycaster.setFromCamera(this.pointer, this.camera);
+      const picked = pickFurniture();
+      if (picked) {
+        const { obj, point } = picked;
+        this.selectedId = obj.userData.id;
+        this.selectedSubGadgetId = detectSubGadgetFromHit(obj.userData.type, obj.worldToLocal(point.clone()));
+        this.updateSelectionHighlight();
 
-      const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
-      if (hits.length > 0) {
-        let obj = hits[0].object;
-        while (obj && !obj.userData?.isFurniture) {
-          obj = obj.parent;
+        const item = this.items.find(i => i.id === obj.userData.id);
+        this.dragPlane.set(new THREE.Vector3(0, 1, 0), -(item?.elevation || 0));
+        const ip = new THREE.Vector3();
+        if (this.raycaster.ray.intersectPlane(this.dragPlane, ip)) {
+          this.dragOffset.subVectors(obj.position, ip);
+          dragArmed = true;
         }
-        if (obj && obj.userData?.id) {
-          this.selectedId = obj.userData.id;
-          const localPt = obj.worldToLocal(hits[0].point.clone());
-          this.selectedSubGadgetId = detectSubGadgetFromHit(obj.userData.type, localPt);
-          this.updateSelectionHighlight();
-
-          const item = this.items.find(i => i.id === obj.userData.id);
-          const planeY = item?.elevation || 0;
-          this.dragPlane.set(new THREE.Vector3(0, 1, 0), -planeY);
-
-          const intersectPt = new THREE.Vector3();
-          if (this.raycaster.ray.intersectPlane(this.dragPlane, intersectPt)) {
-            this.dragOffset.subVectors(obj.position, intersectPt);
-            dragArmed = true;
-          }
-          return;
-        }
+        return;
       }
-
-      if (this.navMode === 'walk') {
-        this.isLookingWalk = true;
-      }
+      if (this.navMode === 'walk') this.isLookingWalk = true;
     });
 
     window.addEventListener('pointermove', (e) => {
+      // Empezar a arrastrar solo si el mouse se mueve más de 6 px (clic simple = solo seleccionar)
       if (dragArmed && !this.isDragging && this.selectedId) {
-        const moveDist = Math.hypot(e.clientX - this.pointerDownPos.x, e.clientY - this.pointerDownPos.y);
-        if (moveDist > 6) {
+        if (Math.hypot(e.clientX - this.pointerDownPos.x, e.clientY - this.pointerDownPos.y) > 6) {
+          this.pushHistory();
           this.isDragging = true;
           if (this.navMode !== 'walk') this.controls.enabled = false;
           dom.style.cursor = 'grabbing';
-          if (hoverTip) hoverTip.classList.add('hidden');
+          hoverTip?.classList.add('hidden');
         }
       }
 
       if (this.isDragging && this.selectedId) {
-        getNormalizedPointer(e);
+        setPointer(e);
         this.raycaster.setFromCamera(this.pointer, this.camera);
-
-        const intersectPt = new THREE.Vector3();
-        if (this.raycaster.ray.intersectPlane(this.dragPlane, intersectPt)) {
+        const ip = new THREE.Vector3();
+        if (this.raycaster.ray.intersectPlane(this.dragPlane, ip)) {
           const item = this.items.find(i => i.id === this.selectedId);
           const mesh = this.furnitureMeshes.get(this.selectedId);
           if (!item || !mesh) return;
-
           const halfW = this.room.width / 2 - 0.08;
           const halfD = this.room.depth / 2 - 0.08;
-
-          let nx = Math.round((intersectPt.x + this.dragOffset.x) * 50) / 50;
-          let nz = Math.round((intersectPt.z + this.dragOffset.z) * 50) / 50;
-          nx = Math.max(-halfW, Math.min(halfW, nx));
-          nz = Math.max(-halfD, Math.min(halfD, nz));
-
+          const nx = Math.max(-halfW, Math.min(halfW, Math.round((ip.x + this.dragOffset.x) * 50) / 50));
+          const nz = Math.max(-halfD, Math.min(halfD, Math.round((ip.z + this.dragOffset.z) * 50) / 50));
           item.x = nx;
           item.z = nz;
           mesh.position.x = nx;
           mesh.position.z = nz;
-          this.updateSelectionHighlight();
+          this.selectionGroup.clear();
+          this.selectionGroup.add(new THREE.BoxHelper(mesh, 0xf59e0b));
         }
         return;
       }
 
       if (this.navMode === 'walk' && this.isLookingWalk) {
-        const dx = e.clientX - lastLookX;
-        const dy = e.clientY - lastLookY;
+        this.walkYaw -= (e.clientX - lastLookX) * 0.005;
+        this.walkPitch = Math.max(-1.1, Math.min(1.1, this.walkPitch - (e.clientY - lastLookY) * 0.005));
         lastLookX = e.clientX;
         lastLookY = e.clientY;
-        this.walkYaw -= dx * 0.005;
-        this.walkPitch = Math.max(-1.1, Math.min(1.1, this.walkPitch - dy * 0.005));
         return;
       }
 
-      // Tooltip en vivo al pasar el mouse sobre cualquier artículo en 3D
-      if (e.target === dom && !dragArmed) {
-        getNormalizedPointer(e);
+      // Tooltip corto al pasar el mouse
+      if (e.target === dom && !dragArmed && !isOnBeforeSide(e)) {
+        setPointer(e);
         this.raycaster.setFromCamera(this.pointer, this.camera);
-        const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
-        if (hits.length > 0) {
-          let obj = hits[0].object;
-          while (obj && !obj.userData?.isFurniture) {
-            obj = obj.parent;
+        const picked = pickFurniture();
+        if (picked) {
+          const { obj, point } = picked;
+          const subId = detectSubGadgetFromHit(obj.userData.type, obj.worldToLocal(point.clone()));
+          const sub = subId ? SUB_GADGETS_DB[subId] : null;
+          const label = sub ? this.shortGadgetName(sub.name) : this.shortGadgetName(obj.userData.name || obj.userData.type);
+          dom.style.cursor = 'pointer';
+          if (hoverTip) {
+            const rect = this.container.getBoundingClientRect();
+            hoverTip.textContent = label;
+            hoverTip.style.left = `${Math.min(rect.width - 200, Math.max(8, e.clientX - rect.left))}px`;
+            hoverTip.style.top = `${Math.max(46, e.clientY - rect.top)}px`;
+            hoverTip.classList.remove('hidden');
           }
-          if (obj && obj.userData?.type) {
-            const localPt = obj.worldToLocal(hits[0].point.clone());
-            const subId = detectSubGadgetFromHit(obj.userData.type, localPt);
-            const subObj = subId ? SUB_GADGETS_DB[subId] : null;
-            const label = subObj ? `${subObj.name} · ${subObj.price}` : (obj.userData.name || obj.userData.type);
-
-            dom.style.cursor = 'pointer';
-            if (hoverTip && this.container) {
-              const rect = this.container.getBoundingClientRect();
-              hoverTip.textContent = `👆 Clic para ver: ${label}`;
-              hoverTip.style.left = `${Math.min(rect.width - 230, Math.max(10, e.clientX - rect.left))}px`;
-              hoverTip.style.top = `${Math.max(46, e.clientY - rect.top)}px`;
-              hoverTip.classList.remove('hidden');
-            }
-            return;
-          }
+          return;
         }
       }
       if (!this.isDragging) dom.style.cursor = 'default';
-      if (hoverTip) hoverTip.classList.add('hidden');
+      hoverTip?.classList.add('hidden');
     });
 
     window.addEventListener('pointerup', (e) => {
@@ -779,36 +938,66 @@ class RoomSimulatorApp {
         this.isDragging = false;
         if (this.navMode !== 'walk') this.controls.enabled = true;
         dom.style.cursor = 'default';
-      } else {
-        const dist = Math.hypot(e.clientX - this.pointerDownPos.x, e.clientY - this.pointerDownPos.y);
-        if (dist < 4 && e.target === dom) {
-          getNormalizedPointer(e);
-          this.raycaster.setFromCamera(this.pointer, this.camera);
-          const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
-          if (hits.length === 0) {
-            this.selectedId = null;
-            this.selectedSubGadgetId = null;
-            this.updateSelectionHighlight();
-          }
+        this.updateSelectionHighlight();
+        return;
+      }
+      const dist = Math.hypot(e.clientX - this.pointerDownPos.x, e.clientY - this.pointerDownPos.y);
+      if (dist < 4 && e.target === dom && !isOnBeforeSide(e)) {
+        setPointer(e);
+        this.raycaster.setFromCamera(this.pointer, this.camera);
+        if (!pickFurniture()) {
+          this.clearSelection();
+          this.updateSelectionHighlight();
         }
       }
     });
+
+    // Barra de Antes / Después
+    const handle = document.getElementById('compare-handle');
+    let draggingSplit = false;
+    handle?.addEventListener('pointerdown', (e) => {
+      draggingSplit = true;
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!draggingSplit) return;
+      const rect = this.container.getBoundingClientRect();
+      this.compareSplit = Math.max(0.04, Math.min(0.96, (e.clientX - rect.left) / rect.width));
+      this.updateCompareHandle();
+    });
+    window.addEventListener('pointerup', () => { draggingSplit = false; });
   }
 
-  setupWalkControls() {
+  // ==========================================================================
+  // TECLADO: Ctrl+Z, Ctrl+Y, Supr, R, WASD
+  // ==========================================================================
+  setupKeyboard() {
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      const ctrl = e.ctrlKey || e.metaKey;
+
+      if (ctrl && e.code === 'KeyZ' && !e.shiftKey) {
+        e.preventDefault();
+        this.undo();
+        return;
+      }
+      if (ctrl && (e.code === 'KeyY' || (e.code === 'KeyZ' && e.shiftKey))) {
+        e.preventDefault();
+        this.redo();
+        return;
+      }
+      if (e.code === 'Escape') {
+        this.clearSelection();
+        this.updateSelectionHighlight();
+        return;
+      }
+
       this.keysPressed[e.code] = true;
-      if ((e.code === 'Delete' || e.code === 'Backspace') && this.selectedId) {
-        this.deleteSelected();
-      }
-      if (e.code === 'KeyR' && this.selectedId) {
-        this.rotateSelected(45);
-      }
+      if ((e.code === 'Delete' || e.code === 'Backspace') && this.selectedId) this.deleteSelected();
+      if (e.code === 'KeyR' && this.selectedId && !ctrl) this.rotateSelected(45);
     });
-    window.addEventListener('keyup', (e) => {
-      this.keysPressed[e.code] = false;
-    });
+    window.addEventListener('keyup', (e) => { this.keysPressed[e.code] = false; });
   }
 
   updateWalkMovement() {
@@ -816,11 +1005,11 @@ class RoomSimulatorApp {
     const speed = 0.032;
     const forward = new THREE.Vector3(Math.sin(this.walkYaw), 0, Math.cos(this.walkYaw)).normalize();
     const right = new THREE.Vector3(forward.z, 0, -forward.x).normalize();
-
-    if (this.keysPressed['KeyW'] || this.keysPressed['ArrowUp']) this.camera.position.addScaledVector(forward, speed);
-    if (this.keysPressed['KeyS'] || this.keysPressed['ArrowDown']) this.camera.position.addScaledVector(forward, -speed);
-    if (this.keysPressed['KeyA'] || this.keysPressed['ArrowLeft']) this.camera.position.addScaledVector(right, speed);
-    if (this.keysPressed['KeyD'] || this.keysPressed['ArrowRight']) this.camera.position.addScaledVector(right, -speed);
+    const k = this.keysPressed;
+    if (k.KeyW || k.ArrowUp) this.camera.position.addScaledVector(forward, speed);
+    if (k.KeyS || k.ArrowDown) this.camera.position.addScaledVector(forward, -speed);
+    if (k.KeyA || k.ArrowLeft) this.camera.position.addScaledVector(right, speed);
+    if (k.KeyD || k.ArrowRight) this.camera.position.addScaledVector(right, -speed);
 
     const limX = this.room.width / 2 - 0.18;
     const limZ = this.room.depth / 2 - 0.18;
@@ -836,10 +1025,13 @@ class RoomSimulatorApp {
     this.controls.target.copy(this.camera.position).add(lookDir);
   }
 
+  // ==========================================================================
+  // ACCIONES SOBRE EL OBJETO SELECCIONADO (todas se pueden deshacer)
+  // ==========================================================================
   rotateSelected(deltaDeg) {
-    if (!this.selectedId) return;
     const item = this.items.find(i => i.id === this.selectedId);
     if (!item) return;
+    this.pushHistory();
     item.rotY = (item.rotY || 0) + (deltaDeg * Math.PI) / 180;
     const mesh = this.furnitureMeshes.get(item.id);
     if (mesh) mesh.rotation.y = item.rotY;
@@ -847,9 +1039,9 @@ class RoomSimulatorApp {
   }
 
   elevateSelected(deltaY) {
-    if (!this.selectedId) return;
     const item = this.items.find(i => i.id === this.selectedId);
     if (!item) return;
+    this.pushHistory();
     item.elevation = Math.max(0, Math.min(2.0, (item.elevation || 0) + deltaY));
     const mesh = this.furnitureMeshes.get(item.id);
     if (mesh) mesh.position.y = item.elevation;
@@ -858,12 +1050,16 @@ class RoomSimulatorApp {
 
   deleteSelected() {
     if (!this.selectedId) return;
+    this.pushHistory();
     this.items = this.items.filter(i => i.id !== this.selectedId);
-    this.selectedId = null;
+    this.clearSelection();
     this.rebuildFurnitureMeshes();
+    this.showToast('🗑️ Quitado · Ctrl+Z para regresarlo');
   }
 
-  // Presets de cámara y Zoom a Zonas Clave con transición suave
+  // ==========================================================================
+  // CÁMARA
+  // ==========================================================================
   setCameraPreset(viewId) {
     document.querySelectorAll('[data-cam-preset]').forEach(b => {
       b.classList.toggle('active', b.getAttribute('data-cam-preset') === viewId);
@@ -884,25 +1080,8 @@ class RoomSimulatorApp {
 
     this.navMode = 'orbit';
     this.controls.enabled = true;
-
-    const presets = {
-      orbit_3d:      { pos: [-0.15, 2.22, 2.50],  target: [0, 0.82, -0.10],      fov: 50, wallMode: 'auto' },
-      desk_front:    { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
-      desk_corner:   { pos: [-0.40, 1.10, -0.76], target: [-0.92, 0.96, -1.25],  fov: 36, wallMode: 'full' },
-      desk_lab:      { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
-      desk_pegboard: { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
-      zoom_desk:     { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
-      zoom_lab:      { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
-      zoom_shelves:  { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
-      zoom_underbed: { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
-      zoom_soccer:   { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
-      top_2d:        { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
-    };
-
-    const p = presets[viewId] || presets.orbit_3d;
+    const p = CAMERA_PRESETS[viewId] || CAMERA_PRESETS.orbit_3d;
     this.room.wallMode = p.wallMode;
-
-    // Iniciar vuelo suave de cámara (Fly-To)
     this.camAnim = {
       startPos: this.camera.position.clone(),
       endPos: new THREE.Vector3(...p.pos),
@@ -914,25 +1093,54 @@ class RoomSimulatorApp {
     };
   }
 
+  // ==========================================================================
+  // INTERFAZ
+  // ==========================================================================
+  toggleDrawer(forceState) {
+    this.drawerOpen = typeof forceState === 'boolean' ? forceState : !this.drawerOpen;
+    document.getElementById('main-layout')?.classList.toggle('drawer-closed', !this.drawerOpen);
+    document.getElementById('btn-toggle-drawer-top')?.classList.toggle('active', this.drawerOpen);
+    requestAnimationFrame(() => this.onResize());
+    setTimeout(() => this.onResize(), 120);
+  }
+
+  toggleFullscreen() {
+    const fsBtn = document.getElementById('btn-fullscreen');
+    if (!document.fullscreenElement && !this.isTheaterFullscreen) {
+      this.isTheaterFullscreen = true;
+      document.body.classList.add('theater-fullscreen');
+      this.toggleDrawer(false);
+      document.documentElement.requestFullscreen?.().catch(() => {});
+      if (fsBtn) { fsBtn.textContent = '✕'; fsBtn.title = 'Salir de pantalla completa'; }
+    } else {
+      this.isTheaterFullscreen = false;
+      document.body.classList.remove('theater-fullscreen');
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+      this.toggleDrawer(true);
+      if (fsBtn) { fsBtn.textContent = '⛶'; fsBtn.title = 'Pantalla completa'; }
+    }
+    requestAnimationFrame(() => this.onResize());
+    setTimeout(() => this.onResize(), 220);
+  }
+
   updateBudgetUI() {
     let total = 0;
-    let activeCount = 0;
+    let count = 0;
     PRODUCT_ZONES.forEach(zone => {
-      const chosenId = this.selectedZones[zone.id];
-      const opt = zone.options.find(o => o.id === chosenId);
+      const opt = zone.options.find(o => o.id === this.selectedZones[zone.id]);
       if (opt && opt.price > 0) {
         total += opt.price;
-        activeCount++;
+        count++;
       }
     });
-
-    const priceEl = document.getElementById('budget-total-amount');
-    const subEl = document.getElementById('budget-items-count');
-    if (priceEl) priceEl.textContent = `$${total.toLocaleString('es-MX')} MXN`;
-    if (subEl) subEl.textContent = `${activeCount} de 6 zonas personalizadas`;
+    const el = document.getElementById('budget-total-amount');
+    if (el) el.textContent = fmtPrice(total);
+    const pill = document.getElementById('budget-pill');
+    if (pill) pill.title = `Total aproximado · ${count} de ${PRODUCT_ZONES.length} zonas`;
   }
 
   initUI() {
+    // Combos (etiquetas cortas)
     const comboBar = document.getElementById('quick-combos-bar');
     if (comboBar) {
       comboBar.innerHTML = '';
@@ -940,9 +1148,25 @@ class RoomSimulatorApp {
         const btn = document.createElement('button');
         btn.className = 'combo-pill';
         btn.dataset.comboId = id;
-        btn.textContent = combo.name;
+        btn.textContent = UI_LABELS.combos[id] || combo.name;
+        btn.title = combo.name;
         btn.addEventListener('click', () => this.applyCombo(id));
         comboBar.appendChild(btn);
+      });
+    }
+
+    // Escenas de luz
+    const sceneBar = document.getElementById('scene-bar');
+    if (sceneBar) {
+      sceneBar.innerHTML = '';
+      Object.values(LIGHT_SCENES).forEach(sc => {
+        const btn = document.createElement('button');
+        btn.className = `scene-btn ${sc.id === this.lightScene ? 'active' : ''}`;
+        btn.dataset.scene = sc.id;
+        btn.title = `Escena: ${sc.name}`;
+        btn.innerHTML = `${sc.icon}<span class="scene-label">${sc.name}</span>`;
+        btn.addEventListener('click', () => this.setLightScene(sc.id));
+        sceneBar.appendChild(btn);
       });
     }
 
@@ -950,37 +1174,35 @@ class RoomSimulatorApp {
     this.renderFinishesUI();
 
     document.getElementById('btn-toggle-drawer-top')?.addEventListener('click', () => this.toggleDrawer());
-    document.getElementById('btn-toggle-drawer-float')?.addEventListener('click', () => this.toggleDrawer());
+    document.getElementById('btn-toggle-drawer-top')?.classList.add('active');
     document.getElementById('btn-fullscreen')?.addEventListener('click', () => this.toggleFullscreen());
+    document.getElementById('btn-undo')?.addEventListener('click', () => this.undo());
+    document.getElementById('btn-redo')?.addEventListener('click', () => this.redo());
+    document.getElementById('btn-compare')?.addEventListener('click', () => this.toggleCompare());
 
     document.addEventListener('fullscreenchange', () => {
-      const fsBtn = document.getElementById('btn-fullscreen');
       if (!document.fullscreenElement && this.isTheaterFullscreen) {
-        document.body.classList.remove('theater-fullscreen');
         this.isTheaterFullscreen = false;
+        document.body.classList.remove('theater-fullscreen');
         this.toggleDrawer(true);
-        if (fsBtn) fsBtn.textContent = '⛶ Ver Cuarto en Pantalla Completa';
+        const fsBtn = document.getElementById('btn-fullscreen');
+        if (fsBtn) { fsBtn.textContent = '⛶'; fsBtn.title = 'Pantalla completa'; }
       }
       this.onResize();
     });
 
-    const clutterSwitch = document.getElementById('switch-show-clutter');
-    if (clutterSwitch) {
-      clutterSwitch.addEventListener('change', (e) => {
-        this.room.showClutter = e.target.checked;
-        this.rebuildSceneFromZones();
-      });
-    }
+    document.getElementById('switch-show-clutter')?.addEventListener('change', (e) => {
+      this.pushHistory();
+      this.room.showClutter = e.target.checked;
+      this.rebuildSceneFromZones();
+    });
 
     document.querySelectorAll('[data-cam-preset]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.setCameraPreset(btn.getAttribute('data-cam-preset'));
-      });
+      btn.addEventListener('click', () => this.setCameraPreset(btn.getAttribute('data-cam-preset')));
     });
 
     document.getElementById('btn-close-inspector')?.addEventListener('click', () => {
-      this.selectedId = null;
-      this.selectedSubGadgetId = null;
+      this.clearSelection();
       this.updateSelectionHighlight();
     });
     document.getElementById('act-zoom-item')?.addEventListener('click', () => {
@@ -992,85 +1214,92 @@ class RoomSimulatorApp {
     document.getElementById('act-elev-dn')?.addEventListener('click', () => this.elevateSelected(-0.08));
     document.getElementById('act-del')?.addEventListener('click', () => this.deleteSelected());
 
+    document.getElementById('finishes-toggle')?.addEventListener('click', () => {
+      document.getElementById('finishes-body')?.classList.toggle('collapsed');
+      document.getElementById('finishes-card')?.classList.toggle('open');
+    });
+
     document.getElementById('btn-screenshot')?.addEventListener('click', () => {
-      this.renderer.render(this.scene, this.camera);
+      this.renderFrame();
       const link = document.createElement('a');
-      link.download = `mi_cuarto_personalizado.png`;
+      link.download = 'mi_cuarto.png';
       link.href = this.renderer.domElement.toDataURL('image/png');
       link.click();
     });
 
+    this.updateHistoryButtons();
     this.syncUIState();
   }
 
+  // Catálogo compacto: nombre corto + precio; el detalle sale con ⓘ
   renderZonesUI() {
     const container = document.getElementById('zones-accordion-list');
     if (!container) return;
     container.innerHTML = '';
 
-    PRODUCT_ZONES.forEach((zone, zIdx) => {
+    PRODUCT_ZONES.forEach(zone => {
+      const lbl = UI_LABELS.zones[zone.id] || { icon: '•', short: zone.title };
       const card = document.createElement('div');
       card.className = 'zone-card';
       card.innerHTML = `
-        <div class="zone-header" data-zone-toggle="${zone.id}">
-          <div>
-            <div class="zone-title">${zone.title}</div>
-            <div class="zone-current-choice" id="choice-label-${zone.id}">Seleccionando...</div>
-          </div>
-          <div class="zone-actions-right">
-            <button class="zone-zoom-btn" data-zone-zoom="${zone.cameraPreset || 'orbit_3d'}" title="Hacer zoom 3D a esta zona">🔍 Zoom</button>
-            <span class="zone-chevron">▾</span>
-          </div>
-        </div>
-        <div class="zone-body ${zIdx > 2 ? 'collapsed' : ''}" id="zone-body-${zone.id}">
-          <p class="zone-subtitle">${zone.subtitle}</p>
-          <div class="options-grid" id="opts-${zone.id}"></div>
-        </div>
+        <button class="zone-header" title="${zone.title}">
+          <span class="z-icon">${lbl.icon}</span>
+          <span class="z-name">${lbl.short}</span>
+          <span class="z-choice" id="choice-label-${zone.id}"></span>
+          <span class="z-chev">▾</span>
+        </button>
+        <div class="zone-body collapsed"></div>
       `;
+      const body = card.querySelector('.zone-body');
 
-      const headerEl = card.querySelector('.zone-header');
-      headerEl.addEventListener('click', (e) => {
-        if (e.target.closest('.zone-zoom-btn')) return;
-        const body = card.querySelector('.zone-body');
-        body.classList.toggle('collapsed');
+      // Abrir una zona también lleva la cámara a esa zona
+      card.querySelector('.zone-header').addEventListener('click', () => {
+        const willOpen = body.classList.contains('collapsed');
+        container.querySelectorAll('.zone-card').forEach(c => {
+          c.classList.remove('open');
+          c.querySelector('.zone-body').classList.add('collapsed');
+        });
+        if (willOpen) {
+          body.classList.remove('collapsed');
+          card.classList.add('open');
+          if (zone.cameraPreset) this.setCameraPreset(zone.cameraPreset);
+        }
       });
 
-      const zoomBtn = card.querySelector('.zone-zoom-btn');
-      zoomBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.setCameraPreset(zone.cameraPreset || 'orbit_3d');
-      });
-
-      const optsBox = card.querySelector(`#opts-${zone.id}`);
       zone.options.forEach(opt => {
-        const optCard = document.createElement('div');
-        optCard.className = 'option-card';
-        optCard.dataset.zoneId = zone.id;
-        optCard.dataset.optId = opt.id;
-
-        const linksHtml = (opt.links && opt.links.length > 0)
-          ? `<div class="opt-links">
-              ${opt.links.map(lk => {
-                const isAli = lk.url.includes('aliexpress.com');
-                return `<a href="${lk.url}" target="_blank" rel="noopener noreferrer" class="opt-link-chip ${isAli ? 'aliexpress' : ''}">${isAli ? '🟠' : '🔗'} ${lk.label} ↗</a>`;
-              }).join('')}
-            </div>`
-          : '';
-
-        optCard.innerHTML = `
-          <div class="opt-top">
-            <span class="opt-name">${opt.name}</span>
-            <span class="opt-price">${opt.price === 0 ? 'Actual' : '$' + opt.price.toLocaleString('es-MX')}</span>
-          </div>
-          ${opt.dims !== '-' ? `<div class="opt-meta">${opt.dims} · <strong>${opt.store}</strong></div>` : ''}
-          <div class="opt-desc">${opt.desc}</div>
-          ${linksHtml}
+        const row = document.createElement('div');
+        row.className = 'opt-row';
+        row.dataset.zoneId = zone.id;
+        row.dataset.optId = opt.id;
+        row.innerHTML = `
+          <span class="opt-radio"></span>
+          <span class="opt-name">${UI_LABELS.options[opt.id] || opt.name}</span>
+          <span class="opt-price">${opt.price === 0 ? '—' : fmtPrice(opt.price)}</span>
+          ${opt.id !== 'none' ? '<button class="opt-info" title="Ver detalle y links">ⓘ</button>' : ''}
         `;
-
-        optCard.addEventListener('click', () => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('.opt-info')) return;
           this.selectZoneOption(zone.id, opt.id);
         });
-        optsBox.appendChild(optCard);
+        body.appendChild(row);
+
+        if (opt.id !== 'none') {
+          const detail = document.createElement('div');
+          detail.className = 'opt-detail hidden';
+          detail.innerHTML = `
+            ${opt.dims && opt.dims !== '-' ? `<div class="opt-meta">${opt.dims} · ${opt.store}</div>` : ''}
+            <div class="opt-desc">${opt.desc}</div>
+            ${opt.links && opt.links.length ? `<div class="opt-links">${this.linksHtml(opt.links)}</div>` : ''}
+          `;
+          body.appendChild(detail);
+          const infoBtn = row.querySelector('.opt-info');
+          infoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const show = detail.classList.contains('hidden');
+            detail.classList.toggle('hidden', !show);
+            infoBtn.classList.toggle('active', show);
+          });
+        }
       });
 
       container.appendChild(card);
@@ -1078,74 +1307,50 @@ class RoomSimulatorApp {
   }
 
   renderFinishesUI() {
-    const ledBox = document.getElementById('led-colors-row');
-    if (ledBox) {
-      ledBox.innerHTML = '';
-      LED_COLORS.forEach(led => {
+    const mk = (boxId, list, colorOf, onPick, dataKey) => {
+      const box = document.getElementById(boxId);
+      if (!box) return;
+      box.innerHTML = '';
+      list.forEach(it => {
         const btn = document.createElement('button');
         btn.className = 'color-pill';
-        btn.dataset.ledId = led.id;
-        btn.innerHTML = `<i style="background:${led.css}"></i><span>${led.name}</span>`;
+        if (dataKey) btn.dataset[dataKey] = it.id;
+        btn.title = it.name;
+        btn.innerHTML = `<i style="background:${colorOf(it)}"></i><span>${it.name.split(' (')[0]}</span>`;
         btn.addEventListener('click', () => {
-          this.room.ledColorMode = led.id;
-          this.buildArchitecture();
-          this.rebuildFurnitureMeshes();
+          this.pushHistory();
+          onPick(it);
           this.syncUIState();
         });
-        ledBox.appendChild(btn);
+        box.appendChild(btn);
       });
-    }
+    };
 
-    const wallBox = document.getElementById('wall-palettes-row');
-    if (wallBox) {
-      wallBox.innerHTML = '';
-      WALL_PALETTES.forEach(pal => {
-        const btn = document.createElement('button');
-        btn.className = 'color-pill';
-        btn.innerHTML = `<i style="background:${pal.accent}"></i><span>${pal.name}</span>`;
-        btn.addEventListener('click', () => {
-          this.room.wallColor = pal.wall;
-          this.room.accentColor = pal.accent;
-          this.room.accentWall = pal.accentWall;
-          this.buildArchitecture();
-        });
-        wallBox.appendChild(btn);
-      });
-    }
+    mk('led-colors-row', LED_COLORS, l => l.css, (led) => {
+      this.room.ledColorMode = led.id;
+      this.buildArchitecture();
+      this.rebuildFurnitureMeshes();
+    }, 'ledId');
 
-    const bedBox = document.getElementById('bedding-themes-row');
-    if (bedBox) {
-      bedBox.innerHTML = '';
-      BEDDING_THEMES.forEach(b => {
-        const btn = document.createElement('button');
-        btn.className = 'color-pill';
-        btn.innerHTML = `<i style="background:${b.primary}"></i><span>${b.name}</span>`;
-        btn.addEventListener('click', () => {
-          this.room.beddingTheme = b.id;
-          this.rebuildFurnitureMeshes();
-        });
-        bedBox.appendChild(btn);
-      });
-    }
+    mk('wall-palettes-row', WALL_PALETTES, p => p.accent, (pal) => {
+      this.room.wallColor = pal.wall;
+      this.room.accentColor = pal.accent;
+      this.room.accentWall = pal.accentWall;
+      this.buildArchitecture();
+    });
 
-    const floorBox = document.getElementById('floor-types-row');
-    if (floorBox) {
-      floorBox.innerHTML = '';
-      const floors = [
-        { id: 'dark_wood_tile', name: 'Cerámica Gris Veteada (Actual)', color: '#4a4e54' },
-        { id: 'light_oak', name: 'Madera Roble Nórdico Claro', color: '#c2ab8b' }
-      ];
-      floors.forEach(fl => {
-        const btn = document.createElement('button');
-        btn.className = 'color-pill';
-        btn.innerHTML = `<i style="background:${fl.color}"></i><span>${fl.name}</span>`;
-        btn.addEventListener('click', () => {
-          this.room.floorType = fl.id;
-          this.buildArchitecture();
-        });
-        floorBox.appendChild(btn);
-      });
-    }
+    mk('bedding-themes-row', BEDDING_THEMES, b => b.primary, (b) => {
+      this.room.beddingTheme = b.id;
+      this.rebuildFurnitureMeshes();
+    });
+
+    mk('floor-types-row', [
+      { id: 'dark_wood_tile', name: 'Gris actual', color: '#4a4e54' },
+      { id: 'light_oak', name: 'Roble claro', color: '#c2ab8b' }
+    ], f => f.color, (fl) => {
+      this.room.floorType = fl.id;
+      this.buildArchitecture();
+    });
   }
 
   syncUIState() {
@@ -1158,20 +1363,48 @@ class RoomSimulatorApp {
 
     PRODUCT_ZONES.forEach(zone => {
       const activeOptId = this.selectedZones[zone.id] || 'none';
-      const activeOpt = zone.options.find(o => o.id === activeOptId);
       const labelEl = document.getElementById(`choice-label-${zone.id}`);
-      if (labelEl && activeOpt) {
-        labelEl.textContent = activeOpt.name;
+      if (labelEl) {
+        labelEl.textContent = activeOptId === 'none' ? '—' : (UI_LABELS.options[activeOptId] || activeOptId);
       }
-
-      document.querySelectorAll(`.option-card[data-zone-id="${zone.id}"]`).forEach(card => {
-        card.classList.toggle('selected', card.dataset.optId === activeOptId);
+      document.querySelectorAll(`.opt-row[data-zone-id="${zone.id}"]`).forEach(row => {
+        row.classList.toggle('selected', row.dataset.optId === activeOptId);
       });
     });
 
     document.querySelectorAll('[data-led-id]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.ledId === this.room.ledColorMode);
     });
+    this.updateBudgetUI();
+  }
+
+  // ==========================================================================
+  // LOOP
+  // ==========================================================================
+  renderFrame() {
+    if (!this.compareMode) {
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    const split = Math.round(this.compareSplit * w);
+
+    this.renderer.setScissorTest(true);
+
+    // Izquierda: ANTES (tu cuarto según las fotos)
+    this.setAfterVisible(false);
+    this.beforeRoot.visible = true;
+    this.renderer.setScissor(0, 0, split, h);
+    this.renderer.render(this.scene, this.camera);
+
+    // Derecha: DESPUÉS (tu propuesta)
+    this.setAfterVisible(true);
+    this.beforeRoot.visible = false;
+    this.renderer.setScissor(split, 0, w - split, h);
+    this.renderer.render(this.scene, this.camera);
+
+    this.renderer.setScissorTest(false);
   }
 
   animate() {
@@ -1179,15 +1412,13 @@ class RoomSimulatorApp {
 
     if (this.camAnim) {
       this.camAnim.progress = Math.min(1, this.camAnim.progress + 0.06);
-      const t = 1 - Math.pow(1 - this.camAnim.progress, 3); // Ease-out cubic
+      const t = 1 - Math.pow(1 - this.camAnim.progress, 3);
       this.camera.position.lerpVectors(this.camAnim.startPos, this.camAnim.endPos, t);
       this.controls.target.lerpVectors(this.camAnim.startTarget, this.camAnim.endTarget, t);
       this.camera.fov = THREE.MathUtils.lerp(this.camAnim.startFov, this.camAnim.endFov, t);
       this.camera.updateProjectionMatrix();
       this.controls.update();
-      if (this.camAnim.progress >= 1) {
-        this.camAnim = null;
-      }
+      if (this.camAnim.progress >= 1) this.camAnim = null;
     } else if (this.navMode === 'walk') {
       this.updateWalkMovement();
     } else {
@@ -1196,7 +1427,7 @@ class RoomSimulatorApp {
 
     this.updateSmartWalls();
     this.updateFloating3DPin();
-    this.renderer.render(this.scene, this.camera);
+    this.renderFrame();
   }
 }
 
