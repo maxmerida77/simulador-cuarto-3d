@@ -99,6 +99,7 @@ class RoomSimulatorApp {
     this.isLookingWalk = false;
 
     // Interacción 3D
+    this.furnitureLocked = true;
     this.isDragging = false;
     this.dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     this.dragOffset = new THREE.Vector3();
@@ -1414,6 +1415,7 @@ class RoomSimulatorApp {
     let lastLookX = 0;
     let lastLookY = 0;
     let dragArmed = false;
+    const activePointers = new Set();
 
     const setPointer = (e) => {
       const rect = dom.getBoundingClientRect();
@@ -1439,37 +1441,49 @@ class RoomSimulatorApp {
     };
 
     dom.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
+      activePointers.add(e.pointerId);
+      if (e.button !== 0 || activePointers.size > 1) {
+        dragArmed = false;
+        return;
+      }
       this.pointerDownPos.set(e.clientX, e.clientY);
       lastLookX = e.clientX;
       lastLookY = e.clientY;
       dragArmed = false;
       if (isOnBeforeSide(e)) return;
 
-      setPointer(e);
-      this.raycaster.setFromCamera(this.pointer, this.camera);
-      const picked = pickFurniture();
-      if (picked) {
-        const { obj, point } = picked;
-        this.selectedId = obj.userData.id;
-        this.selectedSubGadgetId = detectSubGadgetFromHit(obj.userData.type, obj.worldToLocal(point.clone()));
-        this.updateSelectionHighlight();
+      // Solo armar arrastre de muebles si el candado está desbloqueado (🔓)
+      if (!this.furnitureLocked && this.navMode !== 'walk') {
+        setPointer(e);
+        this.raycaster.setFromCamera(this.pointer, this.camera);
+        const picked = pickFurniture();
+        if (picked) {
+          const { obj, point } = picked;
+          this.selectedId = obj.userData.id;
+          this.selectedSubGadgetId = detectSubGadgetFromHit(obj.userData.type, obj.worldToLocal(point.clone()));
+          this.updateSelectionHighlight();
 
-        const item = this.items.find(i => i.id === obj.userData.id);
-        this.dragPlane.set(new THREE.Vector3(0, 1, 0), -(item?.elevation || 0));
-        const ip = new THREE.Vector3();
-        if (this.raycaster.ray.intersectPlane(this.dragPlane, ip)) {
-          this.dragOffset.subVectors(obj.position, ip);
-          dragArmed = true;
+          const item = this.items.find(i => i.id === obj.userData.id);
+          this.dragPlane.set(new THREE.Vector3(0, 1, 0), -(item?.elevation || 0));
+          const ip = new THREE.Vector3();
+          if (this.raycaster.ray.intersectPlane(this.dragPlane, ip)) {
+            this.dragOffset.subVectors(obj.position, ip);
+            dragArmed = true;
+          }
+          return;
         }
-        return;
       }
       if (this.navMode === 'walk') this.isLookingWalk = true;
     });
 
     window.addEventListener('pointermove', (e) => {
-      // Empezar a arrastrar solo si el mouse se mueve más de 6 px (clic simple = solo seleccionar)
-      if (dragArmed && !this.isDragging && this.selectedId) {
+      if (activePointers.size > 1) {
+        dragArmed = false;
+        return;
+      }
+
+      // Empezar a arrastrar solo si el candado está abierto y se mueve más de 6 px
+      if (!this.furnitureLocked && dragArmed && !this.isDragging && this.selectedId) {
         if (Math.hypot(e.clientX - this.pointerDownPos.x, e.clientY - this.pointerDownPos.y) > 6) {
           this.pushHistory();
           this.isDragging = true;
@@ -1509,8 +1523,8 @@ class RoomSimulatorApp {
         return;
       }
 
-      // Tooltip corto al pasar el mouse
-      if (e.target === dom && !dragArmed && !isOnBeforeSide(e)) {
+      // Tooltip corto solo con mouse en escritorio
+      if (e.pointerType === 'mouse' && e.target === dom && !dragArmed && !isOnBeforeSide(e)) {
         setPointer(e);
         this.raycaster.setFromCamera(this.pointer, this.camera);
         const picked = pickFurniture();
@@ -1519,7 +1533,7 @@ class RoomSimulatorApp {
           const subId = detectSubGadgetFromHit(obj.userData.type, obj.worldToLocal(point.clone()));
           const sub = subId ? SUB_GADGETS_DB[subId] : null;
           const label = sub ? this.shortGadgetName(sub.name) : this.shortGadgetName(obj.userData.name || obj.userData.type);
-          dom.style.cursor = 'pointer';
+          dom.style.cursor = this.furnitureLocked ? 'pointer' : 'grab';
           if (hoverTip) {
             const rect = this.container.getBoundingClientRect();
             hoverTip.textContent = label;
@@ -1534,7 +1548,18 @@ class RoomSimulatorApp {
       hoverTip?.classList.add('hidden');
     });
 
+    window.addEventListener('pointercancel', (e) => {
+      activePointers.delete(e.pointerId);
+      this.isLookingWalk = false;
+      dragArmed = false;
+      if (this.isDragging) {
+        this.isDragging = false;
+        if (this.navMode !== 'walk') this.controls.enabled = true;
+      }
+    });
+
     window.addEventListener('pointerup', (e) => {
+      activePointers.delete(e.pointerId);
       this.isLookingWalk = false;
       dragArmed = false;
       if (this.isDragging) {
@@ -1545,9 +1570,20 @@ class RoomSimulatorApp {
         return;
       }
       const dist = Math.hypot(e.clientX - this.pointerDownPos.x, e.clientY - this.pointerDownPos.y);
-      if (dist < 4 && e.target === dom && !isOnBeforeSide(e)) {
+      if (dist < 6 && e.target === dom && !isOnBeforeSide(e)) {
         setPointer(e);
         this.raycaster.setFromCamera(this.pointer, this.camera);
+        const picked = pickFurniture();
+        if (picked) {
+          const { obj, point } = picked;
+          this.selectedId = obj.userData.id;
+          this.selectedSubGadgetId = detectSubGadgetFromHit(obj.userData.type, obj.worldToLocal(point.clone()));
+          this.updateSelectionHighlight();
+        } else {
+          this.clearSelection();
+          this.updateSelectionHighlight();
+        }
+
         const hits = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
         if (hits.length > 0) {
           const hitObj = hits[0].object;
@@ -1583,11 +1619,6 @@ class RoomSimulatorApp {
             this.toggleDomoticaDrawer(true);
             this.showToast('📡 Sensor de Presencia mmWave 24GHz');
           }
-        }
-
-        if (!pickFurniture()) {
-          this.clearSelection();
-          this.updateSelectionHighlight();
         }
       }
     });
@@ -1744,6 +1775,23 @@ class RoomSimulatorApp {
     setTimeout(() => this.onResize(), 120);
   }
 
+  toggleFurnitureLock(forceState) {
+    this.furnitureLocked = typeof forceState === 'boolean' ? forceState : !this.furnitureLocked;
+    const btn = document.getElementById('btn-lock-furniture');
+    if (btn) {
+      btn.textContent = this.furnitureLocked ? '🔒' : '🔓';
+      btn.classList.toggle('active', !this.furnitureLocked);
+      btn.title = this.furnitureLocked
+        ? 'Muebles bloqueados · Clic para desbloquear y mover muebles'
+        : 'Mover muebles activo · Clic para bloquear muebles y girar libremente';
+    }
+    this.showToast(
+      this.furnitureLocked
+        ? '🔒 Muebles fijos (giro libre de cámara en todo el cuarto)'
+        : '🔓 Mover muebles activado (arrastra un mueble para moverlo)'
+    );
+  }
+
   toggleFullscreen() {
     const fsBtn = document.getElementById('btn-fullscreen');
     if (!document.fullscreenElement && !this.isTheaterFullscreen) {
@@ -1815,6 +1863,7 @@ class RoomSimulatorApp {
 
     document.getElementById('btn-toggle-drawer-top')?.addEventListener('click', () => this.toggleDrawer());
     document.getElementById('btn-toggle-drawer-top')?.classList.add('active');
+    document.getElementById('btn-lock-furniture')?.addEventListener('click', () => this.toggleFurnitureLock());
     document.getElementById('btn-fullscreen')?.addEventListener('click', () => this.toggleFullscreen());
     document.getElementById('btn-undo')?.addEventListener('click', () => this.undo());
     document.getElementById('btn-redo')?.addEventListener('click', () => this.redo());
