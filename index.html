@@ -36,13 +36,29 @@
     <!-- Catálogo lateral (compacto: el detalle sale con ⓘ) -->
     <aside class="config-sidebar" id="config-sidebar">
       <div class="sidebar-scroll">
+        <!-- Selector de 4 Disposiciones del Cuarto -->
+        <div class="zone-card open" id="layouts-card">
+          <button class="zone-header" id="layouts-toggle" title="Cambiar acomodo completo de los muebles en el cuarto">
+            <span class="z-icon">📐</span>
+            <span class="z-name">Acomodo</span>
+            <span class="z-choice" id="choice-label-layout">1. Actual</span>
+            <span class="z-chev">▾</span>
+          </button>
+          <div class="zone-body" id="layouts-body">
+            <div id="room-layouts-grid" class="layout-options-grid"></div>
+            <p class="layout-desc-text" id="layout-desc-text">
+              Tu acomodo actual: escritorio en L bajo la ventana noroeste, clóset al noreste, literas en pared este y espejo al oeste.
+            </p>
+          </div>
+        </div>
+
         <div id="zones-accordion-list"></div>
 
         <div class="zone-card" id="finishes-card">
           <button class="zone-header" id="finishes-toggle">
             <span class="z-icon">🎨</span>
             <span class="z-name">Acabados</span>
-            <span class="z-choice">Pintura, piso, colchas</span>
+            <span class="z-choice" id="finishes-choice-label">Pintura, piso, colchas</span>
             <span class="z-chev">▾</span>
           </button>
           <div class="zone-body collapsed" id="finishes-body">

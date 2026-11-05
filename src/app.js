@@ -9,6 +9,7 @@ import {
   CATALOG,
   BASE_ROOM_ITEMS,
   CLUTTER_ROOM_ITEMS,
+  ROOM_LAYOUTS,
   QUICK_COMBOS,
   SUB_GADGETS_DB,
   ITEM_INSPECTOR_DB,
@@ -48,6 +49,7 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 class RoomSimulatorApp {
   constructor() {
     this.room = clone(DEFAULT_ROOM);
+    this.roomLayout = 'actual';
     this.activeComboId = 'ingeniero_esencial';
     this.drawerOpen = true;
     this.isTheaterFullscreen = false;
@@ -197,10 +199,82 @@ class RoomSimulatorApp {
     this.renderer.setSize(w, h, false);
   }
 
-  // Estado del cuarto con el color LED de la escena aplicado
+  // Estado del cuarto sincronizado con el color LED elegido en Acabados / Escena
   getRenderRoom() {
-    const sc = LIGHT_SCENES[this.lightScene] || LIGHT_SCENES.normal;
-    return { ...this.room, ledColorMode: sc.led || this.room.ledColorMode };
+    return { ...this.room };
+  }
+
+  // Transformación rígida de grupos para acomodar todos los muebles y accesorios sin desalineaciones
+  transformItemForLayout(item, layoutId) {
+    const layout = ROOM_LAYOUTS[layoutId];
+    if (!layout || layoutId === 'actual') return item;
+
+    const deskGroupIds = [
+      'desk_1', 'tv_1', 'chair_1',
+      'upg_mon', 'upg_lap', 'upg_slat',
+      'upg_eng_1', 'upg_eng_2',
+      'upg_ds_1', 'upg_ds_2', 'upg_ds_3',
+      'upg_sh_1', 'upg_lt_1', 'upg_lt_2',
+      'clutter_tv_1', 'clutter_desk_1'
+    ];
+    const bunkGroupIds = [
+      'bunk_1', 'upg_soc_1', 'upg_soc_2',
+      'upg_ub_1', 'upg_lt_3', 'clutter_bunk_1'
+    ];
+    const mirrorGroupIds = [
+      'mirror_1', 'upg_dz_3', 'clutter_mirror_1'
+    ];
+
+    const rotateGroup = (it, refX, refZ, target) => {
+      const dx = it.x - refX;
+      const dz = it.z - refZ;
+      const dRot = target.rotY || 0;
+      const cosA = Math.cos(dRot);
+      const sinA = Math.sin(dRot);
+      return {
+        ...it,
+        x: Number((target.x + dx * cosA + dz * sinA).toFixed(3)),
+        z: Number((target.z - dx * sinA + dz * cosA).toFixed(3)),
+        rotY: (it.rotY || 0) + dRot
+      };
+    };
+
+    if (deskGroupIds.includes(item.id)) {
+      return rotateGroup(item, -0.58, -0.82, layout.desk);
+    }
+    if (bunkGroupIds.includes(item.id)) {
+      return rotateGroup(item, 0.65, 0.48, layout.bunk);
+    }
+    if (mirrorGroupIds.includes(item.id)) {
+      return rotateGroup(item, -0.96, 0.30, layout.mirror);
+    }
+    if (item.id === 'closet_1' && layout.closet) {
+      return { ...item, x: layout.closet.x, z: layout.closet.z, rotY: layout.closet.rotY || 0 };
+    }
+    if ((item.id === 'bin_1' || item.id === 'upg_ds_4') && layout.hamper) {
+      return { ...item, x: layout.hamper.x, z: layout.hamper.z, rotY: layout.hamper.rotY || 0 };
+    }
+    if (layout.extras && layout.extras[item.id]) {
+      const ex = layout.extras[item.id];
+      return {
+        ...item,
+        x: ex.x !== undefined ? ex.x : item.x,
+        z: ex.z !== undefined ? ex.z : item.z,
+        rotY: ex.rotY !== undefined ? ex.rotY : (item.rotY || 0)
+      };
+    }
+    return item;
+  }
+
+  setRoomLayout(layoutId, { record = true } = {}) {
+    if (!ROOM_LAYOUTS[layoutId] || this.roomLayout === layoutId) return;
+    if (record) this.pushHistory();
+    this.roomLayout = layoutId;
+    this.clearSelection();
+    this.rebuildSceneFromZones();
+    this.syncUIState();
+    this.setCameraPreset('orbit_3d');
+    this.showToast(`📐 ${ROOM_LAYOUTS[layoutId].name}`);
   }
 
   // ==========================================================================
@@ -222,7 +296,9 @@ class RoomSimulatorApp {
     const baseItems = clone(BASE_ROOM_ITEMS).filter(it => !(replaceChair && it.type === 'current_chair'));
     const clutterItems = this.room.showClutter ? clone(CLUTTER_ROOM_ITEMS) : [];
 
-    this.items = [...baseItems, ...clutterItems, ...spawned];
+    this.items = [...baseItems, ...clutterItems, ...spawned].map(it =>
+      this.transformItemForLayout(it, this.roomLayout)
+    );
     this.buildArchitecture();
     this.rebuildFurnitureMeshes();
     this.updateBudgetUI();
@@ -265,6 +341,7 @@ class RoomSimulatorApp {
       items: clone(this.items),
       selectedZones: { ...this.selectedZones },
       room: clone(this.room),
+      roomLayout: this.roomLayout,
       activeComboId: this.activeComboId,
       lightingMode: this.lightingMode,
       workflowMode: this.workflowMode,
@@ -277,6 +354,7 @@ class RoomSimulatorApp {
     this.items = clone(snap.items);
     this.selectedZones = { ...snap.selectedZones };
     this.room = clone(snap.room);
+    if (snap.roomLayout) this.roomLayout = snap.roomLayout;
     this.activeComboId = snap.activeComboId;
     this.lightingMode = snap.lightingMode;
     if (snap.workflowMode) this.workflowMode = snap.workflowMode;
@@ -619,8 +697,9 @@ class RoomSimulatorApp {
 
     // Barra de luz del monitor e iluminación de escritorio (controlada por Domótica Toma 2)
     const deskLightsOn = this.domotica ? Boolean(this.domotica.outlet2_lights) : true;
+    const deskPos = (ROOM_LAYOUTS[this.roomLayout] && ROOM_LAYOUTS[this.roomLayout].desk) || { x: -0.58, z: -0.82 };
     const deskLight = new THREE.PointLight(0xf1f5ff, deskLightsOn ? 1.15 : 0.0, 1.6, 1.5);
-    deskLight.position.set(-0.86, 1.28, -0.66);
+    deskLight.position.set(deskPos.x > 0 ? 0.86 : -0.86, 1.28, deskPos.z > 0 ? 0.66 : -0.66);
     deskLight.userData = { isDeskBarLight: true, baseIntensity: 1.15 };
     lightsGroup.add(deskLight);
 
@@ -682,19 +761,28 @@ class RoomSimulatorApp {
   }
 
   setLightScene(sceneId) {
-    if (!LIGHT_SCENES[sceneId]) return;
+    const sc = LIGHT_SCENES[sceneId];
+    if (!sc) return;
     this.lightScene = sceneId;
+    if (sc.led) {
+      this.room.ledColorMode = sc.led;
+    }
+    this.domotica.outlet2_lights = sceneId !== 'sleep';
     if (sceneId === 'match') {
       this.setTVMode('match', { record: false });
     } else if (sceneId === 'sleep') {
       this.setTVMode('off', { record: false });
+    } else if (sceneId === 'code') {
+      this.setTVMode('lofi', { record: false });
     }
     this.buildArchitecture();
     this.rebuildFurnitureMeshes();
+    this.updateDomoticaUI();
+    this.syncUIState();
     document.querySelectorAll('.scene-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.scene === sceneId);
     });
-    this.showToast(`${LIGHT_SCENES[sceneId].icon} Escena: ${LIGHT_SCENES[sceneId].name}`);
+    this.showToast(`${sc.icon} Escena: ${sc.name}`);
   }
 
   setWorkflowMode(mode, { showFeedback = true } = {}) {
@@ -897,12 +985,40 @@ class RoomSimulatorApp {
   }
 
   updateDomoticaStateIn3D() {
-    // 1. Calibración directa de luces en 3D (Toma 2)
+    // 1. Calibración directa de luces en 3D (Toma 2: barra monitor + tiras LED + lámpara)
     const deskLightsOn = Boolean(this.domotica.outlet2_lights);
+    const ledObj = LED_COLORS.find(l => l.id === this.room.ledColorMode) || LED_COLORS[0];
+
     this.lightsGroup.traverse(child => {
       if (child.userData?.isDeskBarLight) {
         child.intensity = deskLightsOn ? (child.userData.baseIntensity || 1.15) : 0.0;
       }
+    });
+
+    const ledItemTypes = new Set([
+      'led_strip_desk',
+      'led_strip_tv',
+      'led_strip_bunk',
+      'floor_lamp',
+      'shelf_walnut_led',
+      'soccer_scarves_3'
+    ]);
+
+    this.items.forEach(it => {
+      if (!ledItemTypes.has(it.type)) return;
+      const meshGroup = this.furnitureMeshes.get(it.id);
+      if (!meshGroup) return;
+      meshGroup.traverse(obj => {
+        if (obj.isPointLight) {
+          if (obj.userData.baseLedIntensity === undefined) {
+            obj.userData.baseLedIntensity = obj.intensity || 1.4;
+          }
+          obj.color.setHex(ledObj.hex);
+          obj.intensity = deskLightsOn ? obj.userData.baseLedIntensity : 0.0;
+        } else if (obj.isMesh && obj.material && obj.material.isMeshBasicMaterial && !obj.material.map) {
+          obj.material.color.setHex(deskLightsOn ? ledObj.hex : 0x1f2937);
+        }
+      });
     });
 
     this.furnitureGroup.traverse(child => {
@@ -1397,7 +1513,10 @@ class RoomSimulatorApp {
     if (this.beforeBuilt) apply(this.beforeWallGroups, this.beforeCeiling);
 
     // Ocultar la silla cuando la cámara está pegada al escritorio
-    const hideChair = Math.hypot(camPos.x + 0.40, camPos.z + 0.68) < 0.56 && camPos.y < 1.40;
+    const chairItem = this.items.find(it => it.id === 'upg_ds_3' || it.id === 'chair_1');
+    const cx = chairItem ? chairItem.x : -0.40;
+    const cz = chairItem ? chairItem.z : -0.68;
+    const hideChair = Math.hypot(camPos.x - cx, camPos.z - cz) < 0.56 && camPos.y < 1.40;
     ['chair_1', 'upg_ds_3'].forEach(id => {
       const m1 = this.furnitureMeshes.get(id);
       if (m1) m1.visible = !hideChair;
@@ -1858,6 +1977,7 @@ class RoomSimulatorApp {
       });
     }
 
+    this.renderLayoutsUI();
     this.renderZonesUI();
     this.renderFinishesUI();
 
@@ -1909,9 +2029,24 @@ class RoomSimulatorApp {
     document.getElementById('act-elev-dn')?.addEventListener('click', () => this.elevateSelected(-0.08));
     document.getElementById('act-del')?.addEventListener('click', () => this.deleteSelected());
 
+    document.getElementById('layouts-toggle')?.addEventListener('click', () => {
+      const body = document.getElementById('layouts-body');
+      const card = document.getElementById('layouts-card');
+      body?.classList.toggle('collapsed');
+      card?.classList.toggle('open');
+      if (card && !body?.classList.contains('collapsed')) {
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+      }
+    });
+
     document.getElementById('finishes-toggle')?.addEventListener('click', () => {
-      document.getElementById('finishes-body')?.classList.toggle('collapsed');
-      document.getElementById('finishes-card')?.classList.toggle('open');
+      const body = document.getElementById('finishes-body');
+      const card = document.getElementById('finishes-card');
+      body?.classList.toggle('collapsed');
+      card?.classList.toggle('open');
+      if (card && !body?.classList.contains('collapsed')) {
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+      }
     });
 
     document.getElementById('btn-screenshot')?.addEventListener('click', () => {
@@ -2008,6 +2143,23 @@ class RoomSimulatorApp {
     this.syncUIState();
   }
 
+  renderLayoutsUI() {
+    const grid = document.getElementById('room-layouts-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    Object.values(ROOM_LAYOUTS).forEach(lay => {
+      const btn = document.createElement('button');
+      btn.className = `layout-opt-btn ${lay.id === this.roomLayout ? 'active' : ''}`;
+      btn.dataset.roomLayout = lay.id;
+      btn.title = lay.name;
+      btn.textContent = lay.short;
+      btn.addEventListener('click', () => {
+        this.setRoomLayout(lay.id);
+      });
+      grid.appendChild(btn);
+    });
+  }
+
   // Catálogo compacto: nombre corto + precio; el detalle sale con ⓘ
   renderZonesUI() {
     const container = document.getElementById('zones-accordion-list');
@@ -2040,6 +2192,7 @@ class RoomSimulatorApp {
           body.classList.remove('collapsed');
           card.classList.add('open');
           if (zone.cameraPreset) this.setCameraPreset(zone.cameraPreset);
+          setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
         }
       });
 
@@ -2107,6 +2260,7 @@ class RoomSimulatorApp {
       this.room.ledColorMode = led.id;
       this.buildArchitecture();
       this.rebuildFurnitureMeshes();
+      this.showToast(`💡 Luz LED: ${led.name}`);
     }, 'ledId');
 
     mk('wall-palettes-row', WALL_PALETTES, p => p.accent, (pal) => {
@@ -2114,12 +2268,14 @@ class RoomSimulatorApp {
       this.room.accentColor = pal.accent;
       this.room.accentWall = pal.accentWall;
       this.buildArchitecture();
-    });
+      this.showToast(`🎨 Pintura: ${pal.name}`);
+    }, 'wallId');
 
     mk('bedding-themes-row', BEDDING_THEMES, b => b.primary, (b) => {
       this.room.beddingTheme = b.id;
       this.rebuildFurnitureMeshes();
-    });
+      this.showToast(`🛏️ Colchas: ${b.name}`);
+    }, 'beddingId');
 
     mk('floor-types-row', [
       { id: 'dark_wood_tile', name: 'Gris actual', color: '#4a4e54' },
@@ -2127,7 +2283,8 @@ class RoomSimulatorApp {
     ], f => f.color, (fl) => {
       this.room.floorType = fl.id;
       this.buildArchitecture();
-    });
+      this.showToast(`🪵 Piso: ${fl.name}`);
+    }, 'floorId');
   }
 
   syncUIState() {
@@ -2149,9 +2306,40 @@ class RoomSimulatorApp {
       });
     });
 
+    // Sincronizar Acomodo del Cuarto (4 disposiciones)
+    document.querySelectorAll('[data-room-layout]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.roomLayout === this.roomLayout);
+    });
+    const lay = ROOM_LAYOUTS[this.roomLayout] || ROOM_LAYOUTS.actual;
+    const layChoiceEl = document.getElementById('choice-label-layout');
+    if (layChoiceEl) layChoiceEl.textContent = lay.short;
+    const layDescEl = document.getElementById('layout-desc-text');
+    if (layDescEl) layDescEl.textContent = lay.desc;
+
+    // Sincronizar todos los Acabados (LED, Pintura, Colchas, Piso)
     document.querySelectorAll('[data-led-id]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.ledId === this.room.ledColorMode);
     });
+    const activeWallPal = WALL_PALETTES.find(p =>
+      p.wall === this.room.wallColor && p.accent === this.room.accentColor
+    );
+    document.querySelectorAll('[data-wall-id]').forEach(btn => {
+      btn.classList.toggle('active', Boolean(activeWallPal && btn.dataset.wallId === activeWallPal.id));
+    });
+    document.querySelectorAll('[data-bedding-id]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.beddingId === this.room.beddingTheme);
+    });
+    document.querySelectorAll('[data-floor-id]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.floorId === this.room.floorType);
+    });
+
+    const finChoiceEl = document.getElementById('finishes-choice-label');
+    if (finChoiceEl) {
+      const ledObj = LED_COLORS.find(l => l.id === this.room.ledColorMode);
+      const bedObj = BEDDING_THEMES.find(b => b.id === this.room.beddingTheme);
+      finChoiceEl.textContent = `${ledObj ? ledObj.name.split(' ')[0] : 'LED'} · ${bedObj ? bedObj.name.split(' ')[0] : 'Colchas'}`;
+    }
+
     this.updateBudgetUI();
   }
 

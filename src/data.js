@@ -668,6 +668,75 @@ export const CLUTTER_ROOM_ITEMS = [
   { id: 'clutter_bunk_1', type: 'clutter_bunk_items', x: 0.65, z: 0.48, rotY: 0, elevation: 0 }
 ];
 
+// ============================================================================
+// 4 DISPOSICIONES DEL CUARTO (ACOMODO COMPLETO Y CALIBRADO DE MUEBLES + ZONAS)
+// ============================================================================
+export const ROOM_LAYOUTS = {
+  actual: {
+    id: 'actual',
+    short: '1. Actual',
+    name: '1. Disposición Actual (Escritorio Noroeste · Literas Este)',
+    desc: 'Tu acomodo actual: escritorio en L bajo la ventana noroeste, clóset al noreste, literas en pared este y espejo al oeste.',
+    desk: { x: -0.58, z: -0.82, rotY: 0 },
+    bunk: { x: 0.65, z: 0.48, rotY: 0 },
+    closet: { x: 0.57, z: -1.23, rotY: 0 },
+    hamper: { x: 0.72, z: -0.74, rotY: 0 },
+    mirror: { x: -0.96, z: 0.30, rotY: 0 },
+    extras: {}
+  },
+  cama_sur: {
+    id: 'cama_sur',
+    short: '2. Cama al Sur',
+    name: '2. Opción A: Literas al Fondo Sur + Centro Despejado',
+    desc: 'Gira las literas 90° pegadas a la pared sur y coloca el clóset en la pared este. Libera un amplio espacio central de 1.45×1.35 m manteniendo tu escritorio junto a la ventana.',
+    desk: { x: -0.58, z: -0.82, rotY: 0 },
+    bunk: { x: 0.16, z: 0.99, rotY: -Math.PI / 2 },
+    closet: { x: 0.86, z: -0.58, rotY: -Math.PI / 2 },
+    hamper: { x: 0.88, z: 0.20, rotY: -Math.PI / 2 },
+    mirror: { x: -0.96, z: 0.22, rotY: 0 },
+    extras: {
+      whiteboard_1: { x: 1.12, z: 0.22, rotY: -Math.PI / 2 },
+      upg_dz_1: { x: 0.62, z: -1.36, rotY: Math.PI },
+      upg_lt_4: { x: 0.14, z: -1.32, rotY: 0 },
+      upg_soc_3: { x: -0.05, z: 0.02, rotY: 0 }
+    }
+  },
+  cama_norte: {
+    id: 'cama_norte',
+    short: '3. Estudio al Sur',
+    name: '3. Opción B: Descanso en Ventana Norte · Estudio al Sureste',
+    desc: 'Coloca las literas al fondo norte junto a la ventana y traslada todo tu estudio en L + monitores + TV a la esquina sureste (sin reflejos de sol en las pantallas).',
+    desk: { x: 0.58, z: 0.82, rotY: Math.PI },
+    bunk: { x: -0.16, z: -0.99, rotY: Math.PI / 2 },
+    closet: { x: -0.86, z: 0.05, rotY: Math.PI / 2 },
+    hamper: { x: 0.90, z: -1.15, rotY: -Math.PI / 2 },
+    mirror: { x: 0.96, z: -0.22, rotY: Math.PI },
+    extras: {
+      whiteboard_1: { x: -0.24, z: 1.47, rotY: Math.PI },
+      upg_dz_1: { x: -0.24, z: 1.35, rotY: 0 },
+      upg_lt_4: { x: 0.98, z: -1.32, rotY: 0 },
+      upg_soc_3: { x: 0.02, z: 0.05, rotY: 0 }
+    }
+  },
+  invertido_este: {
+    id: 'invertido_este',
+    short: '4. Literas Oeste',
+    name: '4. Opción C: Literas al Oeste · Estudio Completo al Sureste',
+    desc: 'Mantiene el clóset fijo en su esquina actual, pasa las literas a la pared oeste y dedica toda la esquina sureste a tu escritorio en L, panel perforado y TV.',
+    desk: { x: 0.58, z: 0.82, rotY: Math.PI },
+    bunk: { x: -0.65, z: -0.46, rotY: Math.PI },
+    closet: { x: 0.57, z: -1.23, rotY: 0 },
+    hamper: { x: -0.85, z: 0.58, rotY: Math.PI / 2 },
+    mirror: { x: 0.96, z: -0.38, rotY: Math.PI },
+    extras: {
+      whiteboard_1: { x: -0.22, z: 1.47, rotY: Math.PI },
+      upg_dz_1: { x: -0.22, z: 1.35, rotY: 0 },
+      upg_lt_4: { x: -0.10, z: -1.32, rotY: 0 },
+      upg_soc_3: { x: -0.02, z: 0.12, rotY: 0 }
+    }
+  }
+};
+
 export const QUICK_COMBOS = {
   actual: {
     name: '1. Tu Cuarto Hoy (Fotos)',
