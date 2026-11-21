@@ -1319,7 +1319,7 @@ function cyl(rt, rb, h, segs, mat, x = 0, y = 0, z = 0) {
   return mesh;
 }
 
-function addLogitechMxKeysMini(group, darkMetal, chromeMat) {
+function addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets = true } = {}) {
   const chassisMat = new THREE.MeshStandardMaterial({ color: 0x2b303a, roughness: 0.38, metalness: 0.45 });
   const keyMat = new THREE.MeshStandardMaterial({
     color: 0x17191f,
@@ -1328,30 +1328,58 @@ function addLogitechMxKeysMini(group, darkMetal, chromeMat) {
     emissiveIntensity: 0.18
   });
 
-  group.add(box(0.132, 0.012, 0.296, chassisMat, 0.075, 0.010, 0.04));
-  group.add(cyl(0.008, 0.008, 0.296, 14, chromeMat, 0.014, 0.015, 0.04).rotateX(Math.PI / 2));
-  group.add(box(0.104, 0.005, 0.282, keyMat, 0.084, 0.017, 0.04));
+  // Teclado Logitech MX Keys Mini (29.6 × 13.2 cm) calibrado para mesa de 40 cm de fondo
+  group.add(box(0.132, 0.012, 0.296, chassisMat, 0.095, 0.010, 0.04));
+  group.add(cyl(0.008, 0.008, 0.296, 14, chromeMat, 0.034, 0.015, 0.04).rotateX(Math.PI / 2));
+  group.add(box(0.104, 0.005, 0.282, keyMat, 0.104, 0.017, 0.04));
 
+  // Mouse a la derecha del teclado
   const mouseGroup = new THREE.Group();
-  mouseGroup.position.set(0.075, 0.006, -0.18);
+  mouseGroup.position.set(0.095, 0.006, -0.185);
   mouseGroup.add(box(0.115, 0.036, 0.074, chassisMat, 0, 0.018, 0));
   mouseGroup.add(cyl(0.009, 0.009, 0.014, 14, chromeMat, -0.032, 0.035, 0));
   group.add(mouseGroup);
 
-  const ulanzi = new THREE.Group();
-  ulanzi.position.set(-0.045, 0.036, 0.04);
-  ulanzi.add(box(0.032, 0.066, 0.195, darkMetal, 0, 0, 0));
-  const ulanziScreenMat = new THREE.MeshBasicMaterial({ map: createUlanziClockTexture() });
-  ulanzi.add(box(0.004, 0.052, 0.180, ulanziScreenMat, 0.015, 0, 0));
-  ulanzi.userData = { isSubGadget: 'ulanzi_tc001' };
-  group.add(ulanzi);
+  // UGREEN HUB USB-C 7-en-1 (Aluminio Gris Espacial) + Adaptador Bluetooth 6.0 USB + Cable DP 1.4
+  const hubGroup = new THREE.Group();
+  hubGroup.position.set(-0.045, 0.008, -0.255);
+  const ugreenAluMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.28, metalness: 0.82 });
+  hubGroup.add(box(0.034, 0.012, 0.122, ugreenAluMat, 0, 0.006, 0));
+  // Puertos USB-A / HDMI / SD / TF en el costado del Hub
+  hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.006, -0.032));
+  hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.006, -0.008));
+  hubGroup.add(box(0.004, 0.004, 0.022, darkMetal, 0.017, 0.006, 0.025));
+  // LED indicador blanco/azul del Hub UGREEN
+  hubGroup.add(cyl(0.0018, 0.0018, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0, 0.013, 0.042));
+  // Adaptador UGREEN Bluetooth 6.0 USB conectado al Hub
+  hubGroup.add(box(0.024, 0.008, 0.015, darkMetal, 0.028, 0.006, -0.032));
+  // Cable trenzado USB-C del Hub + Cable UGREEN USB-C a DisplayPort 1.4 (1m) rumbo a la laptop esquinera
+  const braidedCableMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.72 });
+  const hubCable = cyl(0.0028, 0.0028, 0.18, 8, braidedCableMat, -0.02, 0.004, -0.14);
+  hubCable.rotation.x = Math.PI / 2;
+  hubGroup.add(hubCable);
+  const dpCable = cyl(0.0032, 0.0032, 0.34, 8, braidedCableMat, -0.06, 0.004, -0.12);
+  dpCable.rotation.x = Math.PI / 2;
+  hubGroup.add(dpCable);
+  hubGroup.userData = { isSubGadget: 'ugreen_hub_7in1' };
+  group.add(hubGroup);
 
-  const geek = new THREE.Group();
-  geek.position.set(-0.04, 0.026, -0.19);
-  geek.rotation.y = -0.25;
-  geek.add(box(0.042, 0.048, 0.045, darkMetal, 0, 0, 0));
-  geek.add(box(0.004, 0.036, 0.036, new THREE.MeshBasicMaterial({ color: 0xf59e0b }), 0.020, 0.002, 0));
-  group.add(geek);
+  if (showGadgets) {
+    const ulanzi = new THREE.Group();
+    ulanzi.position.set(-0.085, 0.036, 0.04);
+    ulanzi.add(box(0.032, 0.066, 0.195, darkMetal, 0, 0, 0));
+    const ulanziScreenMat = new THREE.MeshBasicMaterial({ map: createUlanziClockTexture() });
+    ulanzi.add(box(0.004, 0.052, 0.180, ulanziScreenMat, 0.015, 0, 0));
+    ulanzi.userData = { isSubGadget: 'ulanzi_tc001' };
+    group.add(ulanzi);
+
+    const geek = new THREE.Group();
+    geek.position.set(-0.085, 0.026, -0.14);
+    geek.rotation.y = -0.25;
+    geek.add(box(0.042, 0.048, 0.045, darkMetal, 0, 0, 0));
+    geek.add(box(0.004, 0.036, 0.036, new THREE.MeshBasicMaterial({ color: 0xf59e0b }), 0.020, 0.002, 0));
+    group.add(geek);
+  }
 }
 
 // Helper: Dibuja una bufanda de fútbol tejida con flecos en los extremos montada en la pared de la 2da litera
@@ -1421,20 +1449,22 @@ export function buildFurnitureMesh(itemData, roomState) {
     // MUEBLES BASE ACTUALES (CALIBRADOS SIN TRASLAPE)
     // ========================================================================
     case 'l_desk': {
+      // Medidas reales exactas: 1.20 m × 1.20 m exterior · 0.40 m fondo de tabla · 0.80 m × 0.80 m interior de la L
       const deskH = h;
-      const leftWingW = 0.48;
-      const topWingD = 0.45;
+      const leftWingW = 0.40;
+      const topWingD = 0.40;
       const leftX = -w / 2 + leftWingW / 2;
       group.add(box(leftWingW, 0.03, d, blackMelamine, leftX, deskH - 0.015, 0));
 
       const topZ = -d / 2 + topWingD / 2;
       group.add(box(w, 0.03, topWingD, blackMelamine, 0, deskH - 0.015, topZ));
 
-      group.add(box(0.38, 0.13, 0.38, blackMelamine, -w / 2 + 0.21, deskH + 0.065, -d / 2 + 0.21));
+      // Elevación esquinera (ajustada al cuadrado de 40 × 40 cm de la esquina)
+      group.add(box(0.36, 0.13, 0.36, blackMelamine, -w / 2 + 0.19, deskH + 0.065, -d / 2 + 0.19));
       group.add(box(leftWingW - 0.02, deskH - 0.03, 0.03, blackMelamine, leftX, (deskH - 0.03) / 2, d / 2 - 0.02));
       group.add(box(0.03, deskH - 0.03, d - 0.04, blackMelamine, -w / 2 + 0.02, (deskH - 0.03) / 2, 0));
 
-      const shelfW = 0.32;
+      const shelfW = 0.28;
       const rightX = w / 2 - shelfW / 2;
       group.add(box(shelfW, deskH - 0.03, topWingD - 0.02, blackMelamine, rightX, (deskH - 0.03) / 2, topZ));
       const bookMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
@@ -1571,9 +1601,9 @@ export function buildFurnitureMesh(itemData, roomState) {
 
     case 'clutter_desk_items': {
       const deskH = 0.75;
-      const leftX = -w / 2 + 0.22;
-      const topZ = -d / 2 + 0.22;
-      const rightX = w / 2 - 0.16;
+      const leftX = -w / 2 + 0.20;
+      const topZ = -d / 2 + 0.20;
+      const rightX = w / 2 - 0.14;
 
       group.add(cyl(0.042, 0.032, 0.19, 14, new THREE.MeshStandardMaterial({ color: 0x9ca3af }), leftX + 0.06, deskH + 0.095, d / 2 - 0.22));
       group.add(box(0.05, 0.12, 0.035, blackMelamine, leftX + 0.12, deskH + 0.06, d / 2 - 0.16));
@@ -1646,32 +1676,60 @@ export function buildFurnitureMesh(itemData, roomState) {
     }
 
     // ========================================================================
-    // ZONA 1: SETUPS VIBECODING CON TECLADO LOGITECH MX KEYS MINI (CALIBRADOS)
+    // ZONA 1: SETUPS CALIBRADOS PARA ESCRITORIO 1.20×1.20 m (40 cm DE FONDO)
     // ========================================================================
+    case 'vibe_setup_owned': {
+      // Lo que ya compraste puesto sobre la mesa de 40 cm con la base V de fábrica del Samsung Odyssey G300
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1017, roughness: 0.28, metalness: 0.45 });
+      const scrMat = new THREE.MeshBasicMaterial({ map: sharedSetupScrTex });
+
+      // Base en V real del Samsung 24" Odyssey G300 (~20 cm de fondo ocupados sobre la tabla de 40 cm)
+      group.add(box(0.036, 0.17, 0.048, darkMetal, -0.115, 0.085, 0));
+      const legL = box(0.20, 0.012, 0.024, darkMetal, -0.055, 0.008, 0.11);
+      legL.rotation.y = -0.52;
+      group.add(legL);
+      const legR = box(0.20, 0.012, 0.024, darkMetal, -0.055, 0.008, -0.11);
+      legR.rotation.y = 0.52;
+      group.add(legR);
+
+      // Panel Samsung 24" Odyssey G300 FHD 200Hz (54.4 × 33.3 cm)
+      group.add(box(0.022, 0.333, 0.544, frameMat, -0.085, 0.245, 0));
+      const scrMesh = box(0.006, 0.312, 0.526, scrMat, -0.071, 0.245, 0);
+      scrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'main_monitor' };
+      group.add(scrMesh);
+
+      // MX Keys Mini + Mouse + Hub UGREEN 7-en-1 + BT 6.0 + Cable DP 1.4
+      addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets: false });
+      break;
+    }
+
     case 'vibe_setup_27':
     case 'vibe_setup_dual':
     case 'vibe_setup_34': {
       const isDual = itemData.type === 'vibe_setup_dual';
       const is34 = itemData.type === 'vibe_setup_34';
 
+      // Deskpad calibrado al fondo de 40 cm (34 cm fondo × 74 cm largo)
       const padMat = new THREE.MeshStandardMaterial({ color: 0x252a34, roughness: 0.92 });
-      group.add(box(0.30, 0.005, is34 || isDual ? 0.68 : 0.60, padMat, 0.055, 0.003, 0));
+      group.add(box(0.34, 0.005, is34 || isDual ? 0.76 : 0.72, padMat, 0.02, 0.003, 0));
 
-      group.add(cyl(0.024, 0.028, 0.34, 14, darkMetal, -0.14, 0.17, -0.10));
-      group.add(box(0.11, 0.028, 0.16, darkMetal, -0.09, 0.28, -0.03));
+      // Prensa de brazo hidráulico NB F80 / H180 al borde trasero de la mesa (x = -0.178)
+      group.add(cyl(0.022, 0.026, 0.35, 14, darkMetal, -0.178, 0.175, -0.08));
+      group.add(box(0.09, 0.026, 0.14, darkMetal, -0.145, 0.28, -0.03));
 
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1017, roughness: 0.28, metalness: 0.45 });
       const scrMat = new THREE.MeshBasicMaterial({ map: sharedSetupScrTex });
       const vertScrMat = new THREE.MeshBasicMaterial({ map: sharedVertScrTex });
 
       if (isDual) {
-        group.add(box(0.022, 0.34, 0.56, frameMat, -0.05, 0.27, -0.06));
-        const scrMesh = box(0.006, 0.32, 0.54, scrMat, -0.036, 0.27, -0.06);
+        // Samsung 24" Odyssey G300 principal + 24" Vertical en brazo doble
+        group.add(box(0.022, 0.333, 0.544, frameMat, -0.115, 0.28, -0.09));
+        const scrMesh = box(0.006, 0.312, 0.526, scrMat, -0.101, 0.28, -0.09);
         scrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'main_monitor' };
         group.add(scrMesh);
 
         const vertMon = new THREE.Group();
-        vertMon.position.set(-0.01, 0.29, 0.34);
+        vertMon.position.set(-0.075, 0.295, 0.31);
         vertMon.rotation.y = -0.35;
         vertMon.add(box(0.02, 0.48, 0.28, frameMat, 0, 0, 0));
         const vertScrMesh = box(0.006, 0.46, 0.26, vertScrMat, 0.011, 0, 0);
@@ -1684,7 +1742,7 @@ export function buildFurnitureMesh(itemData, roomState) {
         const segW = monW / 3;
         [-1, 0, 1].forEach((idx) => {
           const segGroup = new THREE.Group();
-          segGroup.position.set(-0.05 + Math.abs(idx) * 0.024, 0.28, idx * (segW - 0.004));
+          segGroup.position.set(-0.115 + Math.abs(idx) * 0.024, 0.28, idx * (segW - 0.004));
           segGroup.rotation.y = -idx * 0.17;
           segGroup.add(box(0.02, monH, segW, frameMat, 0, 0, 0));
           const scrMesh = box(0.005, monH - 0.022, segW - 0.01, scrMat, 0.012, 0, 0);
@@ -1693,40 +1751,38 @@ export function buildFurnitureMesh(itemData, roomState) {
           group.add(segGroup);
         });
       } else {
-        group.add(box(0.022, 0.35, 0.59, frameMat, -0.05, 0.27, 0));
-        const scrMesh = box(0.006, 0.325, 0.57, scrMat, -0.036, 0.27, 0);
+        // Tu Monitor Samsung 24" Odyssey G300 FHD 200Hz (54.4 × 33.3 cm) flotando en brazo NB F80
+        group.add(box(0.022, 0.333, 0.544, frameMat, -0.115, 0.28, 0));
+        const scrMesh = box(0.006, 0.312, 0.526, scrMat, -0.101, 0.28, 0);
         scrMesh.userData = { isFurniture: true, id: itemData.id, isScreen: 'main_monitor' };
         group.add(scrMesh);
       }
 
-      const barZ = isDual ? -0.06 : 0;
-      const barMesh = box(0.024, 0.016, 0.42, new THREE.MeshBasicMaterial({ color: 0xfef3c7 }), -0.02, 0.455, barZ);
+      const barZ = isDual ? -0.09 : 0;
+      const barMesh = box(0.024, 0.016, 0.40, new THREE.MeshBasicMaterial({ color: 0xfef3c7 }), -0.085, 0.455, barZ);
       barMesh.userData = { isMonitorLightBarMesh: true };
       group.add(barMesh);
-      group.add(cyl(0.020, 0.020, 0.016, 16, darkMetal, 0.01, 0.010, -0.10));
+      group.add(cyl(0.018, 0.018, 0.016, 16, darkMetal, 0.015, 0.010, -0.08));
 
-      addLogitechMxKeysMini(group, darkMetal, chromeMat);
+      addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets: true });
 
       // ======================================================================
-      // DOMÓTICA & GADGETS: ALEXA ECHO POP + MULTICONTACTO TUYA + BASEUS CLIPS
+      // DOMÓTICA & GADGETS (CALIBRADOS ESTRICTAMENTE DENTRO DE LOS 40 CM)
       // ======================================================================
 
       // 1. Bocina Inteligente Alexa Echo Pop (WiFi/Bluetooth con anillo LED cian)
       const alexaGroup = new THREE.Group();
-      alexaGroup.position.set(-0.06, 0.032, 0.17);
+      alexaGroup.position.set(-0.09, 0.032, 0.21);
       alexaGroup.rotation.y = 0.35;
       const alexaFabric = new THREE.MeshStandardMaterial({ color: 0x1f242d, roughness: 0.85 });
-      alexaGroup.add(cyl(0.046, 0.038, 0.052, 24, alexaFabric, 0, 0, 0));
-      // Rejilla frontal ligeramente orientada
-      const alexaFront = cyl(0.042, 0.042, 0.006, 24, new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.9 }), 0.008, 0.005, 0);
+      alexaGroup.add(cyl(0.044, 0.036, 0.052, 24, alexaFabric, 0, 0, 0));
+      const alexaFront = cyl(0.040, 0.040, 0.006, 24, new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.9 }), 0.008, 0.005, 0);
       alexaFront.rotation.z = 0.25;
       alexaGroup.add(alexaFront);
-      // Anillo LED cian brillante en la base
       const cyanRingMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-      const alexaRing = cyl(0.048, 0.048, 0.008, 24, cyanRingMat, 0, -0.022, 0);
+      const alexaRing = cyl(0.046, 0.046, 0.008, 24, cyanRingMat, 0, -0.022, 0);
       alexaRing.userData = { isAlexaRing: true };
       alexaGroup.add(alexaRing);
-      // Resplandor cian tenue sobre el tapete
       const alexaGlow = new THREE.PointLight(0x00f0ff, 0.35, 0.55);
       alexaGlow.position.set(0, 0.01, 0);
       alexaGlow.userData = { isAlexaGlow: true };
@@ -1734,34 +1790,30 @@ export function buildFurnitureMesh(itemData, roomState) {
       alexaGroup.userData = { isSubGadget: 'alexa_echo' };
       group.add(alexaGroup);
 
-      // 2. Multicontacto Inteligente WiFi Tuya (4 Tomas AC + 4 USB + LEDs)
+      // 2. Multicontacto Inteligente WiFi Tuya (pegado al borde trasero x = -0.16)
       const stripGroup = new THREE.Group();
-      stripGroup.position.set(-0.16, 0.014, -0.22);
+      stripGroup.position.set(-0.16, 0.014, -0.25);
       const whiteAbs = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.35 });
-      stripGroup.add(box(0.058, 0.024, 0.22, whiteAbs, 0, 0, 0));
-      // Switch de encendido general iluminado en rojo
-      stripGroup.add(box(0.018, 0.008, 0.022, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.013, -0.082));
-      // 4 tomas AC con micro-led verde en cada salida
+      stripGroup.add(box(0.056, 0.024, 0.21, whiteAbs, 0, 0, 0));
+      stripGroup.add(box(0.018, 0.008, 0.022, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.013, -0.080));
       const socketMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
       [-0.042, -0.002, 0.038, 0.078].forEach((sz, idx) => {
-        stripGroup.add(box(0.034, 0.003, 0.026, socketMat, 0, 0.0125, sz));
-        const outLed = cyl(0.002, 0.002, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.021, 0.013, sz);
+        stripGroup.add(box(0.032, 0.003, 0.025, socketMat, 0, 0.0125, sz));
+        const outLed = cyl(0.002, 0.002, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.020, 0.013, sz);
         outLed.userData = { isOutletLed: idx + 1 };
         stripGroup.add(outLed);
       });
-      // Bloque de 4 puertos USB con micro-LED azul
-      stripGroup.add(box(0.028, 0.002, 0.012, new THREE.MeshStandardMaterial({ color: 0x1e293b }), 0, 0.0125, 0.102));
-      const usbLed = cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.021, 0.013, 0.102);
+      stripGroup.add(box(0.026, 0.002, 0.012, new THREE.MeshStandardMaterial({ color: 0x1e293b }), 0, 0.0125, 0.098));
+      const usbLed = cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.020, 0.013, 0.098);
       usbLed.userData = { isOutletLed: 'usb' };
       stripGroup.add(usbLed);
-      // Cable de uso rudo trenzado bajando por detrás
       const cableMat = new THREE.MeshStandardMaterial({ color: 0x181a20, roughness: 0.75 });
-      stripGroup.add(cyl(0.0055, 0.0055, 0.28, 8, cableMat, -0.015, -0.12, -0.11));
+      stripGroup.add(cyl(0.0055, 0.0055, 0.28, 8, cableMat, -0.015, -0.12, -0.10));
       stripGroup.userData = { isSubGadget: 'smart_power_strip' };
       group.add(stripGroup);
 
-      // 3. Clips Magnéticos de Cables Baseus en el Borde Frontal
-      const clipBar = box(0.014, 0.006, 0.092, darkMetal, 0.165, 0.004, 0.19);
+      // 3. Clips Magnéticos de Cables Baseus en el Borde Frontal (+0.175)
+      const clipBar = box(0.014, 0.006, 0.092, darkMetal, 0.175, 0.004, 0.20);
       [[-0.028, 0xef4444], [0, 0x64748b], [0.028, 0x38bdf8]].forEach(([cz, col]) => {
         clipBar.add(cyl(0.005, 0.005, 0.008, 10, new THREE.MeshStandardMaterial({ color: col }), 0, 0.005, cz));
       });
@@ -1769,36 +1821,32 @@ export function buildFurnitureMesh(itemData, roomState) {
       group.add(clipBar);
 
       // 4. Memoria USB Metálica Kingston
-      group.add(box(0.028, 0.005, 0.012, chromeMat, 0.015, 0.013, -0.06));
+      group.add(box(0.028, 0.005, 0.012, chromeMat, 0.025, 0.013, -0.06));
 
-      // 5. Tablet de Ingeniería en Base de Aluminio + Stylus Magnético
+      // 5. Tablet de Ingeniería en Base de Aluminio + Stylus Magnético (calibrada dentro de 40 cm)
       const tabletGroup = new THREE.Group();
-      tabletGroup.position.set(0.08, 0.004, 0.28);
+      tabletGroup.position.set(0.04, 0.004, 0.30);
       tabletGroup.rotation.y = -0.22;
 
-      // Base y soporte de aluminio espacial
       const aluMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
-      tabletGroup.add(box(0.11, 0.005, 0.13, aluMat, 0, 0.0025, 0));
-      const aluArm = box(0.02, 0.10, 0.035, aluMat, -0.01, 0.050, 0);
+      tabletGroup.add(box(0.10, 0.005, 0.12, aluMat, 0, 0.0025, 0));
+      const aluArm = box(0.018, 0.095, 0.032, aluMat, -0.01, 0.048, 0);
       aluArm.rotation.x = -0.25;
       tabletGroup.add(aluArm);
-      const aluPlate = box(0.008, 0.15, 0.11, aluMat, 0.012, 0.10, 0);
+      const aluPlate = box(0.008, 0.14, 0.10, aluMat, 0.012, 0.095, 0);
       aluPlate.rotation.z = -0.35;
       tabletGroup.add(aluPlate);
 
-      // Cuerpo de la Tablet (Gris espacial, bisel fino)
       const tabletBodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
-      const tabletBody = box(0.007, 0.23, 0.16, tabletBodyMat, 0.020, 0.115, 0);
+      const tabletBody = box(0.007, 0.22, 0.155, tabletBodyMat, 0.018, 0.11, 0);
       tabletBody.rotation.z = -0.35;
 
-      // Pantalla IPS de la Tablet con esquema de KiCad y Spotify
       const tabletScreenMat = new THREE.MeshBasicMaterial({ map: createTabletScreenTexture() });
-      const tabletScreen = box(0.002, 0.22, 0.152, tabletScreenMat, 0.004, 0, 0);
+      const tabletScreen = box(0.002, 0.21, 0.146, tabletScreenMat, 0.004, 0, 0);
       tabletBody.add(tabletScreen);
 
-      // Stylus capacitivo magnético en el borde
       const stylusMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
-      const stylus = cyl(0.0035, 0.0035, 0.15, 12, stylusMat, 0.005, 0.118, 0);
+      const stylus = cyl(0.0035, 0.0035, 0.145, 12, stylusMat, 0.005, 0.112, 0);
       stylus.rotation.x = Math.PI / 2;
       tabletBody.add(stylus);
 
@@ -1845,13 +1893,13 @@ export function buildFurnitureMesh(itemData, roomState) {
 
     case 'engineer_maker_station': {
       const kaisiMat = new THREE.MeshStandardMaterial({ map: sharedKaisiTex, roughness: 0.68 });
-      group.add(box(0.38, 0.006, 0.26, kaisiMat, -0.05, 0.003, 0.05));
+      group.add(box(0.38, 0.006, 0.26, kaisiMat, -0.05, 0.003, 0.04));
 
       const drawW = 0.17;
       const drawH = 0.20;
       const drawD = 0.12;
-      const drawX = 0.21;
-      const drawZ = -0.09;
+      const drawX = 0.22;
+      const drawZ = -0.11;
       group.add(box(drawW, drawH, drawD, darkMetal, drawX, drawH / 2, drawZ));
       const drawerFrontMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.82, roughness: 0.2 });
       for (let r = 0; r < 3; r++) {
@@ -1860,8 +1908,8 @@ export function buildFurnitureMesh(itemData, roomState) {
         }
       }
 
-      group.add(box(0.062, 0.068, 0.082, darkGrayMelamine, -0.22, 0.034, -0.09));
-      group.add(box(0.048, 0.054, 0.006, chromeMat, -0.22, 0.034, -0.047));
+      group.add(box(0.062, 0.068, 0.082, darkGrayMelamine, -0.22, 0.034, -0.11));
+      group.add(box(0.048, 0.054, 0.006, chromeMat, -0.22, 0.034, -0.067));
 
       const mdfMat = new THREE.MeshStandardMaterial({ color: 0x9a7b4f, roughness: 0.7 });
       group.add(box(0.13, 0.075, 0.11, mdfMat, -0.03, 0.042, 0.04));

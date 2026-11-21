@@ -30,14 +30,14 @@ const HISTORY_LIMIT = 60;
 
 const CAMERA_PRESETS = {
   orbit_3d:        { pos: [-0.15, 2.22, 2.50],  target: [0, 0.82, -0.10],      fov: 50, wallMode: 'auto' },
-  desk_front:      { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
-  desk_corner:     { pos: [-0.40, 1.10, -0.76], target: [-0.92, 0.96, -1.25],  fov: 36, wallMode: 'full' },
-  desk_lab:        { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
-  desk_pegboard:   { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
+  desk_front:      { pos: [-0.34, 1.04, -0.69], target: [-0.95, 0.90, -0.69],  fov: 40, wallMode: 'full' },
+  desk_corner:     { pos: [-0.38, 1.10, -0.78], target: [-0.94, 0.96, -1.28],  fov: 38, wallMode: 'full' },
+  desk_lab:        { pos: [-0.36, 1.12, -0.78], target: [-0.36, 0.82, -1.29],  fov: 36, wallMode: 'full' },
+  desk_pegboard:   { pos: [-0.28, 1.24, -0.34], target: [-1.08, 1.18, -0.34],  fov: 40, wallMode: 'full' },
   whiteboard_view: { pos: [-0.38, 1.16, 0.45],  target: [-0.38, 1.15, 1.48],  fov: 42, wallMode: 'full' },
-  zoom_desk:       { pos: [-0.38, 1.04, -0.66], target: [-0.94, 0.90, -0.66],  fov: 38, wallMode: 'full' },
-  zoom_lab:        { pos: [-0.34, 1.12, -0.78], target: [-0.34, 0.82, -1.25],  fov: 36, wallMode: 'full' },
-  zoom_shelves:    { pos: [-0.28, 1.24, -0.28], target: [-1.08, 1.18, -0.28],  fov: 40, wallMode: 'full' },
+  zoom_desk:       { pos: [-0.34, 1.04, -0.69], target: [-0.95, 0.90, -0.69],  fov: 40, wallMode: 'full' },
+  zoom_lab:        { pos: [-0.36, 1.12, -0.78], target: [-0.36, 0.82, -1.29],  fov: 36, wallMode: 'full' },
+  zoom_shelves:    { pos: [-0.28, 1.24, -0.34], target: [-1.08, 1.18, -0.34],  fov: 40, wallMode: 'full' },
   zoom_underbed:   { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
   zoom_soccer:     { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
   top_2d:          { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
@@ -212,14 +212,14 @@ class RoomSimulatorApp {
     const deskGroupIds = [
       'desk_1', 'tv_1', 'chair_1',
       'upg_mon', 'upg_lap', 'upg_slat',
-      'upg_eng_1', 'upg_eng_2',
+      'upg_peg_1', 'upg_eng_1', 'upg_eng_2',
       'upg_ds_1', 'upg_ds_2', 'upg_ds_3',
-      'upg_sh_1', 'upg_lt_1', 'upg_lt_2',
+      'upg_sh_1', 'upg_led_1',
       'clutter_tv_1', 'clutter_desk_1'
     ];
     const bunkGroupIds = [
       'bunk_1', 'upg_soc_1', 'upg_soc_2',
-      'upg_ub_1', 'upg_lt_3', 'clutter_bunk_1'
+      'upg_ub_1', 'clutter_bunk_1'
     ];
     const mirrorGroupIds = [
       'mirror_1', 'upg_dz_3', 'clutter_mirror_1'
@@ -239,10 +239,10 @@ class RoomSimulatorApp {
       };
     };
 
-    if (deskGroupIds.includes(item.id)) {
-      return rotateGroup(item, -0.58, -0.82, layout.desk);
+    if (deskGroupIds.includes(item.id) || item.type === 'led_strip_tv') {
+      return rotateGroup(item, -0.55, -0.89, layout.desk);
     }
-    if (bunkGroupIds.includes(item.id)) {
+    if (bunkGroupIds.includes(item.id) || item.type === 'led_strip_bunk') {
       return rotateGroup(item, 0.65, 0.48, layout.bunk);
     }
     if (mirrorGroupIds.includes(item.id)) {
@@ -697,9 +697,9 @@ class RoomSimulatorApp {
 
     // Barra de luz del monitor e iluminación de escritorio (controlada por Domótica Toma 2)
     const deskLightsOn = this.domotica ? Boolean(this.domotica.outlet2_lights) : true;
-    const deskPos = (ROOM_LAYOUTS[this.roomLayout] && ROOM_LAYOUTS[this.roomLayout].desk) || { x: -0.58, z: -0.82 };
+    const deskPos = (ROOM_LAYOUTS[this.roomLayout] && ROOM_LAYOUTS[this.roomLayout].desk) || { x: -0.55, z: -0.89 };
     const deskLight = new THREE.PointLight(0xf1f5ff, deskLightsOn ? 1.15 : 0.0, 1.6, 1.5);
-    deskLight.position.set(deskPos.x > 0 ? 0.86 : -0.86, 1.28, deskPos.z > 0 ? 0.66 : -0.66);
+    deskLight.position.set(deskPos.x > 0 ? 0.90 : -0.90, 1.28, deskPos.z > 0 ? 0.69 : -0.69);
     deskLight.userData = { isDeskBarLight: true, baseIntensity: 1.15 };
     lightsGroup.add(deskLight);
 

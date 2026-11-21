@@ -18,75 +18,86 @@ export const DEFAULT_ROOM = {
 export const PRODUCT_ZONES = [
   {
     id: 'vibecoding_zone',
-    title: '1. Setup Vibecoding (Teclado Logitech + Gadgets AliExpress)',
-    subtitle: 'Ala izquierda del escritorio: teclado MX Keys Mini, pantallas y gadgets de telemetría (Ulanzi TC001 / GeekMagic)',
+    title: '1. Setup Escritorio (Tu Odyssey 24" + MX Keys + Hub UGREEN)',
+    subtitle: 'Ala izquierda (120×40 cm): tu monitor Samsung 24" Odyssey G300 200Hz, MX Keys Mini, Hub UGREEN 7-en-1 y cable DP 1m',
     defaultOption: 'vibe_27_mx',
     cameraPreset: 'desk_front',
     options: [
       {
         id: 'none',
-        name: 'Actual (Solo escritorio vacío)',
+        name: 'Escritorio vacío (sin equipo)',
         price: 0,
-        store: 'Estado actual',
+        store: 'Solo mesa',
         dims: '-',
-        desc: 'Sin monitor externo ni periféricos inalámbricos.',
+        desc: 'Escritorio en L de 1.20 × 1.20 m (40 cm fondo) despejado.',
         links: [],
         spawnItems: []
       },
       {
+        id: 'vibe_owned_base',
+        name: 'Ya Comprado: Odyssey 24" (Base V) + MX Keys Mini + Hub UGREEN + DP 1m',
+        price: 0,
+        store: '✅ Ya lo tienes ($0 extra)',
+        dims: 'Samsung 24" (54.4×33.3 cm) en base V (~21 cm fondo) · MX Keys Mini · Hub 7-en-1',
+        desc: 'Lo que ya compraste puesto sobre tus 40 cm de fondo. Nota en 3D cómo la base en V del Samsung Odyssey G300 ocupa más de la mitad del fondo de la mesa (quedan solo ~18 cm frente al monitor para teclado y muñecas).',
+        links: [],
+        spawnItems: [
+          { id: 'upg_mon', type: 'vibe_setup_owned', x: -0.95, z: -0.69, rotY: 0, elevation: 0.75 },
+          { id: 'upg_lap', type: 'laptop_stand', x: -0.94, z: -1.28, rotY: 0.75, elevation: 0.88 }
+        ]
+      },
+      {
         id: 'vibe_27_mx',
-        name: 'Opción A: Logitech MX Keys Mini + Monitor 27" + Reloj Ulanzi TC001 (AliExpress)',
-        price: 5850,
-        store: 'Amazon MX + AliExpress',
-        dims: 'Teclado 29.6×13 cm · Monitor 27" · Reloj Pixel Ulanzi 20×7 cm',
-        desc: 'Tu teclado Logitech MX Keys Mini + Mouse MX Master 3S en tu mano derecha + Monitor 27" en brazo hidráulico + Laptop ASUS TUF sobre la base esquinera mirando hacia ti.',
+        name: 'Opción A (Recomendada): Tu Odyssey 24" en Brazo NB F80 + Deskpad 75×35 + Ulanzi',
+        price: 1980,
+        store: 'Amazon MX + AliExpress (Solo lo que falta)',
+        dims: 'Brazo NB F80 (libera +16 cm de fondo) · Deskpad 75×35 cm · Stand Laptop · Ulanzi',
+        desc: 'Descontando lo que ya compraste (Odyssey 24", MX Keys Mini, Mouse, Hub UGREEN, BT 6.0 y Cable DP 1m). El brazo hidráulico VESA libera los 40 cm completos del escritorio y el cable DP de 1 m llega sobrado a la laptop en la esquina (~75 cm de recorrido).',
         links: [
-          { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
+          { label: 'Brazo Hidráulico North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' },
+          { label: 'AliExpress: Stand Aluminio Laptop (~$195)', url: 'https://es.aliexpress.com/w/wholesale-laptop-stand-aluminum-cooling.html' },
+          { label: 'AliExpress: Deskpad Fieltro 80×35cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-80x35.html' },
           { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$780)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' },
-          { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' },
-          { label: 'AliExpress: Deskpad Fieltro 90×40cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-90x40.html' },
-          { label: 'Brazo Monitor North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' }
+          { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' }
         ],
         spawnItems: [
-          { id: 'upg_mon', type: 'vibe_setup_27', x: -0.90, z: -0.66, rotY: 0, elevation: 0.75 },
-          { id: 'upg_lap', type: 'laptop_stand', x: -0.92, z: -1.26, rotY: 0.72, elevation: 0.88 }
+          { id: 'upg_mon', type: 'vibe_setup_27', x: -0.95, z: -0.69, rotY: 0, elevation: 0.75 },
+          { id: 'upg_lap', type: 'laptop_stand', x: -0.94, z: -1.28, rotY: 0.75, elevation: 0.88 }
         ]
       },
       {
         id: 'vibe_dual_vertical',
-        name: 'Opción B: Doble Monitor (27" + 24" Vertical Código) + MX Keys Mini',
-        price: 8400,
-        store: 'Amazon MX + AliExpress',
-        dims: '27" Principal + 24" Vertical en Brazo Doble NB H180',
-        desc: 'El favorito para Vibecoding e Ingeniería: pantalla vertical a la izquierda para código/terminales/IA y pantalla 27" central en brazo doble + Laptop en la esquina mirando hacia ti.',
+        name: 'Opción B: Tu Odyssey 24" + 2do Monitor 24" Vertical (Brazo Doble NB H180)',
+        price: 4290,
+        store: 'Amazon MX + AliExpress (Solo lo que falta)',
+        dims: 'Tu Samsung Odyssey 24" 200Hz + 24" IPS Vertical en Brazo Doble NB H180',
+        desc: 'Conservas tu Samsung Odyssey G300 al centro (por DisplayPort 1.4 200Hz) y sumas un 2do monitor 24" vertical a la izquierda conectado al puerto HDMI 4K de tu Hub UGREEN 7-en-1. Ideal para código, terminales e IA.',
         links: [
-          { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
           { label: 'AliExpress: Brazo Doble Hidráulico NB H180 (~$790)', url: 'https://es.aliexpress.com/w/wholesale-North-Bayou-H180.html' },
-          { label: 'AliExpress: Stand Aluminio Laptop (~$195)', url: 'https://es.aliexpress.com/w/wholesale-vertical-laptop-stand-aluminum.html' },
-          { label: 'Mouse Logitech MX Master 3S (Amazon)', url: 'https://www.amazon.com.mx/s?k=Logitech+MX+Master+3S' }
+          { label: 'Monitor 24" IPS VESA Secundario (~$2,350 Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+24+pulgadas+IPS+VESA' },
+          { label: 'AliExpress: Stand Aluminio Laptop (~$195)', url: 'https://es.aliexpress.com/w/wholesale-laptop-stand-aluminum-cooling.html' }
         ],
         spawnItems: [
-          { id: 'upg_mon', type: 'vibe_setup_dual', x: -0.90, z: -0.66, rotY: 0, elevation: 0.75 },
-          { id: 'upg_lap', type: 'laptop_stand', x: -0.92, z: -1.26, rotY: 0.72, elevation: 0.88 }
+          { id: 'upg_mon', type: 'vibe_setup_dual', x: -0.95, z: -0.69, rotY: 0, elevation: 0.75 },
+          { id: 'upg_lap', type: 'laptop_stand', x: -0.94, z: -1.28, rotY: 0.75, elevation: 0.88 }
         ]
       },
       {
         id: 'vibe_34_ultra',
-        name: 'Opción C: Monitor 34" Ultrawide Curvo + Ambilight Skydimo + Lambrín',
-        price: 9200,
-        store: 'Amazon MX + AliExpress',
-        dims: 'Monitor 34" (76×34 cm) + Lambrín Nogal 78×58 cm',
-        desc: 'Monitor Curvo 34" Ultrawide + Tira Ambilight USB Skydimo + Teclado Logitech MX Keys Mini + Panel acústico de nogal encajado exactamente debajo de tu TV.',
+        name: 'Opción C: Upgrade 34" Curvo + Ambilight Skydimo + Lambrín Nogal',
+        price: 7650,
+        store: 'Amazon MX + AliExpress (Descontando periféricos comprados)',
+        dims: 'Monitor 34" (76×34 cm) en brazo + Lambrín Nogal 78×58 cm',
+        desc: 'Upgrade a futuro con Monitor Curvo 34" Ultrawide en brazo hidráulico + Tira Ambilight USB Skydimo + Panel acústico de nogal debajo de tu TV (usando tu MX Keys Mini, Hub UGREEN y cable DP 1.4).',
         links: [
-          { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
           { label: 'AliExpress: Tira Ambilight PC Skydimo 34" (~$280)', url: 'https://es.aliexpress.com/w/wholesale-Skydimo-ambilight-PC-strip.html' },
           { label: 'Monitor Curvo 34" Ultrawide WQHD (Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+34+pulgadas+Ultrawide+WQHD' },
           { label: 'Panel Acústico Lambrín Madera (Amazon)', url: 'https://www.amazon.com.mx/s?k=panel+acustico+listones+madera+pared' }
         ],
         spawnItems: [
-          { id: 'upg_mon', type: 'vibe_setup_34', x: -0.90, z: -0.66, rotY: 0, elevation: 0.75 },
-          { id: 'upg_lap', type: 'laptop_stand', x: -0.92, z: -1.26, rotY: 0.72, elevation: 0.88 },
-          { id: 'upg_slat', type: 'wood_slat_panel', x: -1.12, z: -0.82, rotY: 0, elevation: 0.76 }
+          { id: 'upg_mon', type: 'vibe_setup_34', x: -0.95, z: -0.69, rotY: 0, elevation: 0.75 },
+          { id: 'upg_lap', type: 'laptop_stand', x: -0.94, z: -1.28, rotY: 0.75, elevation: 0.88 },
+          { id: 'upg_slat', type: 'wood_slat_panel', x: -1.13, z: -0.85, rotY: 0, elevation: 0.76 }
         ]
       }
     ]
@@ -123,8 +134,8 @@ export const PRODUCT_ZONES = [
           { label: 'AliExpress: Cautín USB-C FNIRSI HS-02 100W (~$590)', url: 'https://es.aliexpress.com/w/wholesale-FNIRSI-HS-02-soldering-iron.html' }
         ],
         spawnItems: [
-          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.11, z: -0.28, rotY: 0, elevation: 0.88 },
-          { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.34, z: -1.25, rotY: 0, elevation: 0.75 }
+          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.11, z: -0.34, rotY: 0, elevation: 0.88 },
+          { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.36, z: -1.29, rotY: 0, elevation: 0.75 }
         ]
       },
       {
@@ -141,29 +152,29 @@ export const PRODUCT_ZONES = [
           { label: 'Organizador Perforado Yolispa (Tu link Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' }
         ],
         spawnItems: [
-          { id: 'upg_peg_1', type: 'yolispa_pegboard_double', x: -1.11, z: -0.28, rotY: 0, elevation: 0.88 },
-          { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.34, z: -1.25, rotY: 0, elevation: 0.75 }
+          { id: 'upg_peg_1', type: 'yolispa_pegboard_double', x: -1.11, z: -0.34, rotY: 0, elevation: 0.88 },
+          { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.36, z: -1.29, rotY: 0, elevation: 0.75 }
         ]
       },
       {
         id: 'eng_alex_full',
-        name: 'Opción C: Cajonera 5 Cajones (IKEA ALEX) + Cajas SMD AliExpress + Silla Malla',
+        name: 'Opción C: Cajonera Compacta 5 Cajones + Cajas SMD AliExpress + Silla Malla',
         price: 4850,
         store: 'IKEA MX + AliExpress + Amazon',
-        dims: 'Cajonera 36×44×71 cm + Cajas modulares SMD + Silla Ergonómica',
-        desc: 'Cajonera de 5 cajones bajo el escritorio + Cajas modulares transparentes de AliExpress para resistencias/ESP32 + Panel Yolispa + Silla ergonómica orientada hacia el monitor.',
+        dims: 'Cajonera 36×34×71 cm (cabe en fondo 40 cm) + Cajas SMD + Silla Ergonómica',
+        desc: 'Cajonera compacta de 5 cajones bajo el ala de 40 cm + Cajas modulares transparentes de AliExpress para resistencias/ESP32 + Panel Yolispa + Silla ergonómica centrada en la L interior de 80×80 cm.',
         replaceChair: true,
         links: [
-          { label: 'Cajonera IKEA ALEX ($2,999)', url: 'https://www.ikea.com/mx/es/search/?q=ALEX+cajonera' },
+          { label: 'Cajonera Compacta Oficina 35-38cm Fondo (Amazon)', url: 'https://www.amazon.com.mx/s?k=cajonera+escritorio+estrecha+35+cm+fondo' },
           { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
           { label: 'Silla Ergonómica Malla Soporte Lumbar (Amazon)', url: 'https://www.amazon.com.mx/s?k=silla+ergonomica+oficina+malla+negra' }
         ],
         spawnItems: [
-          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.11, z: -0.28, rotY: 0, elevation: 0.88 },
-          { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.34, z: -1.25, rotY: 0, elevation: 0.75 },
-          { id: 'upg_ds_1', type: 'under_desk_drawer', x: -0.90, z: -0.32, rotY: 0, elevation: 0 },
-          { id: 'upg_ds_2', type: 'trash_bin', x: -0.56, z: -1.26, rotY: 0, elevation: 0 },
-          { id: 'upg_ds_3', type: 'ergo_chair', x: -0.42, z: -0.68, rotY: -1.75, elevation: 0 }
+          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.11, z: -0.34, rotY: 0, elevation: 0.88 },
+          { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.36, z: -1.29, rotY: 0, elevation: 0.75 },
+          { id: 'upg_ds_1', type: 'under_desk_drawer', x: -0.95, z: -0.47, rotY: 0, elevation: 0 },
+          { id: 'upg_ds_2', type: 'trash_bin', x: -0.56, z: -1.29, rotY: 0, elevation: 0 },
+          { id: 'upg_ds_3', type: 'ergo_chair', x: -0.38, z: -0.68, rotY: -1.68, elevation: 0 }
         ]
       }
     ]
@@ -199,7 +210,7 @@ export const PRODUCT_ZONES = [
           { label: 'Repisa Flotante Negra Herraje Oculto (Amazon)', url: 'https://www.amazon.com.mx/s?k=repisa+flotante+negra+minimalista+soporte+oculto' }
         ],
         spawnItems: [
-          { id: 'upg_sh_1', type: 'shelf_lack_110', x: -1.03, z: -0.28, rotY: 0, elevation: 1.50 }
+          { id: 'upg_sh_1', type: 'shelf_lack_110', x: -1.03, z: -0.34, rotY: 0, elevation: 1.50 }
         ]
       },
       {
@@ -214,7 +225,7 @@ export const PRODUCT_ZONES = [
           { label: 'Set Repisas Flotantes Negras (Amazon)', url: 'https://www.amazon.com.mx/s?k=set+repisas+flotantes+negras+60+cm' }
         ],
         spawnItems: [
-          { id: 'upg_sh_1', type: 'shelf_duo_stepped', x: -1.04, z: -0.28, rotY: 0, elevation: 1.46 }
+          { id: 'upg_sh_1', type: 'shelf_duo_stepped', x: -1.04, z: -0.34, rotY: 0, elevation: 1.46 }
         ]
       },
       {
@@ -229,7 +240,7 @@ export const PRODUCT_ZONES = [
           { label: 'Repisas Flotantes Madera Parota / Nogal (Amazon)', url: 'https://www.amazon.com.mx/s?k=repisas+flotantes+madera+nogal+parota' }
         ],
         spawnItems: [
-          { id: 'upg_sh_1', type: 'shelf_walnut_led', x: -1.03, z: -0.28, rotY: 0, elevation: 1.46 }
+          { id: 'upg_sh_1', type: 'shelf_walnut_led', x: -1.03, z: -0.34, rotY: 0, elevation: 1.46 }
         ]
       }
     ]
@@ -267,8 +278,8 @@ export const PRODUCT_ZONES = [
           { label: 'Xiaomi Monitor Light Bar (Amazon $990)', url: 'https://www.amazon.com.mx/s?k=Xiaomi+Mi+Computer+Monitor+Light+Bar' }
         ],
         spawnItems: [
-          { id: 'upg_led_1', type: 'led_strip_desk', x: -1.12, z: -0.78, rotY: 0, elevation: 0.76 },
-          { id: 'upg_led_2', type: 'led_strip_tv', x: -1.11, z: -0.98, rotY: 0, elevation: 1.48 }
+          { id: 'upg_led_1', type: 'led_strip_desk', x: -1.13, z: -0.89, rotY: 0, elevation: 0.76 },
+          { id: 'upg_led_2', type: 'led_strip_tv', x: -1.11, z: -0.95, rotY: 0, elevation: 1.48 }
         ]
       },
       {
@@ -285,7 +296,7 @@ export const PRODUCT_ZONES = [
           { label: 'Plafón LED Techo Minimalista 24W (Amazon)', url: 'https://www.amazon.com.mx/s?k=plafon+led+techo+moderno+delgado+24w' }
         ],
         spawnItems: [
-          { id: 'upg_led_1', type: 'led_strip_desk', x: -1.12, z: -0.78, rotY: 0, elevation: 0.76 },
+          { id: 'upg_led_1', type: 'led_strip_desk', x: -1.13, z: -0.89, rotY: 0, elevation: 0.76 },
           { id: 'upg_led_2', type: 'led_strip_bunk', x: 1.10, z: 0.48, rotY: 0, elevation: 1.30 }
         ]
       },
@@ -303,9 +314,9 @@ export const PRODUCT_ZONES = [
           { label: 'Lámpara de Esquina Govee (Amazon)', url: 'https://www.amazon.com.mx/s?k=lampara+de+esquina+led+govee+rgbic' }
         ],
         spawnItems: [
-          { id: 'upg_led_1', type: 'led_strip_desk', x: -1.12, z: -0.78, rotY: 0, elevation: 0.76 },
+          { id: 'upg_led_1', type: 'led_strip_desk', x: -1.13, z: -0.89, rotY: 0, elevation: 0.76 },
           { id: 'upg_led_2', type: 'led_strip_bunk', x: 1.10, z: 0.48, rotY: 0, elevation: 1.30 },
-          { id: 'upg_led_3', type: 'floor_lamp', x: -0.02, z: -1.32, rotY: 0, elevation: 0 }
+          { id: 'upg_led_3', type: 'floor_lamp', x: -0.02, z: -1.36, rotY: 0, elevation: 0 }
         ]
       }
     ]
@@ -545,10 +556,11 @@ export const UI_LABELS = {
     whiteboard_zone: { icon: '📋', short: 'Pizarrón' }
   },
   options: {
-    none: 'Nada (actual)',
-    vibe_27_mx: 'Monitor 27"',
-    vibe_dual_vertical: 'Doble monitor',
-    vibe_34_ultra: 'Ultrawide 34"',
+    none: 'Vacío',
+    vibe_owned_base: 'Ya comprado (Base V)',
+    vibe_27_mx: 'Odyssey 24" + Brazo',
+    vibe_dual_vertical: 'Odyssey + 24" Vert.',
+    vibe_34_ultra: 'Upgrade 34" Curvo',
     eng_yolispa_lab: 'Panel + kit soldar',
     eng_skadis_ugreen: 'Panel doble + ZOYI',
     eng_alex_full: 'Cajonera + silla',
@@ -592,9 +604,9 @@ export const LIGHT_SCENES = {
 };
 
 export const CATALOG = {
-  l_desk: { type: 'l_desk', name: 'Escritorio en L Negro', w: 1.12, d: 1.32, h: 0.75 },
+  l_desk: { type: 'l_desk', name: 'Escritorio en L Negro (1.20×1.20 m · 40 cm fondo)', w: 1.20, d: 1.20, h: 0.75 },
   tv_wall: { type: 'tv_wall', name: 'Televisor en Pared Izquierda', w: 0.10, d: 0.84, h: 0.50 },
-  gray_closet: { type: 'gray_closet', name: 'Clóset Gris con Cajones', w: 1.14, d: 0.54, h: 2.18 },
+  gray_closet: { type: 'gray_closet', name: 'Clóset Gris con Cajones', w: 1.08, d: 0.54, h: 2.18 },
   bunk_bed: { type: 'bunk_bed', name: 'Literas Tubulares Negras', w: 0.98, d: 1.94, h: 1.72 },
   mirror_cabinet: { type: 'mirror_cabinet', name: 'Mueble Negro con Espejo', w: 0.36, d: 0.64, h: 1.85 },
   dry_erase_whiteboard: { type: 'dry_erase_whiteboard', name: 'Pizarrón Blanco para Diagramas y Notas', w: 0.65, d: 0.04, h: 0.48 },
@@ -604,20 +616,21 @@ export const CATALOG = {
   clutter_floor_bags: { type: 'clutter_floor_bags', name: 'Bolsas Negras + Mochila Gris', w: 0.78, d: 0.46, h: 0.62 },
   clutter_mirror_top: { type: 'clutter_mirror_top', name: 'Caja ASUS TUF F15 + Oster sobre Espejo', w: 0.34, d: 0.62, h: 0.42 },
   clutter_tv_blanket: { type: 'clutter_tv_blanket', name: 'Cobija Amarilla sobre TV', w: 0.14, d: 0.88, h: 0.54 },
-  clutter_desk_items: { type: 'clutter_desk_items', name: 'Botellas, Libretas y Bolsas Escritorio', w: 1.05, d: 1.25, h: 0.95 },
+  clutter_desk_items: { type: 'clutter_desk_items', name: 'Botellas, Libretas y Bolsas Escritorio', w: 1.16, d: 1.16, h: 0.95 },
   clutter_bunk_items: { type: 'clutter_bunk_items', name: 'Chamarra, Playera Celeste y Balón en Litera', w: 1.02, d: 1.94, h: 1.70 },
 
-  // Setups Vibecoding con Logitech MX Keys Mini + Ulanzi TC001 + GeekMagic SmallTV (calibrados)
-  vibe_setup_27: { type: 'vibe_setup_27', name: 'Monitor 27" + Logitech MX Keys Mini + Ulanzi TC001 + GeekMagic', w: 0.34, d: 0.60, h: 0.46 },
-  vibe_setup_dual: { type: 'vibe_setup_dual', name: 'Doble Monitor (27" + 24" Vertical) + MX Keys Mini + Ulanzi TC001', w: 0.34, d: 0.76, h: 0.52 },
-  vibe_setup_34: { type: 'vibe_setup_34', name: 'Monitor 34" Ultrawide + Ambilight Skydimo + MX Keys Mini', w: 0.34, d: 0.76, h: 0.46 },
+  // Setups reales calibrados para mesa de 40 cm de fondo (1.20×1.20 m)
+  vibe_setup_owned: { type: 'vibe_setup_owned', name: 'Tu Setup Comprado: Odyssey 24" (Base V) + MX Keys Mini + Hub UGREEN', w: 0.38, d: 0.74, h: 0.44 },
+  vibe_setup_27: { type: 'vibe_setup_27', name: 'Tu Samsung Odyssey 24" en Brazo NB F80 + MX Keys Mini + Hub UGREEN + Ulanzi', w: 0.38, d: 0.74, h: 0.46 },
+  vibe_setup_dual: { type: 'vibe_setup_dual', name: 'Tu Odyssey 24" + 24" Vertical en Brazo Doble + MX Keys + Hub UGREEN', w: 0.38, d: 0.78, h: 0.52 },
+  vibe_setup_34: { type: 'vibe_setup_34', name: 'Monitor 34" Ultrawide + Ambilight Skydimo + MX Keys + Hub UGREEN', w: 0.38, d: 0.78, h: 0.46 },
   laptop_stand: { type: 'laptop_stand', name: 'Laptop ASUS TUF F15 en Stand Aluminio (Orientada hacia ti)', w: 0.32, d: 0.28, h: 0.25 },
   wood_slat_panel: { type: 'wood_slat_panel', name: 'Panel Lambrín Acústico Nogal', w: 0.04, d: 0.78, h: 0.58 },
 
   // Paneles Perforados Yolispa + Estación de Ingeniería con FNIRSI HS-02 y Tapete Kaisi
   yolispa_pegboard: { type: 'yolispa_pegboard', name: 'Organizador Perforado Yolispa (4 Paneles + Herramientas)', w: 0.05, d: 0.46, h: 0.48 },
   yolispa_pegboard_double: { type: 'yolispa_pegboard_double', name: 'Doble Panel Perforado + Osciloscopio ZOYI + Herramientas', w: 0.05, d: 0.50, h: 0.52 },
-  engineer_maker_station: { type: 'engineer_maker_station', name: 'Banco Ingeniería (Tapete Kaisi + Cautín FNIRSI HS-02 + Ugreen GaN + Prototipo)', w: 0.52, d: 0.38, h: 0.24 },
+  engineer_maker_station: { type: 'engineer_maker_station', name: 'Banco Ingeniería (Tapete Kaisi + Cautín FNIRSI HS-02 + Ugreen GaN + Prototipo)', w: 0.52, d: 0.36, h: 0.24 },
 
   // Repisas Flotantes (calibradas al espacio libre sobre el panel perforado)
   shelf_lack_110: { type: 'shelf_lack_110', name: 'Repisa Flotante IKEA LACK Negra', w: 0.20, d: 0.48, h: 0.16 },
@@ -636,11 +649,11 @@ export const CATALOG = {
   underbed_wheeled_drawers: { type: 'underbed_wheeled_drawers', name: '2 Cajones con Ruedas Bajo Cama', w: 0.82, d: 1.55, h: 0.20 },
   underbed_skubb_cases: { type: 'underbed_skubb_cases', name: '3 Estuches con Cierre Bajo Cama', w: 0.80, d: 1.68, h: 0.19 },
   underbed_shoe_pullout: { type: 'underbed_shoe_pullout', name: 'Zapatera Deslizable Bajo Cama + Cajas', w: 0.84, d: 1.60, h: 0.18 },
-  led_strip_desk: { type: 'led_strip_desk', name: 'Tira LED Tuya/Govee Detrás de Escritorio', w: 0.04, d: 1.10, h: 0.04 },
+  led_strip_desk: { type: 'led_strip_desk', name: 'Tira LED Tuya/Govee Detrás de Escritorio', w: 0.04, d: 1.14, h: 0.04 },
   led_strip_tv: { type: 'led_strip_tv', name: 'Luz Bias LED Detrás de TV', w: 0.04, d: 0.78, h: 0.04 },
   led_strip_bunk: { type: 'led_strip_bunk', name: 'Tira LED COB 3000K Bajo Litera Superior', w: 0.05, d: 1.80, h: 0.04 },
   floor_lamp: { type: 'floor_lamp', name: 'Lámpara Esquinera Minimalista RGBIC Tuya', w: 0.20, d: 0.20, h: 1.42 },
-  under_desk_drawer: { type: 'under_desk_drawer', name: 'Cajonera 5 Cajones (IKEA ALEX)', w: 0.42, d: 0.34, h: 0.71 },
+  under_desk_drawer: { type: 'under_desk_drawer', name: 'Cajonera Compacta 5 Cajones (36 cm fondo)', w: 0.36, d: 0.34, h: 0.71 },
   trash_bin: { type: 'trash_bin', name: 'Bote de Basura Negro Mate con Pedal', w: 0.22, d: 0.22, h: 0.32 },
   ergo_chair: { type: 'ergo_chair', name: 'Silla Ergonómica de Malla Negra', w: 0.52, d: 0.52, h: 0.96 },
   laundry_hamper: { type: 'laundry_hamper', name: 'Cesto de Ropa Sucia con Tapa', w: 0.40, d: 0.32, h: 0.60 },
@@ -651,18 +664,18 @@ export const CATALOG = {
 };
 
 export const BASE_ROOM_ITEMS = [
-  { id: 'desk_1', type: 'l_desk', x: -0.58, z: -0.82, rotY: 0, elevation: 0 },
-  { id: 'tv_1', type: 'tv_wall', x: -1.09, z: -0.98, rotY: 0, elevation: 1.39 },
-  { id: 'chair_1', type: 'current_chair', x: -0.44, z: -0.72, rotY: -1.80, elevation: 0 },
-  { id: 'closet_1', type: 'gray_closet', x: 0.57, z: -1.23, rotY: 0, elevation: 0 },
+  { id: 'desk_1', type: 'l_desk', x: -0.55, z: -0.89, rotY: 0, elevation: 0 },
+  { id: 'tv_1', type: 'tv_wall', x: -1.09, z: -0.95, rotY: 0, elevation: 1.39 },
+  { id: 'chair_1', type: 'current_chair', x: -0.38, z: -0.68, rotY: -1.68, elevation: 0 },
+  { id: 'closet_1', type: 'gray_closet', x: 0.60, z: -1.23, rotY: 0, elevation: 0 },
   { id: 'bunk_1', type: 'bunk_bed', x: 0.65, z: 0.48, rotY: 0, elevation: 0 },
   { id: 'mirror_1', type: 'mirror_cabinet', x: -0.96, z: 0.30, rotY: 0, elevation: 0 }
 ];
 
 export const CLUTTER_ROOM_ITEMS = [
   { id: 'bin_1', type: 'closet_organizer_bin', x: 0.72, z: -0.74, rotY: 0, elevation: 0 },
-  { id: 'clutter_tv_1', type: 'clutter_tv_blanket', x: -1.08, z: -0.98, rotY: 0, elevation: 1.39 },
-  { id: 'clutter_desk_1', type: 'clutter_desk_items', x: -0.58, z: -0.82, rotY: 0, elevation: 0 },
+  { id: 'clutter_tv_1', type: 'clutter_tv_blanket', x: -1.08, z: -0.95, rotY: 0, elevation: 1.39 },
+  { id: 'clutter_desk_1', type: 'clutter_desk_items', x: -0.55, z: -0.89, rotY: 0, elevation: 0 },
   { id: 'clutter_mirror_1', type: 'clutter_mirror_top', x: -0.96, z: 0.30, rotY: 0, elevation: 1.85 },
   { id: 'clutter_bags_1', type: 'clutter_floor_bags', x: -0.22, z: 1.24, rotY: 0, elevation: 0 },
   { id: 'clutter_bunk_1', type: 'clutter_bunk_items', x: 0.65, z: 0.48, rotY: 0, elevation: 0 }
@@ -675,11 +688,11 @@ export const ROOM_LAYOUTS = {
   actual: {
     id: 'actual',
     short: '1. Actual',
-    name: '1. Disposición Actual (Escritorio Noroeste · Literas Este)',
-    desc: 'Tu acomodo actual: escritorio en L bajo la ventana noroeste, clóset al noreste, literas en pared este y espejo al oeste.',
-    desk: { x: -0.58, z: -0.82, rotY: 0 },
+    name: '1. Disposición Actual (Escritorio 1.2×1.2 Noroeste · Literas Este)',
+    desc: 'Tu acomodo actual: escritorio en L (1.20×1.20 m · 40 cm fondo) bajo la ventana noroeste, clóset al noreste, literas en pared este y espejo al oeste.',
+    desk: { x: -0.55, z: -0.89, rotY: 0 },
     bunk: { x: 0.65, z: 0.48, rotY: 0 },
-    closet: { x: 0.57, z: -1.23, rotY: 0 },
+    closet: { x: 0.60, z: -1.23, rotY: 0 },
     hamper: { x: 0.72, z: -0.74, rotY: 0 },
     mirror: { x: -0.96, z: 0.30, rotY: 0 },
     extras: {}
@@ -688,8 +701,8 @@ export const ROOM_LAYOUTS = {
     id: 'cama_sur',
     short: '2. Cama al Sur',
     name: '2. Opción A: Literas al Fondo Sur + Centro Despejado',
-    desc: 'Gira las literas 90° pegadas a la pared sur y coloca el clóset en la pared este. Libera un amplio espacio central de 1.45×1.35 m manteniendo tu escritorio junto a la ventana.',
-    desk: { x: -0.58, z: -0.82, rotY: 0 },
+    desc: 'Gira las literas 90° pegadas a la pared sur y coloca el clóset en la pared este. Libera un amplio espacio central de 1.45×1.35 m manteniendo tu escritorio de 1.20×1.20 m junto a la ventana.',
+    desk: { x: -0.55, z: -0.89, rotY: 0 },
     bunk: { x: 0.16, z: 0.99, rotY: -Math.PI / 2 },
     closet: { x: 0.86, z: -0.58, rotY: -Math.PI / 2 },
     hamper: { x: 0.88, z: 0.20, rotY: -Math.PI / 2 },
@@ -697,7 +710,7 @@ export const ROOM_LAYOUTS = {
     extras: {
       whiteboard_1: { x: 1.12, z: 0.22, rotY: -Math.PI / 2 },
       upg_dz_1: { x: 0.62, z: -1.36, rotY: Math.PI },
-      upg_lt_4: { x: 0.14, z: -1.32, rotY: 0 },
+      upg_led_3: { x: 0.14, z: -1.32, rotY: 0 },
       upg_soc_3: { x: -0.05, z: 0.02, rotY: 0 }
     }
   },
@@ -705,8 +718,8 @@ export const ROOM_LAYOUTS = {
     id: 'cama_norte',
     short: '3. Estudio al Sur',
     name: '3. Opción B: Descanso en Ventana Norte · Estudio al Sureste',
-    desc: 'Coloca las literas al fondo norte junto a la ventana y traslada todo tu estudio en L + monitores + TV a la esquina sureste (sin reflejos de sol en las pantallas).',
-    desk: { x: 0.58, z: 0.82, rotY: Math.PI },
+    desc: 'Coloca las literas al fondo norte junto a la ventana y traslada todo tu estudio en L (1.20×1.20 m) + monitores + TV a la esquina sureste (sin reflejos de sol en las pantallas).',
+    desk: { x: 0.55, z: 0.89, rotY: Math.PI },
     bunk: { x: -0.16, z: -0.99, rotY: Math.PI / 2 },
     closet: { x: -0.86, z: 0.05, rotY: Math.PI / 2 },
     hamper: { x: 0.90, z: -1.15, rotY: -Math.PI / 2 },
@@ -714,7 +727,7 @@ export const ROOM_LAYOUTS = {
     extras: {
       whiteboard_1: { x: -0.24, z: 1.47, rotY: Math.PI },
       upg_dz_1: { x: -0.24, z: 1.35, rotY: 0 },
-      upg_lt_4: { x: 0.98, z: -1.32, rotY: 0 },
+      upg_led_3: { x: 0.98, z: -1.32, rotY: 0 },
       upg_soc_3: { x: 0.02, z: 0.05, rotY: 0 }
     }
   },
@@ -722,16 +735,16 @@ export const ROOM_LAYOUTS = {
     id: 'invertido_este',
     short: '4. Literas Oeste',
     name: '4. Opción C: Literas al Oeste · Estudio Completo al Sureste',
-    desc: 'Mantiene el clóset fijo en su esquina actual, pasa las literas a la pared oeste y dedica toda la esquina sureste a tu escritorio en L, panel perforado y TV.',
-    desk: { x: 0.58, z: 0.82, rotY: Math.PI },
+    desc: 'Mantiene el clóset fijo en su esquina actual, pasa las literas a la pared oeste y dedica toda la esquina sureste a tu escritorio en L de 1.20×1.20 m, panel perforado y TV.',
+    desk: { x: 0.55, z: 0.89, rotY: Math.PI },
     bunk: { x: -0.65, z: -0.46, rotY: Math.PI },
-    closet: { x: 0.57, z: -1.23, rotY: 0 },
+    closet: { x: 0.60, z: -1.23, rotY: 0 },
     hamper: { x: -0.85, z: 0.58, rotY: Math.PI / 2 },
     mirror: { x: 0.96, z: -0.38, rotY: Math.PI },
     extras: {
       whiteboard_1: { x: -0.22, z: 1.47, rotY: Math.PI },
       upg_dz_1: { x: -0.22, z: 1.35, rotY: 0 },
-      upg_lt_4: { x: -0.10, z: -1.32, rotY: 0 },
+      upg_led_3: { x: -0.10, z: -1.32, rotY: 0 },
       upg_soc_3: { x: -0.02, z: 0.12, rotY: 0 }
     }
   }
@@ -739,13 +752,13 @@ export const ROOM_LAYOUTS = {
 
 export const QUICK_COMBOS = {
   actual: {
-    name: '1. Tu Cuarto Hoy (Fotos)',
-    showClutter: true,
+    name: '1. Tu Cuarto Hoy (Con lo ya comprado)',
+    showClutter: false,
     wallPalette: 'white_current',
     beddingTheme: 'black_current',
     ledColorMode: 'warm_amber',
     zones: {
-      vibecoding_zone: 'none',
+      vibecoding_zone: 'vibe_owned_base',
       engineer_pegboard_zone: 'none',
       shelves_zone: 'none',
       lighting_zone: 'none',
@@ -755,7 +768,7 @@ export const QUICK_COMBOS = {
     }
   },
   ingeniero_esencial: {
-    name: '2. Combo AliExpress + MX Keys ($10,279)',
+    name: '2. Esencial Escritorio (Tu Odyssey 24" + Brazo + Lab)',
     showClutter: false,
     wallPalette: 'graphite_setup',
     beddingTheme: 'graphite_white',
@@ -811,30 +824,41 @@ export const QUICK_COMBOS = {
 export const SUB_GADGETS_DB = {
   mx_keys_mini: {
     id: 'mx_keys_mini',
-    badge: '⌨️ Periférico Principal · Amazon MX',
+    badge: '✅ Ya Comprado · Amazon MX',
     name: 'Teclado Logitech MX Keys Mini Inalámbrico',
-    price: '~$1,450 MXN',
-    dims: '29.6 × 13.1 × 2.1 cm (Formato 75% Minimalista)',
-    desc: 'El teclado inalámbrico compacto que elegiste. Tiene teclas cóncavas PerfectStroke, retroiluminación inteligente que se enciende al acercar tus manos y botón Easy-Switch para alternar entre tu Laptop ASUS TUF y otros 2 equipos.',
-    localOffset: [0.085, 0.06, 0.03],
+    price: 'Ya comprado ($0)',
+    dims: '29.6 × 13.1 × 2.1 cm (Cabe holgado en 40 cm de fondo)',
+    desc: 'Tu teclado inalámbrico compacto recién comprado. Teclas cóncavas PerfectStroke, retroiluminación inteligente y Easy-Switch para alternar entre tu Laptop ASUS TUF, tablet y celular.',
+    localOffset: [0.095, 0.05, 0.04],
     cameraPreset: 'desk_front',
     links: [
-      { label: 'Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
-      { label: 'AliExpress: Estuche / Deskpad Fieltro 90×40cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-90x40.html' }
+      { label: 'AliExpress: Deskpad Fieltro 80×35cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-80x35.html' }
+    ]
+  },
+  ugreen_hub_7in1: {
+    id: 'ugreen_hub_7in1',
+    badge: '✅ Ya Comprado · Kit Conectividad UGREEN',
+    name: 'UGREEN Hub USB-C 7-en-1 + Cable DP 1.4 (1 m) + Bluetooth 6.0',
+    price: 'Ya comprado ($0)',
+    dims: 'Hub Aluminio 12.2×3.4×1.2 cm · 100W PD · HDMI 4K · SD/TF · 2× USB 3.0',
+    desc: 'Tu hub de aluminio UGREEN 7-en-1 con el adaptador Bluetooth 6.0 conectado y el cable UGREEN USB-C a DisplayPort 1.4 de 1 metro enrutado directo a tu monitor Samsung 24" Odyssey G300 a 200Hz (distancia real a la laptop ~75 cm).',
+    localOffset: [-0.04, 0.03, -0.25],
+    cameraPreset: 'desk_front',
+    links: [
+      { label: 'AliExpress: Cinta Velcro Doble Cara p/ Ocultar Hub (~$45)', url: 'https://es.aliexpress.com/w/wholesale-velcro-cable-management-under-desk.html' }
     ]
   },
   mx_master_3s: {
     id: 'mx_master_3s',
-    badge: '🖱️ Productividad & CAD · Amazon / AliExpress',
-    name: 'Mouse Ergonómico Logitech MX Master 3S',
-    price: '~$1,650 MXN',
-    dims: '12.4 × 8.4 × 5.1 cm (Sensor 8000 DPI)',
-    desc: 'Colocado a la derecha de tu teclado. Rueda electromagnética MagSpeed capaz de recorrer 1,000 líneas de código por segundo y rueda de pulgar ideal para desplazarte horizontalmente en planos CAD o esquemáticos.',
-    localOffset: [0.085, 0.06, -0.19],
+    badge: '✅ Mouse en Setup / Upgrade Opcional',
+    name: 'Tu Mouse Inalámbrico (o Upgrade MX Master 3S)',
+    price: 'Ya tienes mouse ($0)',
+    dims: '12.4 × 8.4 × 5.1 cm',
+    desc: 'Colocado a la derecha de tu MX Keys Mini sobre el deskpad de 35 cm de fondo. Si en un futuro quieres dar el salto a rueda horizontal para KiCad/CAD, puedes actualizar al MX Master 3S.',
+    localOffset: [0.095, 0.05, -0.19],
     cameraPreset: 'desk_front',
     links: [
-      { label: 'Mouse Logitech MX Master 3S (Amazon)', url: 'https://www.amazon.com.mx/s?k=Logitech+MX+Master+3S' },
-      { label: 'AliExpress: Patines PTFE / Accesorios MX Master (~$85)', url: 'https://es.aliexpress.com/w/wholesale-Logitech-MX-Master-3S-accessories.html' }
+      { label: 'Mouse Logitech MX Master 3S (Upgrade Opcional)', url: 'https://www.amazon.com.mx/s?k=Logitech+MX+Master+3S' }
     ]
   },
   ulanzi_tc001: {
@@ -958,17 +982,16 @@ export const SUB_GADGETS_DB = {
   },
   monitor_main: {
     id: 'monitor_main',
-    badge: '🖥️ Pantalla + Brazo Hidráulico',
-    name: 'Monitor Principal QHD + Brazo Hidráulico North Bayou',
-    price: '~$4,200 MXN (Monitor + Brazo)',
-    dims: '27" (61×36 cm) / 34" Ultrawide en Brazo NB F80',
-    desc: 'Montado en brazo hidráulico prensado al borde del escritorio para dejar 100% libre la madera debajo de la pantalla. Incluye barra de luz superior Baseus/Xiaomi para no cansar la vista.',
-    localOffset: [-0.03, 0.34, 0],
+    badge: '✅ Monitor Ya Comprado · Samsung Odyssey G300',
+    name: 'Monitor Samsung 24" Odyssey G300 FHD 200Hz (+ Brazo NB F80)',
+    price: 'Monitor Ya Comprado · Brazo ~$650',
+    dims: '24" (54.4 × 33.3 cm) · VESA 100×100 · Conectado por UGREEN DP 1.4 (200Hz)',
+    desc: 'Tu monitor Samsung 24" Odyssey G300 200Hz recién comprado. Como tu mesa tiene 40 cm de fondo, montarlo en un brazo hidráulico North Bayou F80 elimina la base en V (~21 cm) y te regala ~16 cm extra libres para escribir cómodo.',
+    localOffset: [-0.09, 0.30, 0],
     cameraPreset: 'desk_front',
     links: [
       { label: 'Brazo Hidráulico North Bayou F80 ($650 Amazon)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' },
-      { label: 'AliExpress: Barra Luz Monitor Baseus i-wok (~$450)', url: 'https://es.aliexpress.com/w/wholesale-Baseus-monitor-light-bar.html' },
-      { label: 'Monitor 27" IPS QHD Sin Bordes (Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+27+pulgadas+IPS+QHD+sin+bordes' }
+      { label: 'AliExpress: Barra Luz Monitor Baseus i-wok (~$450)', url: 'https://es.aliexpress.com/w/wholesale-Baseus-monitor-light-bar.html' }
     ]
   },
   monitor_vertical: {
@@ -1082,43 +1105,53 @@ export const SUB_GADGETS_DB = {
 };
 
 export const ITEM_INSPECTOR_DB = {
-  // Setups Vibecoding
-  vibe_setup_27: {
-    badge: '💻 Zona 1 · Setup Vibecoding',
-    price: '$5,850 MXN (Kit Completo)',
-    dims: 'Monitor 27" + Teclado MX Keys Mini + Ulanzi + GeekMagic',
-    desc: 'Tu estación de programación principal en el ala izquierda del escritorio. Haz clic en cualquiera de los botones de abajo (o directamente sobre cada aparato en 3D) para ver su ficha individual y link de compra.',
+  // Setups Vibecoding (calibrados a 40 cm de fondo)
+  vibe_setup_owned: {
+    badge: '✅ Ya Comprado · Setup Base (Base V)',
+    price: '$0 MXN (Ya lo tienes)',
+    dims: 'Samsung Odyssey 24" (Base V ~21 cm) + MX Keys Mini + Hub UGREEN 7-en-1',
+    desc: 'Todo lo que ya compraste puesto directamente sobre tus 40 cm de fondo. Puedes comparar esta vista contra la Opción A (Brazo NB F80) para ver cuánto espacio libre ganas al quitar la base en V.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv', 'monitor_main'],
+    subGadgets: ['monitor_main', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s'],
     links: [
-      { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
+      { label: 'Prioridad #1: Brazo Hidráulico North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' },
+      { label: 'AliExpress: Deskpad Fieltro 80×35cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-80x35.html' }
+    ]
+  },
+  vibe_setup_27: {
+    badge: '💻 Zona 1 · Tu Odyssey 24" en Brazo Hidráulico',
+    price: '$1,980 MXN (Solo accesorios faltantes)',
+    dims: 'Samsung Odyssey 24" en Brazo NB F80 + MX Keys Mini + Hub UGREEN + Ulanzi',
+    desc: 'Tu monitor Samsung 24" Odyssey G300 200Hz elevado en brazo hidráulico para liberar los 40 cm de fondo, junto a tu MX Keys Mini, Hub UGREEN 7-en-1, Alexa Echo Pop y gadgets.',
+    cameraPreset: 'desk_front',
+    subGadgets: ['monitor_main', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv', 'tablet_companion'],
+    links: [
+      { label: 'Brazo Monitor North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' },
+      { label: 'AliExpress: Deskpad Fieltro 80×35cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-80x35.html' },
       { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$780)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' },
-      { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' },
-      { label: 'Brazo Monitor North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' }
+      { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' }
     ]
   },
   vibe_setup_dual: {
-    badge: '💻 Zona 1 · Setup Vibecoding Dual',
-    price: '$8,400 MXN (Doble Monitor + Periféricos)',
-    dims: '27" Principal + 24" Vertical Código + MX Keys Mini',
-    desc: 'Configuración de doble pantalla en brazo hidráulico doble: monitor 27" al frente y monitor 24" vertical a la izquierda para código, terminales e IA.',
+    badge: '💻 Zona 1 · Odyssey 24" + 24" Vertical',
+    price: '$4,290 MXN (Brazo Doble + 2do Monitor)',
+    dims: 'Tu Odyssey 24" (DP 200Hz) + 24" Vertical (HDMI Hub UGREEN) + MX Keys Mini',
+    desc: 'Configuración de doble pantalla en brazo hidráulico doble: tu Samsung Odyssey 24" al frente por DisplayPort 1.4 y un 24" vertical a la izquierda conectado al puerto HDMI 4K de tu Hub UGREEN 7-en-1.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'monitor_vertical', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
+    subGadgets: ['monitor_main', 'monitor_vertical', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv', 'tablet_companion'],
     links: [
-      { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
-      { label: 'AliExpress: Brazo Doble Hidráulico NB H180 (~$790)', url: 'https://es.aliexpress.com/w/wholesale-North-Bayou-H180.html' },
-      { label: 'Mouse Logitech MX Master 3S (Amazon)', url: 'https://www.amazon.com.mx/s?k=Logitech+MX+Master+3S' }
+      { label: 'AliExpress: Brazo Doble Hidráulico NB H180 (~$790)', url: 'https://es.aliexpress.com/w/wholesale-North+Bayou+H180.html' },
+      { label: 'Monitor 24" IPS VESA Secundario (Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+24+pulgadas+IPS+VESA' }
     ]
   },
   vibe_setup_34: {
-    badge: '💻 Zona 1 · Setup Ultrawide 34"',
-    price: '$9,200 MXN (Monitor 34" Curvo + Ambilight)',
-    dims: 'Monitor 34" WQHD (76×34 cm) + MX Keys Mini',
-    desc: 'Monitor curvo 34" Ultrawide con tira Ambilight Skydimo sincronizada y teclado Logitech MX Keys Mini.',
+    badge: '💻 Zona 1 · Upgrade Ultrawide 34"',
+    price: '$7,650 MXN (Monitor 34" Curvo + Ambilight)',
+    dims: 'Monitor 34" WQHD (76×34 cm) + Tu MX Keys Mini + Hub UGREEN',
+    desc: 'Upgrade futuro a monitor curvo 34" Ultrawide en brazo hidráulico con tira Ambilight Skydimo, aprovechando tu teclado Logitech MX Keys Mini, Hub UGREEN y cable DisplayPort 1.4.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
+    subGadgets: ['mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv', 'tablet_companion'],
     links: [
-      { label: 'Teclado Logitech MX Keys Mini (Tu link Amazon)', url: 'https://www.amazon.com.mx/Logitech-Inal%C3%A1mbrico-Minimalista-Retroiluminado-Compatible/dp/B09HYVWYYJ' },
       { label: 'AliExpress: Tira Ambilight PC Skydimo 34" (~$280)', url: 'https://es.aliexpress.com/w/wholesale-Skydimo-ambilight-PC-strip.html' },
       { label: 'Monitor Curvo 34" Ultrawide WQHD (Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+34+pulgadas+Ultrawide+WQHD' }
     ]
@@ -1436,10 +1469,10 @@ export const ITEM_INSPECTOR_DB = {
 
   // Muebles Base Actuales del Cuarto
   l_desk: {
-    badge: '🏠 Mueble Existente en tu Cuarto',
+    badge: '🏠 Mueble Existente (Medidas Reales Calibradas)',
     price: 'Mueble Actual ($0)',
-    dims: '112 × 132 × 75 cm (Con elevación esquinera y repisas)',
-    desc: 'Tu escritorio en L negro actual. Tiene dos alas: el ala izquierda bajo la TV (ideal para tu monitor y teclado Logitech MX Keys Mini) y el ala derecha bajo la ventana (ideal para tu laboratorio de electrónica).',
+    dims: '120 × 120 × 75 cm · Fondo de tabla: 40 cm · L interior: 80 × 80 cm',
+    desc: 'Tu escritorio en L negro calibrado a sus medidas reales exactas (1.20×1.20 m exteriores, 0.80×0.80 m en el interior de la L y 40 cm de fondo de mesa). Al tener 40 cm de fondo, usar brazo VESA para tu Odyssey 24" marca una diferencia enorme.',
     cameraPreset: 'desk_front',
     links: []
   },
@@ -1552,20 +1585,27 @@ export const ITEM_INSPECTOR_DB = {
 // Detecta qué sub-gadget específico tocó el usuario dentro de un grupo compuesto (según coordenadas locales 3D)
 export function detectSubGadgetFromHit(itemType, localPt) {
   if (!localPt) return null;
-  if (itemType === 'vibe_setup_27' || itemType === 'vibe_setup_dual' || itemType === 'vibe_setup_34') {
+  if (
+    itemType === 'vibe_setup_owned' ||
+    itemType === 'vibe_setup_27' ||
+    itemType === 'vibe_setup_dual' ||
+    itemType === 'vibe_setup_34'
+  ) {
     if (localPt.y < 0.085) {
-      if (localPt.z > 0.12 && localPt.x < 0.02) return 'alexa_echo';
-      if (localPt.z < -0.15 && localPt.x < -0.05) return 'smart_power_strip';
-      if (localPt.x > 0.12 && localPt.z > 0.12) return 'baseus_clips';
+      if (localPt.z > 0.25 && localPt.x > -0.04) return 'tablet_companion';
+      if (localPt.z > 0.16 && localPt.x < 0.00) return 'alexa_echo';
+      if (localPt.z < -0.18 && localPt.x < -0.11) return 'smart_power_strip';
+      if (localPt.z < -0.18 && localPt.x >= -0.11 && localPt.x <= 0.03) return 'ugreen_hub_7in1';
+      if (localPt.x > 0.13 && localPt.z > 0.14) return 'baseus_clips';
 
-      if (localPt.x > 0.015) {
-        return localPt.z <= -0.12 ? 'mx_master_3s' : 'mx_keys_mini';
+      if (localPt.x > 0.02) {
+        return localPt.z <= -0.11 ? 'mx_master_3s' : 'mx_keys_mini';
       } else {
-        if (localPt.z > 0.02) return 'ulanzi_tc001';
-        if (localPt.z < -0.09) return 'geekmagic_tv';
+        if (localPt.z > -0.04) return 'ulanzi_tc001';
+        if (localPt.z < -0.08) return 'geekmagic_tv';
       }
     }
-    if (itemType === 'vibe_setup_dual' && localPt.z > 0.20) {
+    if (itemType === 'vibe_setup_dual' && localPt.z > 0.19) {
       return 'monitor_vertical';
     }
     return 'monitor_main';
