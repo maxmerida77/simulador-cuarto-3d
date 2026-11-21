@@ -1654,10 +1654,15 @@ function addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets = true
     emissiveIntensity: 0.22
   });
 
-  // Teclado Logitech MX Keys Mini (29.6 × 13.2 cm) con textura real de teclas retroiluminadas
+  // Teclado Logitech MX Keys Mini (29.6 × 13.2 cm) con textura real de teclas orientadas correctamente
   group.add(box(0.132, 0.011, 0.296, chassisMat, 0.095, 0.009, 0.04));
   group.add(cyl(0.007, 0.007, 0.296, 14, chromeMat, 0.034, 0.014, 0.04).rotateX(Math.PI / 2));
-  const keyBed = box(0.118, 0.004, 0.284, keyCapMat, 0.100, 0.0155, 0.04);
+  const keyBed = new THREE.Mesh(new THREE.PlaneGeometry(0.284, 0.118), keyCapMat);
+  keyBed.rotation.order = 'YXZ';
+  keyBed.rotation.x = -Math.PI / 2;
+  keyBed.rotation.y = Math.PI / 2;
+  keyBed.position.set(0.100, 0.0156, 0.04);
+  keyBed.receiveShadow = true;
   group.add(keyBed);
 
   // Mouse ergonómico grafito a la derecha del teclado
