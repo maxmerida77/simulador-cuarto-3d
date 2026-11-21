@@ -48,17 +48,16 @@ export const PRODUCT_ZONES = [
       },
       {
         id: 'vibe_27_mx',
-        name: 'Opción A (Recomendada): Tu Odyssey 24" en Brazo NB F80 + Deskpad 75×35 + Ulanzi',
-        price: 1980,
-        store: 'Amazon MX + AliExpress (Solo lo que falta)',
-        dims: 'Brazo NB F80 (libera +16 cm de fondo) · Deskpad 75×35 cm · Stand Laptop · Ulanzi',
-        desc: 'Descontando lo que ya compraste (Odyssey 24", MX Keys Mini, Mouse, Hub UGREEN, BT 6.0 y Cable DP 1m). El brazo hidráulico VESA libera los 40 cm completos del escritorio y el cable DP de 1 m llega sobrado a la laptop en la esquina (~75 cm de recorrido).',
+        name: 'Opción A (Recomendada): Tu Odyssey 24" en Brazo NB F80 + Deskpad 75×35 + Ulanzi + Soportes 3D',
+        price: 1590,
+        store: 'Amazon + AliExpress + Impresión 3D',
+        dims: 'Brazo NB F80 · Deskpad 75×35 · Montura Hub 3D + Stand Laptop 3D (cama 25×25)',
+        desc: 'Descontando todo lo que ya tienes (Odyssey 24", MX Keys Mini, Mouse, Hub UGREEN, BT 6.0, DP 1m, Echo Dot blanca y Tablet). Tu Hub UGREEN va montado por debajo con soporte impreso en 3D para dejar la mesa limpia.',
         links: [
           { label: 'Brazo Hidráulico North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' },
-          { label: 'AliExpress: Stand Aluminio Laptop (~$195)', url: 'https://es.aliexpress.com/w/wholesale-laptop-stand-aluminum-cooling.html' },
           { label: 'AliExpress: Deskpad Fieltro 80×35cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-80x35.html' },
-          { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$780)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' },
-          { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' }
+          { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$750)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' },
+          { label: 'Printables: Under-Desk Mount USB-C Hub (Gratis 3D)', url: 'https://www.printables.com/search/models?q=under+desk+usb+hub+mount' }
         ],
         spawnItems: [
           { id: 'upg_mon', type: 'vibe_setup_27', x: -0.95, z: -0.69, rotY: 0, elevation: 0.75 },
@@ -105,14 +104,14 @@ export const PRODUCT_ZONES = [
 
   {
     id: 'engineer_pegboard_zone',
-    title: '2. Mesa Limpia, Panel Perforado y Cajas Guardadas',
-    subtitle: 'Electrónica y componentes guardados en cajitas/cajones debajo — mesa 100% limpia y minimalista',
+    title: '2. Panel 3D Modular (25×25 cm) + Ala Ventana + Gridfinity',
+    subtitle: 'Impreso en tu impresora 3D: Multiboard o HSW Hexagonal + Tu Echo Dot blanca y Tablet + Cajas Gridfinity debajo',
     defaultOption: 'eng_yolispa_lab',
     cameraPreset: 'desk_lab',
     options: [
       {
         id: 'none',
-        name: 'Mesa despejada (sin panel ni cajonera extra)',
+        name: 'Mesa despejada (sin panel 3D ni cajonera extra)',
         price: 0,
         store: 'Solo cajitas en repisas del escritorio',
         dims: '-',
@@ -122,16 +121,16 @@ export const PRODUCT_ZONES = [
       },
       {
         id: 'eng_yolispa_lab',
-        name: 'Opción A (Minimalista): Panel Perforado Negro + Cajas Componentes Bajo Mesa',
-        price: 690,
-        store: 'Amazon MX + AliExpress Choice',
-        dims: 'Panel Negro 46×48 cm · 2 Cajas Apilables Cerradas bajo mesa · Decoración Zen',
-        desc: 'Mesa bajo ventana totalmente limpia (solo planta cerámica, libreta y portavasos). Toda tu electrónica y componentes van guardados fuera de la vista en cajas modulares negro mate debajo del escritorio.',
+        name: 'Opción A (Recomendada): Multiboard 3D + Ala Ventana (Echo Dot Blanca + Tablet) + Gridfinity',
+        price: 180,
+        store: '🖨️ Impresión 3D (Filamento PLA+ Negro Mate)',
+        dims: '4 Losetas Multiboard 19×23 cm · Trípode Echo Dot + Stand Tablet + Maceta 3D + 2 Cajas Gridfinity 5×5',
+        desc: 'Todo imprimible en tu cama de 25×25×25 cm por ~$180 MXN de filamento: 4 losetas Multiboard en pared + tu Echo Dot blanca en trípode 3D + tu Tablet en stand 3D + maceta acanalada Japandi + 2 Gridfinity Rugged Box debajo para tu electrónica.',
         links: [
-          { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
-          { label: 'AliExpress: Paneles Perforados Negros (~$185 set)', url: 'https://es.aliexpress.com/w/wholesale-panel-perforado-organizador-pared-negro.html' },
-          { label: 'AliExpress: Cajas Organizadoras Componentes SMD (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
-          { label: 'Cajas Negras Apilables con Tapa IKEA KUGGIS/TJENA', url: 'https://www.ikea.com/mx/es/search/?q=TJENA+caja+con+tapa+negro' }
+          { label: 'Multiboard Oficial (Losetas 8×8 gratis 3D)', url: 'https://www.multiboard.io/' },
+          { label: 'Printables: Gridfinity Rugged Box 5×5 (Gratis 3D)', url: 'https://www.printables.com/search/models?q=gridfinity+rugged+box+5x5' },
+          { label: 'Printables: Echo Dot Tripod + Tablet Stand 3D', url: 'https://www.printables.com/search/models?q=echo+dot+stand+minimalist' },
+          { label: 'Filamento PLA+ Negro Mate / Arena 1kg (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=filamento+pla+negro+mate+1.75mm' }
         ],
         spawnItems: [
           { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.12, z: -0.22, rotY: 0, elevation: 0.94 },
@@ -140,16 +139,15 @@ export const PRODUCT_ZONES = [
       },
       {
         id: 'eng_skadis_ugreen',
-        name: 'Opción B: Panel Doble Negro + Cargador Ugreen GaN 100W + Cajas Ocultas',
-        price: 1290,
-        store: 'AliExpress Oficial + Amazon',
-        dims: 'Pegboard Doble Monocromático · Ugreen GaN 100W · Cajas SMD Cerradas',
-        desc: 'Estética limpia 100% monocromática: doble panel perforado negro para audífonos y estuche cerrado, bloque discreto Ugreen GaN 100W en la esquina y cajas apilables de componentes guardadas debajo.',
+        name: 'Opción B: HSW Hexagonal 3D (Honeycomb Wall) + Ala Ventana + Gridfinity',
+        price: 240,
+        store: '🖨️ Impresión 3D (PLA+ / PETG Negro Mate)',
+        dims: 'Honeycomb Storage Wall 38×50 cm (cama 25×25) · Echo Dot Blanca + Tablet 3D + Gridfinity',
+        desc: 'Cambia el panel por el famoso Honeycomb Storage Wall (panal hexagonal) impreso en PLA+ negro mate con inserts hexagonales para audífonos, estuche cerrado y cables, manteniendo el ala ventana limpia con tu Echo Dot blanca y Tablet.',
         links: [
-          { label: 'AliExpress: Cargador Ugreen GaN 100W Oficial (~$680)', url: 'https://es.aliexpress.com/w/wholesale-Ugreen-GaN-100W-charger.html' },
-          { label: 'AliExpress: Clips Magnéticos Cables Baseus (~$75)', url: 'https://es.aliexpress.com/w/wholesale-Baseus-magnetic-cable-organizer.html' },
-          { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
-          { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' }
+          { label: 'Printables: Honeycomb Storage Wall (HSW Oficial)', url: 'https://www.printables.com/model/152592-honeycomb-storage-wall' },
+          { label: 'Printables: Gridfinity Rugged Box 5×5 (Gratis 3D)', url: 'https://www.printables.com/search/models?q=gridfinity+rugged+box+5x5' },
+          { label: 'Filamento PLA+ Negro Mate 1kg (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=filamento+pla+negro+mate+1.75mm' }
         ],
         spawnItems: [
           { id: 'upg_peg_1', type: 'yolispa_pegboard_double', x: -1.12, z: -0.22, rotY: 0, elevation: 0.94 },
@@ -158,15 +156,15 @@ export const PRODUCT_ZONES = [
       },
       {
         id: 'eng_alex_full',
-        name: 'Opción C (Full Pro): Cajonera Compacta 5 Cajones + Silla Malla + Mesa Limpia',
-        price: 3890,
-        store: 'Amazon MX + AliExpress',
-        dims: 'Cajonera 36×34×71 cm (cabe en fondo 40 cm) + Cajas SMD dentro + Silla Ergonómica',
-        desc: 'Toda la electrónica (cautín, cables, placas y cajitas SMD) desaparece dentro de la cajonera compacta de 5 cajones (36 cm de fondo para no sobresalir de tu mesa de 40 cm) + silla ergonómica de malla negra + mesa impecable.',
+        name: 'Opción C (Full Pro): Multiboard 3D + Cajonera Compacta (Gridfinity dentro) + Silla Malla',
+        price: 3190,
+        store: '🖨️ Impresión 3D + Amazon MX',
+        dims: 'Multiboard 3D + Cajonera 36×34×71 cm (con Gridfinity dentro) + Silla Ergonómica',
+        desc: 'Combina todo tu ecosistema impreso en 3D (Multiboard + soporte Echo Dot blanca + stand Tablet + Gridfinity dentro de cajones) con cajonera compacta de 36 cm de fondo y silla ergonómica de malla negra.',
         replaceChair: true,
         links: [
+          { label: 'Multiboard Oficial (Gratis 3D)', url: 'https://www.multiboard.io/' },
           { label: 'Cajonera Compacta Oficina 35-38cm Fondo (Amazon)', url: 'https://www.amazon.com.mx/s?k=cajonera+escritorio+estrecha+35+cm+fondo' },
-          { label: 'AliExpress: Cajas Modulares SMD/ESP32 para Cajón (~$95)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
           { label: 'Silla Ergonómica Malla Soporte Lumbar (Amazon)', url: 'https://www.amazon.com.mx/s?k=silla+ergonomica+oficina+malla+negra' }
         ],
         spawnItems: [
@@ -341,15 +339,15 @@ export const PRODUCT_ZONES = [
       },
       {
         id: 'soc_frame_ball',
-        name: 'Opción A: 2 Bufandas en Pared de 2da Litera + 2 Aros Soporte para Balones',
-        price: 240,
-        store: 'AliExpress Choice',
-        dims: '2 Bufandas (110×15 cm) + 2 Aros metálicos de pared para balón ($68 c/u)',
-        desc: 'Tus bufandas colgadas horizontalmente en la pared de la 2da litera con sujetadores discretos, flanqueadas por 2 soportes de aro para tus balones. Cero espacio desperdiciado.',
+        name: 'Opción A (Impresión 3D): 2 Bufandas con Clips 3D + 2 Garras/Aros 3D para Balones',
+        price: 90,
+        store: '🖨️ Impresión 3D (PLA+/PETG + Cinta 3M VHB)',
+        dims: '2 Soportes de Balón impresos en 3D (<25×25 cm) + Clips invisibles 3D para bufandas',
+        desc: 'Imprime tus propios soportes tipo garra/aro en PETG o PLA+ negro mate y rieles discretos para tus bufandas sin taladrar la pared (fijados con cinta 3M VHB). Ahorras más de $250 MXN.',
         links: [
-          { label: 'AliExpress: Aro Soporte Pared para Balón (~$68 MXN)', url: 'https://es.aliexpress.com/w/wholesale-wall-mount-ball-holder-soccer.html' },
-          { label: 'AliExpress: Clips Adhesivos Invisibles para Bufandas/Banderas (~$55)', url: 'https://es.aliexpress.com/w/wholesale-wall-tapestry-hanging-clips-black.html' },
-          { label: 'Soporte Metálico Balón (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=soporte+de+pared+para+balon+de+futbol' }
+          { label: 'Printables: Wall Mount Soccer Ball Holder (Gratis 3D)', url: 'https://www.printables.com/search/models?q=soccer+ball+wall+mount' },
+          { label: 'Printables: Scarf Wall Clips Minimalist (Gratis 3D)', url: 'https://www.printables.com/search/models?q=tapestry+clip+wall+mount' },
+          { label: 'Cinta Doble Cara 3M VHB Uso Rudo (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=cinta+3m+vhb+doble+cara' }
         ],
         spawnItems: [
           { id: 'upg_soc_1', type: 'soccer_scarves_2', x: 1.13, z: 0.48, rotY: 0, elevation: 1.62 },
@@ -549,7 +547,7 @@ export const LED_COLORS = [
 export const UI_LABELS = {
   zones: {
     vibecoding_zone: { icon: '💻', short: 'Setup' },
-    engineer_pegboard_zone: { icon: '🗂️', short: 'Orden mesa' },
+    engineer_pegboard_zone: { icon: '🖨️', short: 'Panel 3D y mesa' },
     shelves_zone: { icon: '📚', short: 'Repisas' },
     lighting_zone: { icon: '💡', short: 'Luces' },
     soccer_zone: { icon: '⚽', short: 'Fútbol' },
@@ -562,9 +560,9 @@ export const UI_LABELS = {
     vibe_27_mx: 'Odyssey 24" + Brazo',
     vibe_dual_vertical: 'Odyssey + 24" Vert.',
     vibe_34_ultra: 'Upgrade 34" Curvo',
-    eng_yolispa_lab: 'Panel + cajas ocultas',
-    eng_skadis_ugreen: 'Panel doble + GaN',
-    eng_alex_full: 'Cajonera + silla',
+    eng_yolispa_lab: 'Multiboard 3D + Echo',
+    eng_skadis_ugreen: 'HSW Hex 3D + Echo',
+    eng_alex_full: 'Multiboard + Cajonera',
     sh_lack_black: 'LACK negra',
     sh_duo_ledge: '2 con borde',
     sh_walnut_led: 'Nogal + LED',
@@ -628,10 +626,10 @@ export const CATALOG = {
   laptop_stand: { type: 'laptop_stand', name: 'Laptop ASUS TUF F15 en Stand Aluminio (Orientada hacia ti)', w: 0.32, d: 0.28, h: 0.25 },
   wood_slat_panel: { type: 'wood_slat_panel', name: 'Panel Lambrín Acústico Nogal', w: 0.04, d: 0.78, h: 0.58 },
 
-  // Paneles Perforados Minimalistas + Mesa Limpia con Cajas de Componentes Guardadas
-  yolispa_pegboard: { type: 'yolispa_pegboard', name: 'Panel Perforado Negro Mate (Audífonos, Planta y Estuche)', w: 0.05, d: 0.36, h: 0.46 },
-  yolispa_pegboard_double: { type: 'yolispa_pegboard_double', name: 'Doble Panel Perforado Monocromático', w: 0.05, d: 0.38, h: 0.50 },
-  engineer_maker_station: { type: 'engineer_maker_station', name: 'Ala Ventana Limpia + Cajas Cerradas de Componentes Bajo Mesa', w: 0.52, d: 0.36, h: 0.20 },
+  // Paneles Modulares Impresos en 3D (Multiboard / HSW para cama 25×25) + Ala Ventana + Gridfinity
+  yolispa_pegboard: { type: 'yolispa_pegboard', name: 'Multiboard Modular 3D (4 losetas 19×23 cm · PLA+ Negro Mate)', w: 0.05, d: 0.36, h: 0.46 },
+  yolispa_pegboard_double: { type: 'yolispa_pegboard_double', name: 'HSW Hexagonal 3D (Honeycomb Storage Wall · PLA+ Negro Mate)', w: 0.05, d: 0.38, h: 0.50 },
+  engineer_maker_station: { type: 'engineer_maker_station', name: 'Ala Ventana (Echo Dot Blanca + Tablet 3D + Maceta 3D) + Gridfinity Bajo Mesa', w: 0.56, d: 0.36, h: 0.24 },
 
   // Repisas Flotantes (calibradas al espacio libre sobre el panel perforado)
   shelf_lack_110: { type: 'shelf_lack_110', name: 'Repisa Flotante IKEA LACK Negra', w: 0.20, d: 0.38, h: 0.16 },
@@ -838,15 +836,15 @@ export const SUB_GADGETS_DB = {
   },
   ugreen_hub_7in1: {
     id: 'ugreen_hub_7in1',
-    badge: '✅ Ya Comprado · Kit Conectividad UGREEN',
-    name: 'UGREEN Hub USB-C 7-en-1 + Cable DP 1.4 (1 m) + Bluetooth 6.0',
-    price: 'Ya comprado ($0)',
-    dims: 'Hub Aluminio 12.2×3.4×1.2 cm · 100W PD · HDMI 4K · SD/TF · 2× USB 3.0',
-    desc: 'Tu hub de aluminio UGREEN 7-en-1 con el adaptador Bluetooth 6.0 conectado y el cable UGREEN USB-C a DisplayPort 1.4 de 1 metro enrutado directo a tu monitor Samsung 24" Odyssey G300 a 200Hz (distancia real a la laptop ~75 cm).',
-    localOffset: [-0.04, 0.03, -0.25],
+    badge: '✅ Ya Comprado · Montura Bajo-Mesa 3D',
+    name: 'UGREEN Hub USB-C 7-en-1 + Cable DP 1.4 (1 m) + BT 6.0 en Soporte 3D',
+    price: 'Ya comprado ($0 · Bracket PLA+ 3D)',
+    dims: 'Montado debajo del borde (12.2×3.4×1.2 cm) · Cero cables arriba de la mesa',
+    desc: 'Tu hub de aluminio UGREEN 7-en-1 + adaptador Bluetooth 6.0 encajados en un soporte impreso en 3D justo debajo del borde derecho del escritorio: puertos USB-A y SD/TF a la mano sin estorbar la tabla.',
+    localOffset: [0.162, -0.04, -0.245],
     cameraPreset: 'desk_front',
     links: [
-      { label: 'AliExpress: Cinta Velcro Doble Cara p/ Ocultar Hub (~$45)', url: 'https://es.aliexpress.com/w/wholesale-velcro-cable-management-under-desk.html' }
+      { label: 'Printables: Under-Desk USB-C Hub Mount (Gratis 3D)', url: 'https://www.printables.com/search/models?q=under+desk+usb+hub+mount' }
     ]
   },
   mx_master_3s: {
@@ -877,15 +875,15 @@ export const SUB_GADGETS_DB = {
   },
   alexa_echo: {
     id: 'alexa_echo',
-    badge: '🎙️ Domótica de Voz · Amazon Echo Pop',
-    name: 'Bocina Inteligente Alexa Echo Pop (WiFi + Bluetooth)',
-    price: '~$699 MXN (Amazon MX)',
-    dims: '9.9 × 8.3 × 9.1 cm (Anillo LED Cian Resplandeciente)',
-    desc: 'Control por voz para todo tu cuarto. Dile "Alexa, modo programar" para cambiar las luces y encender tu estación, o "Alexa, apaga el multicontacto" al terminar de soldar.',
-    localOffset: [-0.06, 0.05, 0.17],
-    cameraPreset: 'desk_front',
+    badge: '✅ Ya la Tienes · Alexa Echo Dot Blanca',
+    name: 'Bocina Inteligente Alexa Echo Dot Blanca + Trípode 3D',
+    price: 'Ya la tienes ($0 · Trípode 3D gratis)',
+    dims: 'Esfera 10 × 8.9 cm · Trípode minimalista impreso en 3D',
+    desc: 'Tu Alexa Echo Dot blanca colocada en el ala bajo la ventana sobre un mini trípode impreso en 3D: su acabado blanco contrasta limpio sobre la madera negra y su anillo cian refleja sobre la tabla.',
+    localOffset: [-0.22, 0.10, -0.07],
+    cameraPreset: 'desk_lab',
     links: [
-      { label: 'Bocina Inteligente Alexa Echo Pop (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=Echo+Pop+bocina+inteligente+alexa' }
+      { label: 'Printables: Echo Dot 4/5 Minimalist Tripod Stand (Gratis 3D)', url: 'https://www.printables.com/search/models?q=echo+dot+tripod+stand' }
     ]
   },
   smart_power_strip: {
@@ -943,16 +941,15 @@ export const SUB_GADGETS_DB = {
   },
   tablet_companion: {
     id: 'tablet_companion',
-    badge: '📱 Companion Screen · Tablet + Stylus',
-    name: 'Tablet de Ingeniería / Pantalla Secundaria',
-    price: '~$4,500 - $7,900 MXN',
-    dims: 'Pantalla 11" 120Hz · Base magnética de aluminio ajustable · Stylus capacitivo',
-    desc: 'Tu tablet colocada en base ergonómica de aluminio junto al teclado. Usada como pantalla táctil complementaria para consultar datasheets de componentes, esquemáticos de KiCad, depuración UART y control multimedia Spotify mientras programas en el monitor principal.',
-    localOffset: [0.06, 0.08, 0.28],
-    cameraPreset: 'desk_front',
+    badge: '✅ Ya la Tienes · Tablet + Stand Impreso en 3D',
+    name: 'Tu Tablet en Base Ergonómica Impresa en 3D (60°)',
+    price: 'Ya la tienes ($0 · Stand PLA+ 3D)',
+    dims: 'Stand impreso en 3D (11×12 cm) · Orientada hacia tu silla',
+    desc: 'Tu tablet colocada en el ala bajo la ventana sobre un soporte minimalista impreso en tu impresora 3D (PLA+ negro mate). Perfecta como pantalla de Spotify, calendario, reloj o notas sin saturar el lado del monitor.',
+    localOffset: [-0.02, 0.14, -0.06],
+    cameraPreset: 'desk_lab',
     links: [
-      { label: 'Base de aluminio articulada para Tablet (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=soporte+aluminio+tablet+escritorio' },
-      { label: 'AliExpress: Soporte de escritorio giratorio 360° (~$180)', url: 'https://es.aliexpress.com/w/wholesale-aluminum-tablet-stand-360-desk.html' }
+      { label: 'Printables: Minimalist Tablet Desk Stand (Gratis 3D)', url: 'https://www.printables.com/search/models?q=minimalist+tablet+stand' }
     ]
   },
   mmwave_presence_sensor: {
@@ -1050,16 +1047,16 @@ export const SUB_GADGETS_DB = {
   },
   smd_cabinet: {
     id: 'smd_cabinet',
-    badge: '🟠 Orden de Componentes · AliExpress / Amazon',
-    name: 'Gavetero Organizador de 12 Cajones para Electrónica',
-    price: '~$290 MXN',
-    dims: '17 × 12 × 20 cm (Cajones transparentes)',
-    desc: 'Orientado hacia tu silla para clasificar resistencias, capacitores, sensores, tornillería M2/M3, jumpers y placas ESP32/Arduino sin tener bolsas sueltas en el escritorio.',
-    localOffset: [0.21, 0.18, -0.09],
+    badge: '🖨️ Impresión 3D · Gridfinity Rugged Box (5×5)',
+    name: 'Cajas Apilables Gridfinity 5×5 (21×21 cm · Electrónica Guardada)',
+    price: '~$95 MXN en Filamento PLA+ / PETG',
+    dims: '22 × 22 × 14 cm (Cabe exacto en impresora 25×25×25 cm)',
+    desc: 'Cajas modulares Gridfinity Rugged Box impresas en 3D y guardadas debajo del escritorio: clasifican tus placas ESP32, resistencias SMD, sensores, jumpers y cautín fuera de la vista para mantener la mesa impecable.',
+    localOffset: [-0.02, -0.52, -0.04],
     cameraPreset: 'desk_lab',
     links: [
-      { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
-      { label: 'Gavetero Organizador Componentes Truper/Steren (Amazon)', url: 'https://www.amazon.com.mx/s?k=gavetero+organizador+componentes+electronicos' }
+      { label: 'Printables: Gridfinity Rugged Box 5×5 (Gratis 3D)', url: 'https://www.printables.com/search/models?q=gridfinity+rugged+box+5x5' },
+      { label: 'Gridfinity Generator (Cajas a medida 42 mm)', url: 'https://gridfinity.perplexinglabs.com/' }
     ]
   },
   ugreen_gan: {
@@ -1120,17 +1117,16 @@ export const ITEM_INSPECTOR_DB = {
     ]
   },
   vibe_setup_27: {
-    badge: '💻 Zona 1 · Tu Odyssey 24" en Brazo Hidráulico',
-    price: '$1,980 MXN (Solo accesorios faltantes)',
-    dims: 'Samsung Odyssey 24" en Brazo NB F80 + MX Keys Mini + Hub UGREEN + Ulanzi',
-    desc: 'Tu monitor Samsung 24" Odyssey G300 200Hz elevado en brazo hidráulico para liberar los 40 cm de fondo, junto a tu MX Keys Mini, Hub UGREEN 7-en-1, Alexa Echo Pop y gadgets.',
+    badge: '💻 Zona 1 · Tu Odyssey 24" en Brazo NB F80 (Mesa Limpia)',
+    price: '$1,590 MXN (Solo accesorios faltantes)',
+    dims: 'Samsung Odyssey 24" en Brazo NB F80 + MX Keys Mini + Hub UGREEN bajo mesa 3D + Ulanzi',
+    desc: 'Ala principal 100% despejada para programar: tu Odyssey 24" en brazo hidráulico, MX Keys Mini, mouse, reloj Ulanzi y tu Hub UGREEN en soporte impreso en 3D debajo del borde.',
     cameraPreset: 'desk_front',
-    subGadgets: ['monitor_main', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv', 'tablet_companion'],
+    subGadgets: ['monitor_main', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv'],
     links: [
       { label: 'Brazo Monitor North Bayou F80 ($650)', url: 'https://www.amazon.com.mx/s?k=North+Bayou+F80+brazo+monitor' },
       { label: 'AliExpress: Deskpad Fieltro 80×35cm (~$130)', url: 'https://es.aliexpress.com/w/wholesale-desk-mat-felt-dark-grey-80x35.html' },
-      { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$780)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' },
-      { label: 'AliExpress: Mini Monitor GeekMagic SmallTV (~$360)', url: 'https://es.aliexpress.com/w/wholesale-GeekMagic-SmallTV.html' }
+      { label: 'AliExpress: Reloj Pixel Ulanzi TC001 (~$750)', url: 'https://es.aliexpress.com/w/wholesale-Ulanzi-TC001.html' }
     ]
   },
   vibe_setup_dual: {
@@ -1139,7 +1135,7 @@ export const ITEM_INSPECTOR_DB = {
     dims: 'Tu Odyssey 24" (DP 200Hz) + 24" Vertical (HDMI Hub UGREEN) + MX Keys Mini',
     desc: 'Configuración de doble pantalla en brazo hidráulico doble: tu Samsung Odyssey 24" al frente por DisplayPort 1.4 y un 24" vertical a la izquierda conectado al puerto HDMI 4K de tu Hub UGREEN 7-en-1.',
     cameraPreset: 'desk_front',
-    subGadgets: ['monitor_main', 'monitor_vertical', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv', 'tablet_companion'],
+    subGadgets: ['monitor_main', 'monitor_vertical', 'mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'smart_power_strip', 'baseus_clips', 'ulanzi_tc001', 'geekmagic_tv'],
     links: [
       { label: 'AliExpress: Brazo Doble Hidráulico NB H180 (~$790)', url: 'https://es.aliexpress.com/w/wholesale-North+Bayou+H180.html' },
       { label: 'Monitor 24" IPS VESA Secundario (Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+24+pulgadas+IPS+VESA' }
@@ -1148,10 +1144,10 @@ export const ITEM_INSPECTOR_DB = {
   vibe_setup_34: {
     badge: '💻 Zona 1 · Upgrade Ultrawide 34"',
     price: '$7,650 MXN (Monitor 34" Curvo + Ambilight)',
-    dims: 'Monitor 34" WQHD (76×34 cm) + Tu MX Keys Mini + Hub UGREEN',
+    dims: 'Monitor 34" WQHD (76×34 cm) + Tu MX Keys Mini + Hub UGREEN bajo mesa 3D',
     desc: 'Upgrade futuro a monitor curvo 34" Ultrawide en brazo hidráulico con tira Ambilight Skydimo, aprovechando tu teclado Logitech MX Keys Mini, Hub UGREEN y cable DisplayPort 1.4.',
     cameraPreset: 'desk_front',
-    subGadgets: ['mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'alexa_echo', 'smart_power_strip', 'baseus_clips', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv', 'tablet_companion'],
+    subGadgets: ['mx_keys_mini', 'ugreen_hub_7in1', 'mx_master_3s', 'smart_power_strip', 'baseus_clips', 'monitor_main', 'ulanzi_tc001', 'geekmagic_tv'],
     links: [
       { label: 'AliExpress: Tira Ambilight PC Skydimo 34" (~$280)', url: 'https://es.aliexpress.com/w/wholesale-Skydimo-ambilight-PC-strip.html' },
       { label: 'Monitor Curvo 34" Ultrawide WQHD (Amazon)', url: 'https://www.amazon.com.mx/s?k=Monitor+34+pulgadas+Ultrawide+WQHD' }
@@ -1179,41 +1175,41 @@ export const ITEM_INSPECTOR_DB = {
     ]
   },
 
-  // Zona 2: Mesa Limpia, Panel Perforado y Cajas de Componentes Guardadas
+  // Zona 2: Paneles Modulares 3D (Multiboard / HSW) + Ala Ventana + Gridfinity
   yolispa_pegboard: {
-    badge: '🗂️ Zona 2 · Panel Perforado Monocromático',
-    price: '~$450 MXN (Amazon) / ~$185 MXN (AliExpress)',
-    dims: '46 cm ancho × 48 cm alto × 5 cm fondo',
-    desc: 'Panel perforado negro mate con ranuras reales entre tu TV y el espejo. Mantiene colgados tus audífonos, cable USB-C enrollado, estuche cerrado de precisión y una macetita sin sobrecargar el escritorio.',
+    badge: '🖨️ Zona 2 · Multiboard Modular 3D (25×25 cm)',
+    price: '~$180 MXN en Filamento PLA+ Negro Mate',
+    dims: '36 × 46 cm (4 Losetas de 18×23 cm imprimibles en tu impresora)',
+    desc: 'Organizador de pared modular Multiboard impreso en 3D en PLA+ negro mate. Usa roscas firmes, ganchos para audífonos, contenedores Multibin y repisitas sin gastar en paneles comerciales.',
     cameraPreset: 'desk_pegboard',
     subGadgets: ['yolispa_panel'],
     links: [
-      { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
-      { label: 'AliExpress: Set 4 Paneles Perforados Negros (~$185)', url: 'https://es.aliexpress.com/w/wholesale-panel-perforado-organizador-pared-negro.html' }
+      { label: 'Multiboard Oficial (STLs gratis 8×8)', url: 'https://www.multiboard.io/' },
+      { label: 'Filamento PLA+ Negro Mate 1kg (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=filamento+pla+negro+mate+1.75mm' }
     ]
   },
   yolispa_pegboard_double: {
-    badge: '🗂️ Zona 2 · Doble Panel Perforado Limpio',
-    price: '~$520 MXN',
-    dims: '50 cm ancho × 52 cm alto',
-    desc: 'Doble panel perforado negro mate para audífonos, controles, estuches cerrados y cables ordenados fuera de la tabla.',
+    badge: '🖨️ Zona 2 · HSW Hexagonal 3D (Honeycomb Wall)',
+    price: '~$240 MXN en Filamento PLA+ / PETG Negro Mate',
+    dims: '38 × 50 cm (Panal hexagonal modular imprimible en 25×25 cm)',
+    desc: 'Honeycomb Storage Wall (HSW) impreso en 3D en negro mate con inserts hexagonales para audífonos, estuche cerrado de precisión y cables enrollados.',
     cameraPreset: 'desk_pegboard',
     subGadgets: ['yolispa_panel'],
     links: [
-      { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' }
+      { label: 'Printables: Honeycomb Storage Wall Oficial (Gratis)', url: 'https://www.printables.com/model/152592-honeycomb-storage-wall' },
+      { label: 'Filamento PLA+ Negro Mate 1kg (Amazon MX)', url: 'https://www.amazon.com.mx/s?k=filamento+pla+negro+mate+1.75mm' }
     ]
   },
   engineer_maker_station: {
-    badge: '✨ Zona 2 · Ala Ventana Limpia + Componentes Guardados',
-    price: '~$290 MXN (Cajas Apilables Cerradas)',
-    dims: 'Ala de 80 × 40 cm libre · 2 Cajas modulares apiladas bajo la mesa',
-    desc: 'Quitamos todo el ruido visual de la electrónica de encima del escritorio: arriba solo queda una libreta negra, portavasos, planta zen y tu cargador compacto Ugreen GaN. Todas tus placas ESP32, cables y componentes quedan guardados en cajitas cerradas negro mate abajo.',
+    badge: '✨ Zona 2 · Ala Ventana (Echo Dot Blanca + Tablet + 3D)',
+    price: 'Echo Dot + Tablet Ya Comprados ($0 · Accesorios 3D)',
+    dims: 'Ala 80 × 40 cm · Trípode Echo Dot + Stand Tablet + Maceta Acanalada + Gridfinity 5×5',
+    desc: 'Equilibra el otro lado de tu mesa sin perder la estética limpia: tu Alexa Echo Dot blanca en trípode 3D, tu Tablet en stand 3D, maceta acanalada Japandi impresa en PLA arena, libreta/portavasos hexagonal y tus 2 cajas Gridfinity Rugged Box guardadas debajo.',
     cameraPreset: 'desk_lab',
-    subGadgets: ['ugreen_gan', 'smd_cabinet'],
+    subGadgets: ['alexa_echo', 'tablet_companion', 'smd_cabinet'],
     links: [
-      { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
-      { label: 'Cajas Negras con Tapa IKEA TJENA ($99 c/u)', url: 'https://www.ikea.com/mx/es/search/?q=TJENA+caja+con+tapa+negro' },
-      { label: 'AliExpress: Cargador Ugreen GaN 100W Oficial (~$680)', url: 'https://es.aliexpress.com/w/wholesale-Ugreen-GaN-100W-charger.html' }
+      { label: 'Printables: Gridfinity Rugged Box 5×5 (Gratis 3D)', url: 'https://www.printables.com/search/models?q=gridfinity+rugged+box+5x5' },
+      { label: 'Printables: Maceta Acanalada Fluted Pot (Gratis 3D)', url: 'https://www.printables.com/search/models?q=fluted+minimalist+planter' }
     ]
   },
 
@@ -1590,17 +1586,17 @@ export function detectSubGadgetFromHit(itemType, localPt) {
     itemType === 'vibe_setup_dual' ||
     itemType === 'vibe_setup_34'
   ) {
+    if (localPt.y < 0.0) {
+      return 'ugreen_hub_7in1';
+    }
     if (localPt.y < 0.085) {
-      if (localPt.z > 0.25 && localPt.x > -0.04) return 'tablet_companion';
-      if (localPt.z > 0.16 && localPt.x < 0.00) return 'alexa_echo';
       if (localPt.z < -0.18 && localPt.x < -0.11) return 'smart_power_strip';
-      if (localPt.z < -0.18 && localPt.x >= -0.11 && localPt.x <= 0.03) return 'ugreen_hub_7in1';
       if (localPt.x > 0.13 && localPt.z > 0.14) return 'baseus_clips';
 
       if (localPt.x > 0.02) {
         return localPt.z <= -0.11 ? 'mx_master_3s' : 'mx_keys_mini';
       } else {
-        if (localPt.z > -0.04) return 'ulanzi_tc001';
+        if (localPt.z > -0.05) return 'ulanzi_tc001';
         if (localPt.z < -0.08) return 'geekmagic_tv';
       }
     }
@@ -1612,7 +1608,8 @@ export function detectSubGadgetFromHit(itemType, localPt) {
 
   if (itemType === 'engineer_maker_station') {
     if (localPt.y < -0.20) return 'smd_cabinet';
-    if (localPt.x < -0.12 && localPt.z < -0.02) return 'ugreen_gan';
+    if (localPt.x < -0.13 && localPt.z < 0.03) return 'alexa_echo';
+    if (localPt.x >= -0.13 && localPt.x <= 0.11 && localPt.z < 0.05) return 'tablet_companion';
     return null;
   }
 

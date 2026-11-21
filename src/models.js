@@ -355,39 +355,103 @@ function createMxKeysMiniTexture() {
   return tex;
 }
 
-function createPegboardTexture() {
+function createMultiboardTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
 
-  // Panel negro mate arquitectónico tipo IKEA SKADIS / Yolispa
+  // Multiboard modular impreso en 3D (PLA+ Negro Mate · 4 losetas de ~19×23 cm para cama 25×25)
   ctx.fillStyle = '#1b1f27';
   ctx.fillRect(0, 0, 512, 512);
 
-  // Sutil división modular en 4 cuadros
-  ctx.strokeStyle = '#11141a';
-  ctx.lineWidth = 4;
+  // División sutil de las 4 losetas modulares impresas en 3D
+  ctx.strokeStyle = '#0e1116';
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(256, 0); ctx.lineTo(256, 512);
   ctx.moveTo(0, 256); ctx.lineTo(512, 256);
   ctx.stroke();
 
-  // Ranuras perforadas reales en cuadrícula alternada
-  const stepX = 32;
-  const stepY = 32;
-  for (let r = 0; r < 15; r++) {
-    const y = 20 + r * stepY;
-    const offset = (r % 2) * (stepX / 2);
-    for (let c = 0; c < 15; c++) {
-      const x = 18 + c * stepX + offset;
-      if (x > 494 || Math.abs(x - 256) < 10 || Math.abs(y - 256) < 10) continue;
+  const step = 32;
+  const drawOctagon = (cx, cy, r) => {
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI) / 4 + Math.PI / 8;
+      const px = cx + Math.cos(a) * r;
+      const py = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  };
+
+  for (let r = 0; r < 16; r++) {
+    for (let c = 0; c < 16; c++) {
+      const x = 16 + c * step;
+      const y = 16 + r * step;
+      // Agujero octogonal principal roscado de Multiboard
+      drawOctagon(x, y, 8.5);
       ctx.fillStyle = '#090b0f';
-      ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(x - 3, y - 7, 6, 14, 3) : ctx.fillRect(x - 3, y - 7, 6, 14);
       ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.fillRect(x - 2, y + 6, 4, 1);
+      ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Agujero pequeño intermedio (característico del doble patrón de Multiboard)
+      if (c < 15 && r < 15 && Math.abs(x + step / 2 - 256) > 4 && Math.abs(y + step / 2 - 256) > 4) {
+        ctx.beginPath();
+        ctx.arc(x + step / 2, y + step / 2, 3.6, 0, Math.PI * 2);
+        ctx.fillStyle = '#0c0f14';
+        ctx.fill();
+      }
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function createHswHexTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Honeycomb Storage Wall (HSW) impreso en 3D en PLA+ Negro Mate
+  ctx.fillStyle = '#1f242e';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const r = 20;
+  const dx = r * 1.5;
+  const dy = r * Math.sqrt(3);
+
+  const drawHex = (cx, cy, rad) => {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      const px = cx + Math.cos(a) * rad;
+      const py = cy + Math.sin(a) * rad;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  };
+
+  for (let col = -1; col < 20; col++) {
+    for (let row = -1; row < 18; row++) {
+      const cx = col * dx + 12;
+      const cy = row * dy + (col % 2 !== 0 ? dy / 2 : 0) + 12;
+      // Cavidad hexagonal profunda
+      drawHex(cx, cy, r - 3.2);
+      ctx.fillStyle = '#080a0e';
+      ctx.fill();
+      // Bisel superior de la pared del panal 3D
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.11)';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
     }
   }
 
@@ -1673,25 +1737,24 @@ function addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets = true
   mouseGroup.add(cyl(0.0085, 0.0085, 0.014, 14, chromeMat, -0.030, 0.034, 0));
   group.add(mouseGroup);
 
-  // UGREEN HUB USB-C 7-en-1 (Aluminio Gris Espacial cepillado) + Adaptador Bluetooth 6.0 + Cable DP 1.4
+  // UGREEN HUB USB-C 7-en-1 montado en soporte impreso en 3D bajo el borde del escritorio (mesa 100% limpia)
   const hubGroup = new THREE.Group();
-  hubGroup.position.set(-0.045, 0.008, -0.255);
+  hubGroup.position.set(0.162, -0.040, -0.245);
+  const plaBlackMat = new THREE.MeshStandardMaterial({ color: 0x181b22, roughness: 0.48, metalness: 0.14 });
   const ugreenAluMat = new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.24, metalness: 0.88 });
-  hubGroup.add(box(0.034, 0.011, 0.122, ugreenAluMat, 0, 0.006, 0));
-  hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.006, -0.032));
-  hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.006, -0.008));
-  hubGroup.add(box(0.004, 0.004, 0.022, darkMetal, 0.017, 0.006, 0.025));
-  hubGroup.add(cyl(0.0018, 0.0018, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0, 0.0125, 0.042));
-  // Adaptador UGREEN Bluetooth 6.0 USB conectado al Hub
-  hubGroup.add(box(0.024, 0.008, 0.015, darkMetal, 0.028, 0.006, -0.032));
-  // Cables trenzados discretos enrutados al canal trasero (sin sobresalir del escritorio)
-  const braidedCableMat = new THREE.MeshStandardMaterial({ color: 0x161920, roughness: 0.78 });
-  const hubCable = cyl(0.0024, 0.0024, 0.085, 8, braidedCableMat, -0.025, 0.004, -0.085);
-  hubCable.rotation.x = Math.PI / 2;
-  hubGroup.add(hubCable);
-  const dpCable = cyl(0.0026, 0.0026, 0.105, 8, braidedCableMat, -0.055, 0.004, -0.075);
-  dpCable.rotation.x = Math.PI / 2;
-  hubGroup.add(dpCable);
+  // Bracket impreso en 3D (PLA+ negro mate) atornillado/pegado bajo la tabla de 3 cm
+  hubGroup.add(box(0.044, 0.006, 0.134, plaBlackMat, 0, 0.011, 0));
+  hubGroup.add(box(0.044, 0.018, 0.008, plaBlackMat, 0, 0.002, -0.064));
+  hubGroup.add(box(0.044, 0.018, 0.008, plaBlackMat, 0, 0.002, 0.064));
+  // Cuerpo de aluminio del Hub UGREEN 7-en-1 deslizado dentro del soporte 3D
+  hubGroup.add(box(0.034, 0.012, 0.122, ugreenAluMat, 0, 0.002, 0));
+  // Puertos USB-A / SD / TF accesibles mirando al frente hacia ti
+  hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.002, -0.032));
+  hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.002, -0.008));
+  hubGroup.add(box(0.004, 0.004, 0.022, darkMetal, 0.017, 0.002, 0.025));
+  hubGroup.add(cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.017, 0.002, 0.046).rotateZ(Math.PI / 2));
+  // Adaptador UGREEN Bluetooth 6.0 USB conectado discretamente al Hub
+  hubGroup.add(box(0.020, 0.008, 0.014, darkMetal, 0.026, 0.002, -0.032));
   hubGroup.userData = { isSubGadget: 'ugreen_hub_7in1' };
   group.add(hubGroup);
 
@@ -1741,7 +1804,8 @@ const sharedGrayWoodTex = createWoodGrainTexture('#505660', 'rgba(18,22,28,0.18)
 const sharedWalnutTex = createWoodGrainTexture('#784c30', 'rgba(35,18,8,0.28)', 'rgba(255,215,175,0.05)');
 const sharedFeltPadTex = createFeltDeskpadTexture();
 const sharedMxKeysTex = createMxKeysMiniTexture();
-const sharedPegboardTex = createPegboardTexture();
+const sharedMultiboardTex = createMultiboardTexture();
+const sharedHswHexTex = createHswHexTexture();
 const sharedKaisiTex = createKaisiMatTexture();
 const sharedSetupScrTex = createMonitorScreenTexture('setup');
 const sharedVertScrTex = createMonitorScreenTexture('vertical_code');
@@ -2152,34 +2216,15 @@ export function buildFurnitureMesh(itemData, roomState) {
       addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets: true });
 
       // ======================================================================
-      // DOMÓTICA & GADGETS (CALIBRADOS ESTRICTAMENTE DENTRO DE LOS 40 CM)
+      // ALA PRINCIPAL ULTRA-LIMPIA (SOLO MULTICONTACTO OCULTO + CLIPS 3D)
+      // (Tu Alexa Echo Dot blanca y tu Tablet pasan al ala bajo la ventana)
       // ======================================================================
 
-      // 1. Bocina Inteligente Alexa Echo Pop (WiFi/Bluetooth con anillo LED cian)
-      const alexaGroup = new THREE.Group();
-      alexaGroup.position.set(-0.09, 0.032, 0.21);
-      alexaGroup.rotation.y = 0.35;
-      const alexaFabric = new THREE.MeshStandardMaterial({ color: 0x1f242d, roughness: 0.85 });
-      alexaGroup.add(cyl(0.044, 0.036, 0.052, 24, alexaFabric, 0, 0, 0));
-      const alexaFront = cyl(0.040, 0.040, 0.006, 24, new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.9 }), 0.008, 0.005, 0);
-      alexaFront.rotation.z = 0.25;
-      alexaGroup.add(alexaFront);
-      const cyanRingMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-      const alexaRing = cyl(0.046, 0.046, 0.008, 24, cyanRingMat, 0, -0.022, 0);
-      alexaRing.userData = { isAlexaRing: true };
-      alexaGroup.add(alexaRing);
-      const alexaGlow = new THREE.PointLight(0x00f0ff, 0.35, 0.55);
-      alexaGlow.position.set(0, 0.01, 0);
-      alexaGlow.userData = { isAlexaGlow: true };
-      alexaGroup.add(alexaGlow);
-      alexaGroup.userData = { isSubGadget: 'alexa_echo' };
-      group.add(alexaGroup);
-
-      // 2. Multicontacto Inteligente WiFi Tuya Negro Mate (oculto y discreto al borde trasero x = -0.165)
+      // 1. Multicontacto Inteligente WiFi Tuya Negro Mate (oculto al borde trasero x = -0.168)
       const stripGroup = new THREE.Group();
-      stripGroup.position.set(-0.165, 0.012, -0.25);
+      stripGroup.position.set(-0.168, 0.012, -0.25);
       const matteStripMat = new THREE.MeshStandardMaterial({ color: 0x161920, roughness: 0.38, metalness: 0.35 });
-      stripGroup.add(box(0.052, 0.022, 0.21, matteStripMat, 0, 0, 0));
+      stripGroup.add(box(0.050, 0.022, 0.21, matteStripMat, 0, 0, 0));
       stripGroup.add(box(0.016, 0.006, 0.020, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.012, -0.080));
       const socketMat = new THREE.MeshStandardMaterial({ color: 0x272d38, roughness: 0.55 });
       [-0.042, -0.002, 0.038, 0.078].forEach((sz, idx) => {
@@ -2197,134 +2242,189 @@ export function buildFurnitureMesh(itemData, roomState) {
       stripGroup.userData = { isSubGadget: 'smart_power_strip' };
       group.add(stripGroup);
 
-      // 3. Clips Magnéticos de Cables Baseus en el Borde Frontal (+0.175)
-      const clipBar = box(0.014, 0.006, 0.092, darkMetal, 0.175, 0.004, 0.20);
-      [[-0.028, 0xef4444], [0, 0x64748b], [0.028, 0x38bdf8]].forEach(([cz, col]) => {
-        clipBar.add(cyl(0.005, 0.005, 0.008, 10, new THREE.MeshStandardMaterial({ color: col }), 0, 0.005, cz));
+      // 2. Peine / Clips Magnéticos Impresos en 3D en el Borde Frontal (+0.178)
+      const clipBar = box(0.014, 0.006, 0.090, darkMetal, 0.178, 0.004, 0.23);
+      [[-0.026, 0x64748b], [0, 0x334155], [0.026, 0x38bdf8]].forEach(([cz, col]) => {
+        clipBar.add(cyl(0.0045, 0.0045, 0.007, 10, new THREE.MeshStandardMaterial({ color: col }), 0, 0.005, cz));
       });
       clipBar.userData = { isSubGadget: 'baseus_clips' };
       group.add(clipBar);
-
-      // 4. Memoria USB Metálica Kingston
-      group.add(box(0.028, 0.005, 0.012, chromeMat, 0.025, 0.013, -0.06));
-
-      // 5. Tablet de Ingeniería en Base de Aluminio + Stylus Magnético (calibrada dentro de 40 cm)
-      const tabletGroup = new THREE.Group();
-      tabletGroup.position.set(0.04, 0.004, 0.30);
-      tabletGroup.rotation.y = -0.22;
-
-      const aluMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
-      tabletGroup.add(box(0.10, 0.005, 0.12, aluMat, 0, 0.0025, 0));
-      const aluArm = box(0.018, 0.095, 0.032, aluMat, -0.01, 0.048, 0);
-      aluArm.rotation.x = -0.25;
-      tabletGroup.add(aluArm);
-      const aluPlate = box(0.008, 0.14, 0.10, aluMat, 0.012, 0.095, 0);
-      aluPlate.rotation.z = -0.35;
-      tabletGroup.add(aluPlate);
-
-      const tabletBodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
-      const tabletBody = box(0.007, 0.22, 0.155, tabletBodyMat, 0.018, 0.11, 0);
-      tabletBody.rotation.z = -0.35;
-
-      const tabletScreenMat = new THREE.MeshBasicMaterial({ map: createTabletScreenTexture() });
-      const tabletScreen = box(0.002, 0.21, 0.146, tabletScreenMat, 0.004, 0, 0);
-      tabletBody.add(tabletScreen);
-
-      const stylusMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
-      const stylus = cyl(0.0035, 0.0035, 0.145, 12, stylusMat, 0.005, 0.112, 0);
-      stylus.rotation.x = Math.PI / 2;
-      tabletBody.add(stylus);
-
-      tabletGroup.add(tabletBody);
-      tabletGroup.userData = { isSubGadget: 'tablet_companion' };
-      group.add(tabletGroup);
       break;
     }
 
     // ========================================================================
-    // ZONA 2: PANEL PERFORADO MINIMALISTA + MESA LIMPIA Y COMPONENTES GUARDADOS
+    // ZONA 2: ORGANIZADOR DE PARED MODULAR IMPRESO EN 3D (MULTIBOARD / HSW)
+    //         + ALA VENTANA (ECHO DOT BLANCA + TABLET 3D + GRIDFINITY)
     // ========================================================================
     case 'yolispa_pegboard':
     case 'yolispa_pegboard_double': {
-      const isDouble = itemData.type === 'yolispa_pegboard_double';
+      const isHsw = itemData.type === 'yolispa_pegboard_double';
+      const panelTex = isHsw ? sharedHswHexTex : sharedMultiboardTex;
       const boardMat = new THREE.MeshStandardMaterial({
-        map: sharedPegboardTex,
-        bumpMap: sharedPegboardTex,
-        bumpScale: 0.004,
+        map: panelTex,
+        bumpMap: panelTex,
+        bumpScale: isHsw ? 0.006 : 0.005,
         roughness: 0.48,
-        metalness: 0.22
+        metalness: 0.18
       });
-      const matteBinMat = new THREE.MeshStandardMaterial({ color: 0x272c36, roughness: 0.45, metalness: 0.25 });
-      const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xd6d3cd, roughness: 0.65 });
+      const plaMatteMat = new THREE.MeshStandardMaterial({ color: 0x252a34, roughness: 0.50, metalness: 0.14 });
+      const plaSandMat = new THREE.MeshStandardMaterial({ color: 0xe2dbd0, roughness: 0.62 });
       const sageMat = new THREE.MeshStandardMaterial({ color: 0x4d7c5b, roughness: 0.72 });
 
-      // Panel perforado negro mate con ranuras reales
-      group.add(box(0.016, h, d, boardMat, 0, h / 2, 0));
+      // 4 Módulos impresos en 3D (19×23 cm c/u para cama de 25×25 cm) en PLA+ Negro Mate
+      group.add(box(0.015, h, d, boardMat, 0, h / 2, 0));
 
-      // Contenedor negro mate minimalista (arriba izquierda) + estuche de precisión cerrado
-      group.add(box(0.062, 0.085, 0.090, matteBinMat, 0.036, h * 0.70, -d * 0.24));
-      group.add(box(0.022, 0.115, 0.054, darkMetal, 0.032, h * 0.75, -d * 0.24));
+      // Contenedor modular Multibin / HSW impreso en 3D (arriba izquierda) + estuche de precisión
+      group.add(box(0.058, 0.082, 0.084, plaMatteMat, 0.034, h * 0.72, -d * 0.24));
+      group.add(box(0.020, 0.110, 0.050, darkMetal, 0.030, h * 0.77, -d * 0.24));
 
-      // Repisita minimalista negra con suculenta en cerámica arena y cable USB-C enrollado
-      group.add(box(0.082, 0.014, 0.20, matteBinMat, 0.044, h * 0.30, -0.05));
-      group.add(cyl(0.028, 0.022, 0.048, 16, ceramicMat, 0.044, h * 0.33, -0.10));
-      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.032, 14, 14), sageMat).translateX(0.044).translateY(h * 0.37).translateZ(-0.10));
-      const coiledCable = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.0045, 10, 20), darkMetal);
+      // Repisita impresa en 3D con mini maceta acanalada PLA arena + cable USB-C enrollado en gancho 3D
+      group.add(box(0.076, 0.013, 0.18, plaMatteMat, 0.042, h * 0.30, -0.04));
+      group.add(cyl(0.026, 0.022, 0.044, 14, plaSandMat, 0.042, h * 0.33, -0.09));
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.030, 14, 14), sageMat).translateX(0.042).translateY(h * 0.37).translateZ(-0.09));
+      const coiledCable = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.0042, 10, 20), darkMetal);
       coiledCable.rotation.y = Math.PI / 2;
-      coiledCable.position.set(0.032, h * 0.35, 0.01);
+      coiledCable.position.set(0.032, h * 0.35, 0.02);
       group.add(coiledCable);
 
-      // Audífonos over-ear negro mate colgados a la derecha
-      const hp = new THREE.Mesh(new THREE.TorusGeometry(0.066, 0.012, 14, 28), darkMetal);
+      // Gancho impreso en 3D + Audífonos over-ear negro mate colgados a la derecha
+      group.add(box(0.056, 0.012, 0.024, plaMatteMat, 0.032, h * 0.77, d * 0.22));
+      const hp = new THREE.Mesh(new THREE.TorusGeometry(0.064, 0.011, 14, 28), darkMetal);
       hp.rotation.y = Math.PI / 2;
       hp.position.set(0.035, h * 0.70, d * 0.22);
       group.add(hp);
-      group.add(cyl(0.028, 0.028, 0.024, 16, matteBinMat, 0.035, h * 0.63, d * 0.165).rotateX(Math.PI / 2));
-      group.add(cyl(0.028, 0.028, 0.024, 16, matteBinMat, 0.035, h * 0.63, d * 0.275).rotateX(Math.PI / 2));
+      group.add(cyl(0.027, 0.027, 0.022, 16, plaMatteMat, 0.035, h * 0.63, d * 0.168).rotateX(Math.PI / 2));
+      group.add(cyl(0.027, 0.027, 0.022, 16, plaMatteMat, 0.035, h * 0.63, d * 0.272).rotateX(Math.PI / 2));
 
-      if (isDouble) {
-        // Estuche rígido negro mate para herramientas/cables y bandeja superior sobria
-        group.add(box(0.080, 0.014, 0.18, matteBinMat, 0.044, h * 0.30, d * 0.22));
-        group.add(box(0.052, 0.046, 0.11, darkMetal, 0.044, h * 0.33, d * 0.22));
+      if (isHsw) {
+        // Módulo HSW adicional inferior derecho: bandeja hexagonal + estuche compacto negro mate
+        group.add(box(0.072, 0.013, 0.14, plaMatteMat, 0.040, h * 0.30, d * 0.24));
+        group.add(box(0.048, 0.042, 0.095, darkMetal, 0.040, h * 0.33, d * 0.24));
       }
       break;
     }
 
     case 'engineer_maker_station': {
-      // MESA 100% LIMPIA BAJO LA VENTANA (sin tapete ni cautín expuestos)
-      // Solo 2 detalles minimalistas sobrios arriba + cajas cerradas de componentes guardadas debajo
-      const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xe5e0d8, roughness: 0.62 });
+      // ALA VENTANA LIMPIA (80 × 40 cm): Tu Echo Dot Blanca + Tu Tablet en base 3D + Maceta 3D + Gridfinity debajo
+      const plaBlackMat = new THREE.MeshStandardMaterial({ color: 0x1c2028, roughness: 0.48, metalness: 0.16 });
+      const plaSandMat = new THREE.MeshStandardMaterial({ color: 0xe6dfd5, roughness: 0.62 });
       const sageMat = new THREE.MeshStandardMaterial({ color: 0x4d7c5b, roughness: 0.72 });
-      const matteSlate = new THREE.MeshStandardMaterial({ color: 0x232730, roughness: 0.42, metalness: 0.28 });
+      const matteSlate = new THREE.MeshStandardMaterial({ color: 0x252a34, roughness: 0.42, metalness: 0.25 });
 
-      // 1. Cargador compacto Ugreen Nexode GaN 100W discreto al fondo izquierdo
-      group.add(box(0.058, 0.064, 0.072, matteSlate, -0.22, 0.032, -0.11));
-      group.add(box(0.044, 0.048, 0.005, chromeMat, -0.22, 0.032, -0.073));
+      // 1. TU ALEXA ECHO DOT BLANCA (Esfera 4ta/5ta Gen) sobre trípode minimalista impreso en 3D
+      const alexaGroup = new THREE.Group();
+      alexaGroup.position.set(-0.22, 0.0, -0.07);
+      // Trípode minimalista de 3 patas impreso en 3D (eleva 2.2 cm y destaca el anillo LED cian)
+      [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3].forEach((ang) => {
+        const leg = cyl(0.0045, 0.0035, 0.032, 10, walnutWood, Math.cos(ang) * 0.028, 0.014, Math.sin(ang) * 0.028);
+        leg.rotation.z = Math.cos(ang) * 0.26;
+        leg.rotation.x = -Math.sin(ang) * 0.26;
+        alexaGroup.add(leg);
+      });
+      alexaGroup.add(cyl(0.032, 0.034, 0.006, 20, plaBlackMat, 0, 0.025, 0));
+      // Anillo LED cian característico en la base de la Echo Dot blanca
+      const echoRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.036, 0.0042, 12, 32),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+      );
+      echoRing.rotation.x = Math.PI / 2;
+      echoRing.position.set(0, 0.031, 0);
+      echoRing.userData = { isAlexaRing: true };
+      alexaGroup.add(echoRing);
+      // Base blanca mate inferior
+      const whiteBaseMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35, metalness: 0.05 });
+      alexaGroup.add(cyl(0.044, 0.036, 0.018, 24, whiteBaseMat, 0, 0.038, 0));
+      // Esfera acústica de tela blanca glacial (Echo Dot blanca)
+      const whiteFabricMat = new THREE.MeshStandardMaterial({ color: 0xf1f3f6, roughness: 0.88, metalness: 0.02 });
+      const echoSphere = new THREE.Mesh(new THREE.SphereGeometry(0.048, 26, 20), whiteFabricMat);
+      echoSphere.scale.set(1, 0.90, 1);
+      echoSphere.position.set(0, 0.068, 0);
+      echoSphere.castShadow = true;
+      alexaGroup.add(echoSphere);
+      // Botones sutiles en la corona superior
+      [[-0.012, 0], [0.012, 0], [0, -0.012], [0, 0.012]].forEach(([bx, bz]) => {
+        alexaGroup.add(cyl(0.0025, 0.0025, 0.002, 8, new THREE.MeshStandardMaterial({ color: 0xcbd5e1 }), bx, 0.111, bz));
+      });
+      // Resplandor cian suave sobre la madera negra del escritorio
+      const alexaGlow = new THREE.PointLight(0x00f0ff, 0.45, 0.65);
+      alexaGlow.position.set(0, 0.022, 0.01);
+      alexaGlow.userData = { isAlexaGlow: true };
+      alexaGroup.add(alexaGlow);
+      alexaGroup.userData = { isSubGadget: 'alexa_echo' };
+      group.add(alexaGroup);
 
-      // 2. Mini planta zen en maceta cerámica mate arena + portavasos negro mate
-      group.add(cyl(0.042, 0.034, 0.075, 20, ceramicMat, 0.16, 0.038, -0.09));
-      const leaf1 = new THREE.Mesh(new THREE.SphereGeometry(0.046, 16, 16), sageMat);
-      leaf1.scale.set(1.0, 0.85, 1.0);
-      leaf1.position.set(0.16, 0.095, -0.09);
-      group.add(leaf1);
-      // Portavasos minimalista en el frente derecho
-      group.add(cyl(0.048, 0.048, 0.006, 24, matteSlate, 0.06, 0.003, 0.06));
-      // Libreta negra mate cerrada con pluma metálica
-      group.add(box(0.145, 0.012, 0.205, matteSlate, -0.07, 0.006, 0.03));
-      const pen = cyl(0.004, 0.004, 0.135, 10, chromeMat, 0.018, 0.010, 0.03);
+      // 2. TU TABLET EN BASE ERGONÓMICA IMPRESA EN 3D (orientada hacia tu silla, ángulo 60°)
+      const tabletGroup = new THREE.Group();
+      tabletGroup.position.set(-0.02, 0.0, -0.06);
+      tabletGroup.rotation.y = -0.26;
+      // Soporte impreso en 3D (PLA+ negro mate, minimalista en forma de A)
+      tabletGroup.add(box(0.11, 0.006, 0.115, plaBlackMat, 0, 0.003, 0));
+      const standBack = box(0.095, 0.125, 0.010, plaBlackMat, 0, 0.062, -0.028);
+      standBack.rotation.x = -0.32;
+      tabletGroup.add(standBack);
+      tabletGroup.add(box(0.11, 0.016, 0.014, plaBlackMat, 0, 0.011, 0.044));
+      // Cuerpo de la Tablet (vertical hacia el usuario, con pantalla Spotify + Pinout)
+      const tabletBodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.82, roughness: 0.28 });
+      const tabletBody = box(0.154, 0.218, 0.007, tabletBodyMat, 0, 0.112, 0.002);
+      tabletBody.rotation.x = -0.32;
+      const tabletScreenMat = new THREE.MeshBasicMaterial({ map: createTabletScreenTexture() });
+      const tabletScreen = box(0.144, 0.208, 0.002, tabletScreenMat, 0, 0, 0.0045);
+      tabletBody.add(tabletScreen);
+      // Stylus magnético en el borde superior
+      const stylus = cyl(0.0032, 0.0032, 0.142, 12, new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }), 0, 0.112, 0);
+      stylus.rotation.z = Math.PI / 2;
+      tabletBody.add(stylus);
+      tabletGroup.add(tabletBody);
+      tabletGroup.userData = { isSubGadget: 'tablet_companion' };
+      group.add(tabletGroup);
+
+      // 3. MACETA ACANALADA JAPANDI IMPRESA EN 3D (PLA Arena Mate con 12 estrías) + Suculenta
+      const planterGroup = new THREE.Group();
+      planterGroup.position.set(0.21, 0.0, -0.09);
+      planterGroup.add(cyl(0.042, 0.036, 0.082, 20, plaSandMat, 0, 0.041, 0));
+      for (let i = 0; i < 12; i++) {
+        const ang = (i * Math.PI * 2) / 12;
+        planterGroup.add(cyl(0.0055, 0.0048, 0.080, 8, plaSandMat, Math.cos(ang) * 0.039, 0.041, Math.sin(ang) * 0.039));
+      }
+      const soil = cyl(0.036, 0.036, 0.006, 16, new THREE.MeshStandardMaterial({ color: 0x3b2f26, roughness: 0.95 }), 0, 0.078, 0);
+      planterGroup.add(soil);
+      // Follaje en capas verde salvia
+      [[0, 0.102, 0, 0.036], [-0.020, 0.096, 0.014, 0.024], [0.020, 0.098, -0.012, 0.026], [0.006, 0.118, 0.008, 0.022]].forEach(([lx, ly, lz, lr]) => {
+        const lf = new THREE.Mesh(new THREE.SphereGeometry(lr, 14, 14), sageMat);
+        lf.scale.set(1.05, 0.78, 1.05);
+        lf.position.set(lx, ly, lz);
+        planterGroup.add(lf);
+      });
+      group.add(planterGroup);
+
+      // 4. ZONA LIBRE DE ESCRITURA + PORTAVASOS HEXAGONAL 3D + LIBRETA CERRADA
+      // Portavasos hexagonal impreso en 3D (PLA negro mate)
+      group.add(cyl(0.046, 0.046, 0.006, 6, plaBlackMat, -0.18, 0.003, 0.09));
+      // Libreta negra mate cerrada + pluma metálica en el frente derecho
+      group.add(box(0.145, 0.012, 0.195, matteSlate, 0.14, 0.006, 0.065));
+      const pen = cyl(0.0038, 0.0038, 0.135, 10, chromeMat, 0.228, 0.010, 0.065);
       pen.rotation.x = Math.PI / 2;
       group.add(pen);
 
-      // 3. Cajas apilables negro mate con tapa (componentes electrónicos guardados debajo del escritorio)
-      const boxBodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1e26, roughness: 0.45, metalness: 0.15 });
-      const boxLidMat = new THREE.MeshStandardMaterial({ color: 0x2d3544, roughness: 0.35, metalness: 0.22 });
-      const handleTagMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.5 });
-      // Dos cajas modulares apiladas ordenadamente en el piso bajo el ala norte
-      [0.085, 0.245].forEach((by) => {
+      // 5. CAJAS MODULARES GRIDFINITY RUGGED BOX (5×5 = 21×21 cm) IMPRESAS EN 3D GUARDADAS DEBAJO
+      const gfBodyMat = new THREE.MeshStandardMaterial({ color: 0x191d25, roughness: 0.48, metalness: 0.14 });
+      const gfLidMat = new THREE.MeshStandardMaterial({ color: 0x2c3340, roughness: 0.38, metalness: 0.22 });
+      const gfLatchMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.40, metalness: 0.45 });
+      const gfTagMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.55 });
+      [0.080, 0.230].forEach((by) => {
         const yFloor = -0.75 + by;
-        group.add(box(0.32, 0.145, 0.24, boxBodyMat, -0.02, yFloor, -0.04));
-        group.add(box(0.33, 0.016, 0.25, boxLidMat, -0.02, yFloor + 0.078, -0.04));
-        group.add(box(0.08, 0.022, 0.005, handleTagMat, -0.02, yFloor + 0.01, 0.083));
+        // Caja Gridfinity 5×5 (22 × 14 × 22 cm) apilable bajo el ala norte
+        group.add(box(0.24, 0.132, 0.22, gfBodyMat, -0.02, yFloor, -0.04));
+        group.add(box(0.248, 0.018, 0.228, gfLidMat, -0.02, yFloor + 0.072, -0.04));
+        // Costillas verticales características de Gridfinity Rugged Box
+        [-0.09, 0.09].forEach((rx) => {
+          group.add(box(0.014, 0.136, 0.226, gfLidMat, -0.02 + rx, yFloor, -0.04));
+        });
+        // Broches frontales impresos en 3D + etiqueta limpia
+        [-0.065, 0.065].forEach((lx) => {
+          group.add(box(0.018, 0.036, 0.010, gfLatchMat, -0.02 + lx, yFloor + 0.048, 0.074));
+        });
+        group.add(box(0.075, 0.020, 0.004, gfTagMat, -0.02, yFloor - 0.008, 0.072));
       });
       break;
     }
