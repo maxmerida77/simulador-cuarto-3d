@@ -105,72 +105,72 @@ export const PRODUCT_ZONES = [
 
   {
     id: 'engineer_pegboard_zone',
-    title: '2. Panel Perforado (Yolispa) y Laboratorio Maker (AliExpress)',
-    subtitle: 'Organiza herramientas, cautín USB-C FNIRSI, tapete Kaisi y placas ESP32 en el ala bajo la ventana',
+    title: '2. Mesa Limpia, Panel Perforado y Cajas Guardadas',
+    subtitle: 'Electrónica y componentes guardados en cajitas/cajones debajo — mesa 100% limpia y minimalista',
     defaultOption: 'eng_yolispa_lab',
     cameraPreset: 'desk_lab',
     options: [
       {
         id: 'none',
-        name: 'Actual (Sin panel perforado ni organizador de electrónica)',
+        name: 'Mesa despejada (sin panel ni cajonera extra)',
         price: 0,
-        store: 'Estado actual',
+        store: 'Solo cajitas en repisas del escritorio',
         dims: '-',
-        desc: 'Proyectos y cables guardados en cajas/bolsas.',
+        desc: 'Escritorio libre con tus componentes guardados en cajas cerradas dentro de las repisas laterales.',
         links: [],
         spawnItems: []
       },
       {
         id: 'eng_yolispa_lab',
-        name: 'Opción A: Panel Yolispa + Tapete Kaisi S-160 + Cautín FNIRSI HS-02 (AliExpress)',
-        price: 1180,
+        name: 'Opción A (Minimalista): Panel Perforado Negro + Cajas Componentes Bajo Mesa',
+        price: 690,
         store: 'Amazon MX + AliExpress Choice',
-        dims: 'Panel Yolispa 46×48 cm · Tapete Kaisi 38×26 cm · Cautín USB-C 100W',
-        desc: 'Organizador perforado Yolispa entre la TV y el espejo + Tapete magnético térmico Kaisi S-160 bajo la ventana + Cautín inteligente USB-C FNIRSI HS-02 + Gavetero mirando hacia ti.',
+        dims: 'Panel Negro 46×48 cm · 2 Cajas Apilables Cerradas bajo mesa · Decoración Zen',
+        desc: 'Mesa bajo ventana totalmente limpia (solo planta cerámica, libreta y portavasos). Toda tu electrónica y componentes van guardados fuera de la vista en cajas modulares negro mate debajo del escritorio.',
         links: [
-          { label: 'Organizador Perforado Yolispa (Tu link Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
+          { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
           { label: 'AliExpress: Paneles Perforados Negros (~$185 set)', url: 'https://es.aliexpress.com/w/wholesale-panel-perforado-organizador-pared-negro.html' },
-          { label: 'AliExpress: Tapete Silicón Magnético Kaisi (~$145)', url: 'https://es.aliexpress.com/w/wholesale-Kaisi-tapete-silicona-soldadura.html' },
-          { label: 'AliExpress: Cautín USB-C FNIRSI HS-02 100W (~$590)', url: 'https://es.aliexpress.com/w/wholesale-FNIRSI-HS-02-soldering-iron.html' }
+          { label: 'AliExpress: Cajas Organizadoras Componentes SMD (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
+          { label: 'Cajas Negras Apilables con Tapa IKEA KUGGIS/TJENA', url: 'https://www.ikea.com/mx/es/search/?q=TJENA+caja+con+tapa+negro' }
         ],
         spawnItems: [
-          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.11, z: -0.34, rotY: 0, elevation: 0.88 },
+          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.12, z: -0.22, rotY: 0, elevation: 0.94 },
           { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.36, z: -1.29, rotY: 0, elevation: 0.75 }
         ]
       },
       {
         id: 'eng_skadis_ugreen',
-        name: 'Opción B: Panel Doble + Cargador Ugreen GaN 100W + Osciloscopio ZOYI (AliExpress)',
-        price: 1950,
+        name: 'Opción B: Panel Doble Negro + Cargador Ugreen GaN 100W + Cajas Ocultas',
+        price: 1290,
         store: 'AliExpress Oficial + Amazon',
-        dims: 'Pegboard Extendido + Ugreen GaN 100W + Multímetro/Osciloscopio ZT-703S',
-        desc: 'En la tienda oficial de Ugreen y ZOYI en AliExpress ahorras ~45%: Cargador GaN de escritorio 100W + Multímetro-Osciloscopio digital a color ZOYI ZT-703S colgado en el panel.',
+        dims: 'Pegboard Doble Monocromático · Ugreen GaN 100W · Cajas SMD Cerradas',
+        desc: 'Estética limpia 100% monocromática: doble panel perforado negro para audífonos y estuche cerrado, bloque discreto Ugreen GaN 100W en la esquina y cajas apilables de componentes guardadas debajo.',
         links: [
           { label: 'AliExpress: Cargador Ugreen GaN 100W Oficial (~$680)', url: 'https://es.aliexpress.com/w/wholesale-Ugreen-GaN-100W-charger.html' },
-          { label: 'AliExpress: Osciloscopio/Multímetro ZOYI ZT-703S (~$980)', url: 'https://es.aliexpress.com/w/wholesale-ZOYI-ZT-703S.html' },
           { label: 'AliExpress: Clips Magnéticos Cables Baseus (~$75)', url: 'https://es.aliexpress.com/w/wholesale-Baseus-magnetic-cable-organizer.html' },
-          { label: 'Organizador Perforado Yolispa (Tu link Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' }
+          { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
+          { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' }
         ],
         spawnItems: [
-          { id: 'upg_peg_1', type: 'yolispa_pegboard_double', x: -1.11, z: -0.34, rotY: 0, elevation: 0.88 },
+          { id: 'upg_peg_1', type: 'yolispa_pegboard_double', x: -1.12, z: -0.22, rotY: 0, elevation: 0.94 },
           { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.36, z: -1.29, rotY: 0, elevation: 0.75 }
         ]
       },
       {
         id: 'eng_alex_full',
-        name: 'Opción C: Cajonera Compacta 5 Cajones + Cajas SMD AliExpress + Silla Malla',
-        price: 4850,
-        store: 'IKEA MX + AliExpress + Amazon',
-        dims: 'Cajonera 36×34×71 cm (cabe en fondo 40 cm) + Cajas SMD + Silla Ergonómica',
-        desc: 'Cajonera compacta de 5 cajones bajo el ala de 40 cm + Cajas modulares transparentes de AliExpress para resistencias/ESP32 + Panel Yolispa + Silla ergonómica centrada en la L interior de 80×80 cm.',
+        name: 'Opción C (Full Pro): Cajonera Compacta 5 Cajones + Silla Malla + Mesa Limpia',
+        price: 3890,
+        store: 'Amazon MX + AliExpress',
+        dims: 'Cajonera 36×34×71 cm (cabe en fondo 40 cm) + Cajas SMD dentro + Silla Ergonómica',
+        desc: 'Toda la electrónica (cautín, cables, placas y cajitas SMD) desaparece dentro de la cajonera compacta de 5 cajones (36 cm de fondo para no sobresalir de tu mesa de 40 cm) + silla ergonómica de malla negra + mesa impecable.',
         replaceChair: true,
         links: [
           { label: 'Cajonera Compacta Oficina 35-38cm Fondo (Amazon)', url: 'https://www.amazon.com.mx/s?k=cajonera+escritorio+estrecha+35+cm+fondo' },
-          { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
+          { label: 'AliExpress: Cajas Modulares SMD/ESP32 para Cajón (~$95)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
           { label: 'Silla Ergonómica Malla Soporte Lumbar (Amazon)', url: 'https://www.amazon.com.mx/s?k=silla+ergonomica+oficina+malla+negra' }
         ],
         spawnItems: [
-          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.11, z: -0.34, rotY: 0, elevation: 0.88 },
+          { id: 'upg_peg_1', type: 'yolispa_pegboard', x: -1.12, z: -0.22, rotY: 0, elevation: 0.94 },
           { id: 'upg_eng_1', type: 'engineer_maker_station', x: -0.36, z: -1.29, rotY: 0, elevation: 0.75 },
           { id: 'upg_ds_1', type: 'under_desk_drawer', x: -0.95, z: -0.47, rotY: 0, elevation: 0 },
           { id: 'upg_ds_2', type: 'trash_bin', x: -0.56, z: -1.29, rotY: 0, elevation: 0 },
@@ -210,7 +210,7 @@ export const PRODUCT_ZONES = [
           { label: 'Repisa Flotante Negra Herraje Oculto (Amazon)', url: 'https://www.amazon.com.mx/s?k=repisa+flotante+negra+minimalista+soporte+oculto' }
         ],
         spawnItems: [
-          { id: 'upg_sh_1', type: 'shelf_lack_110', x: -1.03, z: -0.34, rotY: 0, elevation: 1.50 }
+          { id: 'upg_sh_1', type: 'shelf_lack_110', x: -1.04, z: -0.22, rotY: 0, elevation: 1.54 }
         ]
       },
       {
@@ -225,7 +225,7 @@ export const PRODUCT_ZONES = [
           { label: 'Set Repisas Flotantes Negras (Amazon)', url: 'https://www.amazon.com.mx/s?k=set+repisas+flotantes+negras+60+cm' }
         ],
         spawnItems: [
-          { id: 'upg_sh_1', type: 'shelf_duo_stepped', x: -1.04, z: -0.34, rotY: 0, elevation: 1.46 }
+          { id: 'upg_sh_1', type: 'shelf_duo_stepped', x: -1.05, z: -0.22, rotY: 0, elevation: 1.50 }
         ]
       },
       {
@@ -240,7 +240,7 @@ export const PRODUCT_ZONES = [
           { label: 'Repisas Flotantes Madera Parota / Nogal (Amazon)', url: 'https://www.amazon.com.mx/s?k=repisas+flotantes+madera+nogal+parota' }
         ],
         spawnItems: [
-          { id: 'upg_sh_1', type: 'shelf_walnut_led', x: -1.03, z: -0.34, rotY: 0, elevation: 1.46 }
+          { id: 'upg_sh_1', type: 'shelf_walnut_led', x: -1.04, z: -0.22, rotY: 0, elevation: 1.50 }
         ]
       }
     ]
@@ -520,10 +520,11 @@ export const PRODUCT_ZONES = [
 ];
 
 export const WALL_PALETTES = [
-  { id: 'white_current', name: 'Blanco Actual', wall: '#f1f3f6', accent: '#f1f3f6', accentWall: 'none' },
-  { id: 'graphite_setup', name: 'Pared Setup Grafito Oscuro', wall: '#f2f3f5', accent: '#1e232d', accentWall: 'west' },
-  { id: 'navy_studio', name: 'Pared Azul Ingeniería / Champions', wall: '#eef1f6', accent: '#162035', accentWall: 'west' },
-  { id: 'sage_calm', name: 'Blanco + Pared Derecha Verde Salvia', wall: '#f3f5f2', accent: '#36483f', accentWall: 'east' }
+  { id: 'white_current', name: 'Blanco Cálido Mate', wall: '#f4f3ef', accent: '#f4f3ef', accentWall: 'none' },
+  { id: 'graphite_setup', name: 'Pared Setup Grafito Mate', wall: '#f3f2ee', accent: '#1d212a', accentWall: 'west' },
+  { id: 'warm_greige', name: 'Arena Greige + Carbón', wall: '#eae6df', accent: '#272b33', accentWall: 'west' },
+  { id: 'navy_studio', name: 'Pared Azul Nocturno Mate', wall: '#f1f3f6', accent: '#172236', accentWall: 'west' },
+  { id: 'sage_calm', name: 'Blanco + Verde Salvia Mate', wall: '#f4f5f2', accent: '#35483e', accentWall: 'east' }
 ];
 
 export const BEDDING_THEMES = [
@@ -548,7 +549,7 @@ export const LED_COLORS = [
 export const UI_LABELS = {
   zones: {
     vibecoding_zone: { icon: '💻', short: 'Setup' },
-    engineer_pegboard_zone: { icon: '🛠️', short: 'Lab y panel' },
+    engineer_pegboard_zone: { icon: '🗂️', short: 'Orden mesa' },
     shelves_zone: { icon: '📚', short: 'Repisas' },
     lighting_zone: { icon: '💡', short: 'Luces' },
     soccer_zone: { icon: '⚽', short: 'Fútbol' },
@@ -561,8 +562,8 @@ export const UI_LABELS = {
     vibe_27_mx: 'Odyssey 24" + Brazo',
     vibe_dual_vertical: 'Odyssey + 24" Vert.',
     vibe_34_ultra: 'Upgrade 34" Curvo',
-    eng_yolispa_lab: 'Panel + kit soldar',
-    eng_skadis_ugreen: 'Panel doble + ZOYI',
+    eng_yolispa_lab: 'Panel + cajas ocultas',
+    eng_skadis_ugreen: 'Panel doble + GaN',
     eng_alex_full: 'Cajonera + silla',
     sh_lack_black: 'LACK negra',
     sh_duo_ledge: '2 con borde',
@@ -627,15 +628,15 @@ export const CATALOG = {
   laptop_stand: { type: 'laptop_stand', name: 'Laptop ASUS TUF F15 en Stand Aluminio (Orientada hacia ti)', w: 0.32, d: 0.28, h: 0.25 },
   wood_slat_panel: { type: 'wood_slat_panel', name: 'Panel Lambrín Acústico Nogal', w: 0.04, d: 0.78, h: 0.58 },
 
-  // Paneles Perforados Yolispa + Estación de Ingeniería con FNIRSI HS-02 y Tapete Kaisi
-  yolispa_pegboard: { type: 'yolispa_pegboard', name: 'Organizador Perforado Yolispa (4 Paneles + Herramientas)', w: 0.05, d: 0.46, h: 0.48 },
-  yolispa_pegboard_double: { type: 'yolispa_pegboard_double', name: 'Doble Panel Perforado + Osciloscopio ZOYI + Herramientas', w: 0.05, d: 0.50, h: 0.52 },
-  engineer_maker_station: { type: 'engineer_maker_station', name: 'Banco Ingeniería (Tapete Kaisi + Cautín FNIRSI HS-02 + Ugreen GaN + Prototipo)', w: 0.52, d: 0.36, h: 0.24 },
+  // Paneles Perforados Minimalistas + Mesa Limpia con Cajas de Componentes Guardadas
+  yolispa_pegboard: { type: 'yolispa_pegboard', name: 'Panel Perforado Negro Mate (Audífonos, Planta y Estuche)', w: 0.05, d: 0.36, h: 0.46 },
+  yolispa_pegboard_double: { type: 'yolispa_pegboard_double', name: 'Doble Panel Perforado Monocromático', w: 0.05, d: 0.38, h: 0.50 },
+  engineer_maker_station: { type: 'engineer_maker_station', name: 'Ala Ventana Limpia + Cajas Cerradas de Componentes Bajo Mesa', w: 0.52, d: 0.36, h: 0.20 },
 
   // Repisas Flotantes (calibradas al espacio libre sobre el panel perforado)
-  shelf_lack_110: { type: 'shelf_lack_110', name: 'Repisa Flotante IKEA LACK Negra', w: 0.20, d: 0.48, h: 0.16 },
-  shelf_duo_stepped: { type: 'shelf_duo_stepped', name: 'Set 2 Repisas Flotantes con Borde Anti-Caída', w: 0.18, d: 0.48, h: 0.28 },
-  shelf_walnut_led: { type: 'shelf_walnut_led', name: '2 Repisas Madera Nogal Cálido con LED', w: 0.20, d: 0.48, h: 0.26 },
+  shelf_lack_110: { type: 'shelf_lack_110', name: 'Repisa Flotante IKEA LACK Negra', w: 0.20, d: 0.38, h: 0.16 },
+  shelf_duo_stepped: { type: 'shelf_duo_stepped', name: 'Set 2 Repisas Flotantes con Borde Anti-Caída', w: 0.18, d: 0.38, h: 0.28 },
+  shelf_walnut_led: { type: 'shelf_walnut_led', name: '2 Repisas Madera Nogal Cálido con LED', w: 0.20, d: 0.38, h: 0.26 },
 
   // Fútbol en Pared de 2da Litera (Bufandas y Balones)
   soccer_scarves_2: { type: 'soccer_scarves_2', name: '2 Bufandas de Fútbol en Pared de 2da Litera', w: 0.04, d: 1.18, h: 0.42 },
@@ -1178,43 +1179,41 @@ export const ITEM_INSPECTOR_DB = {
     ]
   },
 
-  // Zona 2: Ingeniería y Panel Perforado
+  // Zona 2: Mesa Limpia, Panel Perforado y Cajas de Componentes Guardadas
   yolispa_pegboard: {
-    badge: '🧰 Zona 2 · Tu Link de Amazon / AliExpress',
+    badge: '🗂️ Zona 2 · Panel Perforado Monocromático',
     price: '~$450 MXN (Amazon) / ~$185 MXN (AliExpress)',
     dims: '46 cm ancho × 48 cm alto × 5 cm fondo',
-    desc: 'Organizador de pared perforado Yolispa instalado entre tu TV y el mueble con espejo. Mantiene a la mano tus desarmadores, pinzas, multímetro/osciloscopio ZOYI y audífonos.',
+    desc: 'Panel perforado negro mate con ranuras reales entre tu TV y el espejo. Mantiene colgados tus audífonos, cable USB-C enrollado, estuche cerrado de precisión y una macetita sin sobrecargar el escritorio.',
     cameraPreset: 'desk_pegboard',
-    subGadgets: ['yolispa_panel', 'zoyi_meter'],
+    subGadgets: ['yolispa_panel'],
     links: [
-      { label: 'Organizador Perforado Yolispa (Tu link Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
+      { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
       { label: 'AliExpress: Set 4 Paneles Perforados Negros (~$185)', url: 'https://es.aliexpress.com/w/wholesale-panel-perforado-organizador-pared-negro.html' }
     ]
   },
   yolispa_pegboard_double: {
-    badge: '🧰 Zona 2 · Panel Perforado Extendido + ZOYI',
-    price: '~$1,165 MXN (Panel Doble + Osciloscopio ZOYI)',
+    badge: '🗂️ Zona 2 · Doble Panel Perforado Limpio',
+    price: '~$520 MXN',
     dims: '50 cm ancho × 52 cm alto',
-    desc: 'Doble panel perforado negro mate equipado con repisas para tu Osciloscopio/Multímetro digital ZOYI ZT-703S, desarmadores de precisión y contenedores de componentes.',
+    desc: 'Doble panel perforado negro mate para audífonos, controles, estuches cerrados y cables ordenados fuera de la tabla.',
     cameraPreset: 'desk_pegboard',
-    subGadgets: ['yolispa_panel', 'zoyi_meter'],
+    subGadgets: ['yolispa_panel'],
     links: [
-      { label: 'Organizador Perforado Yolispa (Tu link Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' },
-      { label: 'AliExpress: Osciloscopio/Multímetro ZOYI ZT-703S (~$980)', url: 'https://es.aliexpress.com/w/wholesale-ZOYI-ZT-703S.html' }
+      { label: 'Organizador Perforado Yolispa Negro (Amazon)', url: 'https://www.amazon.com.mx/Yolispa-Organizador-Perforado-Accesorios-Dormitorio/dp/B0G6D88WT4' }
     ]
   },
   engineer_maker_station: {
-    badge: '🛠️ Zona 2 · Laboratorio de Ingeniería (Bajo Ventana)',
-    price: '~$1,180 MXN (Kit Maker AliExpress)',
-    dims: '52 × 38 cm en el ala derecha del escritorio en L',
-    desc: 'Separa tu área de hardware del teclado para que nunca caiga soldadura ni cables sobre tu laptop. Haz clic en cualquiera de los equipos de abajo (o directo en el 3D) para ver cada herramienta:',
+    badge: '✨ Zona 2 · Ala Ventana Limpia + Componentes Guardados',
+    price: '~$290 MXN (Cajas Apilables Cerradas)',
+    dims: 'Ala de 80 × 40 cm libre · 2 Cajas modulares apiladas bajo la mesa',
+    desc: 'Quitamos todo el ruido visual de la electrónica de encima del escritorio: arriba solo queda una libreta negra, portavasos, planta zen y tu cargador compacto Ugreen GaN. Todas tus placas ESP32, cables y componentes quedan guardados en cajitas cerradas negro mate abajo.',
     cameraPreset: 'desk_lab',
-    subGadgets: ['kaisi_mat', 'fnirsi_iron', 'esp32_proto', 'ftdi_debugger', 'smd_cabinet', 'ugreen_gan'],
+    subGadgets: ['ugreen_gan', 'smd_cabinet'],
     links: [
-      { label: 'AliExpress: Tapete Silicón Magnético Kaisi (~$145)', url: 'https://es.aliexpress.com/w/wholesale-Kaisi-tapete-silicona-soldadura.html' },
-      { label: 'AliExpress: Cautín USB-C FNIRSI HS-02 100W (~$590)', url: 'https://es.aliexpress.com/w/wholesale-FNIRSI-HS-02-soldering-iron.html' },
-      { label: 'AliExpress: Cargador Ugreen GaN 100W Oficial (~$680)', url: 'https://es.aliexpress.com/w/wholesale-Ugreen-GaN-100W-charger.html' },
-      { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' }
+      { label: 'AliExpress: Cajas Modulares SMD/ESP32 (~$95 set)', url: 'https://es.aliexpress.com/w/wholesale-SMD-component-storage-box-organizer.html' },
+      { label: 'Cajas Negras con Tapa IKEA TJENA ($99 c/u)', url: 'https://www.ikea.com/mx/es/search/?q=TJENA+caja+con+tapa+negro' },
+      { label: 'AliExpress: Cargador Ugreen GaN 100W Oficial (~$680)', url: 'https://es.aliexpress.com/w/wholesale-Ugreen-GaN-100W-charger.html' }
     ]
   },
 
@@ -1612,18 +1611,12 @@ export function detectSubGadgetFromHit(itemType, localPt) {
   }
 
   if (itemType === 'engineer_maker_station') {
-    if (localPt.x > 0.04 && localPt.x < 0.14 && localPt.z < 0.00) return 'ftdi_debugger';
-    if (localPt.x > 0.10) return 'smd_cabinet';
-    if (localPt.x < -0.14 && localPt.z < -0.02) return 'ugreen_gan';
-    if (localPt.x < -0.10 && localPt.z >= -0.02) return 'fnirsi_iron';
-    if (localPt.y > 0.016 && localPt.x >= -0.10 && localPt.x <= 0.10) return 'esp32_proto';
-    return 'kaisi_mat';
+    if (localPt.y < -0.20) return 'smd_cabinet';
+    if (localPt.x < -0.12 && localPt.z < -0.02) return 'ugreen_gan';
+    return null;
   }
 
   if (itemType === 'yolispa_pegboard' || itemType === 'yolispa_pegboard_double') {
-    if (localPt.y < 0.25 && localPt.z < 0.04 && localPt.x > 0.02) {
-      return 'zoyi_meter';
-    }
     return 'yolispa_panel';
   }
 

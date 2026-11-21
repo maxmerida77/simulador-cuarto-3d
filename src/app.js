@@ -20,6 +20,8 @@ import {
 import {
   createStudioEnvironment,
   createFloorTexture,
+  createFloorBumpTexture,
+  createWallPlasterTexture,
   createZebraBlindTexture,
   createWorkflowScreenTexture,
   createTVScreenTexture,
@@ -33,11 +35,11 @@ const CAMERA_PRESETS = {
   desk_front:      { pos: [-0.34, 1.04, -0.69], target: [-0.95, 0.90, -0.69],  fov: 40, wallMode: 'full' },
   desk_corner:     { pos: [-0.38, 1.10, -0.78], target: [-0.94, 0.96, -1.28],  fov: 38, wallMode: 'full' },
   desk_lab:        { pos: [-0.36, 1.12, -0.78], target: [-0.36, 0.82, -1.29],  fov: 36, wallMode: 'full' },
-  desk_pegboard:   { pos: [-0.28, 1.24, -0.34], target: [-1.08, 1.18, -0.34],  fov: 40, wallMode: 'full' },
+  desk_pegboard:   { pos: [-0.28, 1.26, -0.22], target: [-1.08, 1.22, -0.22],  fov: 40, wallMode: 'full' },
   whiteboard_view: { pos: [-0.38, 1.16, 0.45],  target: [-0.38, 1.15, 1.48],  fov: 42, wallMode: 'full' },
   zoom_desk:       { pos: [-0.34, 1.04, -0.69], target: [-0.95, 0.90, -0.69],  fov: 40, wallMode: 'full' },
   zoom_lab:        { pos: [-0.36, 1.12, -0.78], target: [-0.36, 0.82, -1.29],  fov: 36, wallMode: 'full' },
-  zoom_shelves:    { pos: [-0.28, 1.24, -0.34], target: [-1.08, 1.18, -0.34],  fov: 40, wallMode: 'full' },
+  zoom_shelves:    { pos: [-0.28, 1.26, -0.22], target: [-1.08, 1.22, -0.22],  fov: 40, wallMode: 'full' },
   zoom_underbed:   { pos: [-0.42, 0.56, 0.48],  target: [0.58, 0.22, 0.48],    fov: 45, wallMode: 'full' },
   zoom_soccer:     { pos: [-0.28, 1.80, 0.48],  target: [1.10, 1.80, 0.48],    fov: 46, wallMode: 'full' },
   top_2d:          { pos: [0, 4.35, 0.01],      target: [0, 0, 0],             fov: 42, wallMode: 'auto' }
@@ -71,7 +73,7 @@ class RoomSimulatorApp {
 
     // Sistema de Domótica Interactiva (Tuya WiFi / Zigbee / Alexa)
     this.domotica = {
-      outlet1_iron: true,       // Toma 1: Cautín FNIRSI (65W calentando / 0W apagado)
+      outlet1_iron: false,      // Toma 1: Cautín / Auxiliar (apagado cuando está guardado en cajón)
       outlet2_lights: true,     // Toma 2: Iluminación & Tira LED (22W)
       outlet3_gan: true,        // Toma 3: Cargador GaN 100W Laptop TUF (92W)
       outlet4_fan: false,       // Toma 4: Periféricos / Ventilador USB (28W)
@@ -436,8 +438,15 @@ class RoomSimulatorApp {
     const { width: W, depth: D, height: H } = roomState;
     const wallT = 0.075;
 
+    if (!this.floorBumpTex) this.floorBumpTex = createFloorBumpTexture();
+    if (!this.wallPlasterTex) this.wallPlasterTex = createWallPlasterTexture();
+
     const floorMat = new THREE.MeshStandardMaterial({
-      map: createFloorTexture(roomState.floorType), roughness: 0.36, metalness: 0.10
+      map: createFloorTexture(roomState.floorType),
+      bumpMap: this.floorBumpTex,
+      bumpScale: 0.0045,
+      roughness: 0.42,
+      metalness: 0.06
     });
     const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(W + wallT * 2, 0.06, D + wallT * 2), floorMat);
     floorMesh.position.set(0, -0.03, 0);
@@ -446,10 +455,12 @@ class RoomSimulatorApp {
 
     const getWallMat = (side) => new THREE.MeshStandardMaterial({
       color: new THREE.Color(roomState.accentWall === side ? roomState.accentColor : roomState.wallColor),
-      roughness: 0.72,
-      metalness: 0.03
+      bumpMap: this.wallPlasterTex,
+      bumpScale: 0.0028,
+      roughness: 0.86,
+      metalness: 0.02
     });
-    const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x1e2128, roughness: 0.45 });
+    const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x181b22, roughness: 0.36, metalness: 0.25 });
 
     const wallGroups = {
       north: new THREE.Group(),
@@ -2278,8 +2289,9 @@ class RoomSimulatorApp {
     }, 'beddingId');
 
     mk('floor-types-row', [
-      { id: 'dark_wood_tile', name: 'Gris actual', color: '#4a4e54' },
-      { id: 'light_oak', name: 'Roble claro', color: '#c2ab8b' }
+      { id: 'dark_wood_tile', name: 'Gris actual', color: '#484d54' },
+      { id: 'light_oak', name: 'Roble claro', color: '#c9b394' },
+      { id: 'walnut_dark', name: 'Nogal oscuro', color: '#4e3929' }
     ], f => f.color, (fl) => {
       this.room.floorType = fl.id;
       this.buildArchitecture();

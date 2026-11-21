@@ -12,21 +12,72 @@ export function createStudioEnvironment() {
   const ctx = canvas.getContext('2d');
 
   const grad = ctx.createLinearGradient(0, 0, 0, 256);
-  grad.addColorStop(0, '#334155');
-  grad.addColorStop(0.45, '#1e293b');
-  grad.addColorStop(0.5, '#0f172a');
-  grad.addColorStop(1, '#090d14');
+  grad.addColorStop(0, '#475569');
+  grad.addColorStop(0.32, '#283548');
+  grad.addColorStop(0.50, '#161e2e');
+  grad.addColorStop(0.72, '#0f141e');
+  grad.addColorStop(1, '#080b10');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 512, 256);
 
-  ctx.fillStyle = 'rgba(255, 247, 237, 0.65)';
-  ctx.fillRect(60, 20, 140, 45);
-  ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
-  ctx.fillRect(280, 35, 160, 50);
+  // Softbox cálido superior (reflejos naturales en aluminio, vidrio y melamina)
+  const warmBox = ctx.createRadialGradient(140, 48, 8, 140, 48, 95);
+  warmBox.addColorStop(0, 'rgba(255, 245, 228, 0.85)');
+  warmBox.addColorStop(0.5, 'rgba(255, 237, 213, 0.35)');
+  warmBox.addColorStop(1, 'rgba(255, 237, 213, 0)');
+  ctx.fillStyle = warmBox;
+  ctx.fillRect(30, 0, 220, 140);
+
+  // Softbox de ventana norte (luz difusa fría)
+  const coolBox = ctx.createRadialGradient(365, 62, 10, 365, 62, 110);
+  coolBox.addColorStop(0, 'rgba(224, 242, 254, 0.65)');
+  coolBox.addColorStop(0.55, 'rgba(125, 211, 252, 0.22)');
+  coolBox.addColorStop(1, 'rgba(56, 189, 248, 0)');
+  ctx.fillStyle = coolBox;
+  ctx.fillRect(240, 0, 250, 160);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.mapping = THREE.EquirectangularReflectionMapping;
   tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createWallPlasterTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Micro-textura mate de yeso arquitectónico (sin aspecto plástico plano)
+  let seed = 1337;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+  for (let i = 0; i < 6500; i++) {
+    const x = rand() * 512;
+    const y = rand() * 512;
+    const v = 114 + Math.floor(rand() * 28);
+    const sz = 1 + rand() * 2.5;
+    ctx.fillStyle = `rgb(${v},${v},${v})`;
+    ctx.fillRect(x, y, sz, sz);
+  }
+  // Suaves pinceladas sutiles
+  for (let i = 0; i < 120; i++) {
+    const x = rand() * 512;
+    const y = rand() * 512;
+    const v = 122 + Math.floor(rand() * 14);
+    ctx.fillStyle = `rgba(${v},${v},${v},0.22)`;
+    ctx.fillRect(x, y, 24 + rand() * 50, 4 + rand() * 8);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 2);
   return tex;
 }
 
@@ -37,7 +88,8 @@ export function createFloorTexture(floorType = 'dark_wood_tile') {
   const ctx = canvas.getContext('2d');
 
   const isLight = floorType === 'light_oak';
-  ctx.fillStyle = isLight ? '#c2ab8b' : '#4a4e54';
+  const isWalnut = floorType === 'walnut_dark';
+  ctx.fillStyle = isLight ? '#c9b394' : isWalnut ? '#4e3929' : '#484d54';
   ctx.fillRect(0, 0, 1024, 1024);
 
   const cols = 4;
@@ -51,23 +103,46 @@ export function createFloorTexture(floorType = 'dark_wood_tile') {
       const x = (c * w + offset) % canvas.width;
       const y = r * h;
 
-      const shade = (Math.sin(r * 3.1 + c * 1.7) * 8) | 0;
-      const baseR = (isLight ? 188 : 74) + shade;
-      const baseG = (isLight ? 165 : 78) + shade;
-      const baseB = (isLight ? 132 : 84) + shade;
+      const shade = Math.round(Math.sin(r * 3.7 + c * 2.1) * 10 + Math.cos(r * 1.3 - c * 4.2) * 5);
+      const baseR = (isLight ? 196 : isWalnut ? 82 : 73) + shade;
+      const baseG = (isLight ? 173 : isWalnut ? 58 : 77) + shade;
+      const baseB = (isLight ? 140 : isWalnut ? 42 : 84) + shade;
 
-      ctx.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
-      ctx.fillRect(x, y, w - 3, h - 3);
+      // Gradiente suave a lo largo de la duela
+      const pGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+      pGrad.addColorStop(0, `rgb(${baseR + 4},${baseG + 4},${baseB + 4})`);
+      pGrad.addColorStop(0.5, `rgb(${baseR},${baseG},${baseB})`);
+      pGrad.addColorStop(1, `rgb(${baseR - 5},${baseG - 5},${baseB - 5})`);
+      ctx.fillStyle = pGrad;
+      ctx.fillRect(x + 1, y + 1, w - 3, h - 3);
 
-      ctx.fillStyle = isLight ? 'rgba(95,70,45,0.10)' : 'rgba(20,22,26,0.22)';
-      for (let i = 0; i < 12; i++) {
-        const gy = y + ((i * 7 + r * 3) % (h - 6));
-        ctx.fillRect(x + 2, gy, w - 7, 1.5);
+      // Vetas orgánicas onduladas
+      ctx.strokeStyle = isLight
+        ? 'rgba(105,76,48,0.13)'
+        : isWalnut
+          ? 'rgba(28,16,8,0.28)'
+          : 'rgba(18,21,26,0.24)';
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < 14; i++) {
+        const gy = y + 3 + ((i * 5.2 + (r * 7) % 9) % (h - 6));
+        ctx.beginPath();
+        ctx.moveTo(x + 2, gy);
+        ctx.bezierCurveTo(
+          x + w * 0.33, gy + Math.sin(r + i) * 2.2,
+          x + w * 0.66, gy - Math.cos(c + i) * 2.2,
+          x + w - 4, gy
+        );
+        ctx.stroke();
       }
 
-      ctx.strokeStyle = 'rgba(15, 18, 24, 0.55)';
+      // Luz sutil en bisel superior de la tabla
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(x + 2, y + 2, w - 5, 1.5);
+
+      // Junta oscura biselada entre duelas
+      ctx.strokeStyle = 'rgba(12, 15, 20, 0.65)';
       ctx.lineWidth = 2.5;
-      ctx.strokeRect(x, y, w - 2, h - 2);
+      ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
     }
   }
 
@@ -75,47 +150,296 @@ export function createFloorTexture(floorType = 'dark_wood_tile') {
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(2.4, 3.0);
+  tex.anisotropy = 8;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
 
-function createWoodGrainTexture(baseHex, lineRgba) {
+export function createFloorBumpTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#c8c8c8';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const cols = 4;
+  const rows = 14;
+  const w = canvas.width / cols;
+  const h = canvas.height / rows;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const offset = (r % 2) * (w * 0.5);
+      const x = (c * w + offset) % canvas.width;
+      const y = r * h;
+
+      ctx.strokeStyle = '#999999';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 8; i++) {
+        const gy = y + 3 + ((i * 4.5 + r * 3) % (h - 5));
+        ctx.beginPath(); ctx.moveTo(x + 2, gy); ctx.lineTo(x + w - 3, gy); ctx.stroke();
+      }
+      ctx.strokeStyle = '#303030';
+      ctx.lineWidth = 2.2;
+      ctx.strokeRect(x, y, w, h);
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2.4, 3.0);
+  return tex;
+}
+
+function createWoodGrainTexture(baseHex, lineRgba, highlightRgba = 'rgba(255,255,255,0.035)') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Variación orgánica en bandas longitudinales
+  for (let b = 0; b < 18; b++) {
+    const by = (b * 512) / 18;
+    ctx.fillStyle = b % 2 === 0 ? highlightRgba : lineRgba;
+    ctx.fillRect(0, by, 512, 16 + (b % 5) * 4);
+  }
+
+  // Fibras finas sinuosas de madera / melamina veteada
+  ctx.strokeStyle = lineRgba;
+  for (let i = 0; i < 160; i++) {
+    const y = (i * 3.23) % 512;
+    ctx.lineWidth = 0.8 + (i % 3) * 0.55;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(
+      170, y + Math.sin(i * 0.45) * 3.5,
+      340, y - Math.cos(i * 0.35) * 3.5,
+      512, y
+    );
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function createWoodBumpTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
   canvas.height = 256;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = baseHex;
+  ctx.fillStyle = '#888888';
   ctx.fillRect(0, 0, 256, 256);
-  ctx.fillStyle = lineRgba;
-  for (let i = 0; i < 70; i++) {
-    const y = (i * 3.7) % 256;
-    ctx.fillRect(0, y, 256, 1 + (i % 2));
+  for (let i = 0; i < 110; i++) {
+    const y = (i * 2.35) % 256;
+    ctx.strokeStyle = i % 2 === 0 ? '#6e6e6e' : '#9c9c9c';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(85, y + Math.sin(i * 0.6) * 2, 170, y - Math.cos(i * 0.4) * 2, 256, y);
+    ctx.stroke();
   }
   const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createFeltDeskpadTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Fieltro oscuro grafito / lana tejida
+  ctx.fillStyle = '#232730';
+  ctx.fillRect(0, 0, 512, 512);
+
+  let seed = 4242;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+  for (let i = 0; i < 9500; i++) {
+    const x = rand() * 512;
+    const y = rand() * 512;
+    const bright = rand() > 0.5;
+    ctx.fillStyle = bright ? 'rgba(255,255,255,0.055)' : 'rgba(0,0,0,0.16)';
+    ctx.fillRect(x, y, 1.6, 1.6);
+  }
+  // Costura sutil en el borde perimetral
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.24)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 5]);
+  ctx.strokeRect(12, 12, 488, 488);
+  ctx.setLineDash([]);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function createMxKeysMiniTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Base grafito aluminio del Logitech MX Keys Mini
+  ctx.fillStyle = '#252a33';
+  ctx.fillRect(0, 0, 512, 256);
+
+  const rows = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.4],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.8],
+    [1.4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.4],
+    [1.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.1],
+    [2.1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.7],
+    [1.2, 1.2, 1.2, 1.2, 5.4, 1.1, 1.1, 1, 1, 1]
+  ];
+
+  const padX = 14;
+  const padY = 16;
+  const rowH = (256 - padY * 2) / rows.length;
+
+  rows.forEach((row, rIdx) => {
+    const totalUnits = row.reduce((a, b) => a + b, 0);
+    const unitW = (512 - padX * 2) / totalUnits;
+    let curX = padX;
+    const y = padY + rIdx * rowH;
+
+    row.forEach((u, cIdx) => {
+      const kw = u * unitW - 4;
+      const kh = rowH - 5;
+      // Tecla cóncava grafito oscuro
+      ctx.fillStyle = '#15181e';
+      ctx.fillRect(curX + 2, y + 2, kw, kh);
+
+      // Concavidad esférica característica PerfectStroke
+      const grad = ctx.createRadialGradient(
+        curX + 2 + kw * 0.5, y + 2 + kh * 0.5, 2,
+        curX + 2 + kw * 0.5, y + 2 + kh * 0.5, kw * 0.65
+      );
+      grad.addColorStop(0, 'rgba(255,255,255,0.06)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.22)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(curX + 2, y + 2, kw, kh);
+
+      // Borde iluminado tenue blanco (retroiluminación inteligente MX Keys)
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.24)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(curX + 2.5, y + 2.5, kw - 1, kh - 1);
+
+      // Leyenda minimalista en blanco suave (y LEDs Easy-Switch en F1/F2/F3)
+      if (rIdx === 0 && (cIdx === 1 || cIdx === 2 || cIdx === 3)) {
+        ctx.fillStyle = cIdx === 1 ? '#38bdf8' : 'rgba(241,245,249,0.75)';
+        ctx.fillRect(curX + kw * 0.38, y + kh * 0.45, kw * 0.28, 3);
+      } else if (u < 4) {
+        ctx.fillStyle = 'rgba(241, 245, 249, 0.48)';
+        ctx.fillRect(curX + 6, y + 7, Math.min(kw - 12, 8), 2.5);
+      }
+      curX += u * unitW;
+    });
+  });
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function createPegboardTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Panel negro mate arquitectónico tipo IKEA SKADIS / Yolispa
+  ctx.fillStyle = '#1b1f27';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Sutil división modular en 4 cuadros
+  ctx.strokeStyle = '#11141a';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(256, 0); ctx.lineTo(256, 512);
+  ctx.moveTo(0, 256); ctx.lineTo(512, 256);
+  ctx.stroke();
+
+  // Ranuras perforadas reales en cuadrícula alternada
+  const stepX = 32;
+  const stepY = 32;
+  for (let r = 0; r < 15; r++) {
+    const y = 20 + r * stepY;
+    const offset = (r % 2) * (stepX / 2);
+    for (let c = 0; c < 15; c++) {
+      const x = 18 + c * stepX + offset;
+      if (x > 494 || Math.abs(x - 256) < 10 || Math.abs(y - 256) < 10) continue;
+      ctx.fillStyle = '#090b0f';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x - 3, y - 7, 6, 14, 3) : ctx.fillRect(x - 3, y - 7, 6, 14);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(x - 2, y + 6, 4, 1);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
 
 function createQuiltedFabricTexture(baseHex) {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
+  canvas.width = 512;
+  canvas.height = 512;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = baseHex;
-  ctx.fillRect(0, 0, 256, 256);
-  ctx.strokeStyle = 'rgba(0,0,0,0.28)';
-  ctx.lineWidth = 2;
-  const step = 64;
-  for (let x = 0; x <= 256; x += step) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 256); ctx.stroke();
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Trama suave de tela algodón/lino
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  for (let i = 0; i < 512; i += 4) {
+    ctx.fillRect(0, i, 512, 1);
+    ctx.fillRect(i, 0, 1, 512);
   }
-  for (let y = 0; y <= 256; y += step) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,0.04)';
+  for (let i = 2; i < 512; i += 4) {
+    ctx.fillRect(0, i, 512, 1);
   }
+
+  // Costuras acolchadas suaves (canales acolchados elegantes)
+  const step = 128;
+  for (let x = 0; x <= 512; x += step) {
+    const g = ctx.createLinearGradient(x - 10, 0, x + 10, 0);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.5, 'rgba(0,0,0,0.22)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - 10, 0, 20, 512);
+  }
+  for (let y = 0; y <= 512; y += step) {
+    const g = ctx.createLinearGradient(0, y - 10, 0, y + 10);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.5, 'rgba(0,0,0,0.20)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, y - 10, 512, 20);
+  }
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(2, 4);
+  tex.anisotropy = 8;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
@@ -1320,45 +1644,47 @@ function cyl(rt, rb, h, segs, mat, x = 0, y = 0, z = 0) {
 }
 
 function addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets = true } = {}) {
-  const chassisMat = new THREE.MeshStandardMaterial({ color: 0x2b303a, roughness: 0.38, metalness: 0.45 });
-  const keyMat = new THREE.MeshStandardMaterial({
-    color: 0x17191f,
-    roughness: 0.42,
-    emissive: new THREE.Color(0xe2e8f0),
-    emissiveIntensity: 0.18
+  const chassisMat = new THREE.MeshStandardMaterial({ color: 0x262b34, roughness: 0.32, metalness: 0.55 });
+  const keyCapMat = new THREE.MeshStandardMaterial({
+    map: sharedMxKeysTex,
+    roughness: 0.45,
+    metalness: 0.12,
+    emissive: new THREE.Color(0xcbd5e1),
+    emissiveMap: sharedMxKeysTex,
+    emissiveIntensity: 0.22
   });
 
-  // Teclado Logitech MX Keys Mini (29.6 × 13.2 cm) calibrado para mesa de 40 cm de fondo
-  group.add(box(0.132, 0.012, 0.296, chassisMat, 0.095, 0.010, 0.04));
-  group.add(cyl(0.008, 0.008, 0.296, 14, chromeMat, 0.034, 0.015, 0.04).rotateX(Math.PI / 2));
-  group.add(box(0.104, 0.005, 0.282, keyMat, 0.104, 0.017, 0.04));
+  // Teclado Logitech MX Keys Mini (29.6 × 13.2 cm) con textura real de teclas retroiluminadas
+  group.add(box(0.132, 0.011, 0.296, chassisMat, 0.095, 0.009, 0.04));
+  group.add(cyl(0.007, 0.007, 0.296, 14, chromeMat, 0.034, 0.014, 0.04).rotateX(Math.PI / 2));
+  const keyBed = box(0.118, 0.004, 0.284, keyCapMat, 0.100, 0.0155, 0.04);
+  group.add(keyBed);
 
-  // Mouse a la derecha del teclado
+  // Mouse ergonómico grafito a la derecha del teclado
   const mouseGroup = new THREE.Group();
   mouseGroup.position.set(0.095, 0.006, -0.185);
-  mouseGroup.add(box(0.115, 0.036, 0.074, chassisMat, 0, 0.018, 0));
-  mouseGroup.add(cyl(0.009, 0.009, 0.014, 14, chromeMat, -0.032, 0.035, 0));
+  const mouseMat = new THREE.MeshStandardMaterial({ color: 0x1e222b, roughness: 0.36, metalness: 0.22 });
+  mouseGroup.add(box(0.112, 0.034, 0.070, mouseMat, 0, 0.017, 0));
+  mouseGroup.add(cyl(0.0085, 0.0085, 0.014, 14, chromeMat, -0.030, 0.034, 0));
   group.add(mouseGroup);
 
-  // UGREEN HUB USB-C 7-en-1 (Aluminio Gris Espacial) + Adaptador Bluetooth 6.0 USB + Cable DP 1.4
+  // UGREEN HUB USB-C 7-en-1 (Aluminio Gris Espacial cepillado) + Adaptador Bluetooth 6.0 + Cable DP 1.4
   const hubGroup = new THREE.Group();
   hubGroup.position.set(-0.045, 0.008, -0.255);
-  const ugreenAluMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.28, metalness: 0.82 });
-  hubGroup.add(box(0.034, 0.012, 0.122, ugreenAluMat, 0, 0.006, 0));
-  // Puertos USB-A / HDMI / SD / TF en el costado del Hub
+  const ugreenAluMat = new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.24, metalness: 0.88 });
+  hubGroup.add(box(0.034, 0.011, 0.122, ugreenAluMat, 0, 0.006, 0));
   hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.006, -0.032));
   hubGroup.add(box(0.004, 0.006, 0.014, darkMetal, 0.017, 0.006, -0.008));
   hubGroup.add(box(0.004, 0.004, 0.022, darkMetal, 0.017, 0.006, 0.025));
-  // LED indicador blanco/azul del Hub UGREEN
-  hubGroup.add(cyl(0.0018, 0.0018, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0, 0.013, 0.042));
+  hubGroup.add(cyl(0.0018, 0.0018, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0, 0.0125, 0.042));
   // Adaptador UGREEN Bluetooth 6.0 USB conectado al Hub
   hubGroup.add(box(0.024, 0.008, 0.015, darkMetal, 0.028, 0.006, -0.032));
-  // Cable trenzado USB-C del Hub + Cable UGREEN USB-C a DisplayPort 1.4 (1m) rumbo a la laptop esquinera
-  const braidedCableMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.72 });
-  const hubCable = cyl(0.0028, 0.0028, 0.18, 8, braidedCableMat, -0.02, 0.004, -0.14);
+  // Cables trenzados discretos enrutados al canal trasero (sin sobresalir del escritorio)
+  const braidedCableMat = new THREE.MeshStandardMaterial({ color: 0x161920, roughness: 0.78 });
+  const hubCable = cyl(0.0024, 0.0024, 0.085, 8, braidedCableMat, -0.025, 0.004, -0.085);
   hubCable.rotation.x = Math.PI / 2;
   hubGroup.add(hubCable);
-  const dpCable = cyl(0.0032, 0.0032, 0.34, 8, braidedCableMat, -0.06, 0.004, -0.12);
+  const dpCable = cyl(0.0026, 0.0026, 0.105, 8, braidedCableMat, -0.055, 0.004, -0.075);
   dpCable.rotation.x = Math.PI / 2;
   hubGroup.add(dpCable);
   hubGroup.userData = { isSubGadget: 'ugreen_hub_7in1' };
@@ -1366,18 +1692,18 @@ function addLogitechMxKeysMini(group, darkMetal, chromeMat, { showGadgets = true
 
   if (showGadgets) {
     const ulanzi = new THREE.Group();
-    ulanzi.position.set(-0.085, 0.036, 0.04);
-    ulanzi.add(box(0.032, 0.066, 0.195, darkMetal, 0, 0, 0));
+    ulanzi.position.set(-0.088, 0.034, 0.04);
+    ulanzi.add(box(0.030, 0.064, 0.192, darkMetal, 0, 0, 0));
     const ulanziScreenMat = new THREE.MeshBasicMaterial({ map: createUlanziClockTexture() });
-    ulanzi.add(box(0.004, 0.052, 0.180, ulanziScreenMat, 0.015, 0, 0));
+    ulanzi.add(box(0.004, 0.050, 0.178, ulanziScreenMat, 0.014, 0, 0));
     ulanzi.userData = { isSubGadget: 'ulanzi_tc001' };
     group.add(ulanzi);
 
     const geek = new THREE.Group();
-    geek.position.set(-0.085, 0.026, -0.14);
+    geek.position.set(-0.088, 0.025, -0.14);
     geek.rotation.y = -0.25;
-    geek.add(box(0.042, 0.048, 0.045, darkMetal, 0, 0, 0));
-    geek.add(box(0.004, 0.036, 0.036, new THREE.MeshBasicMaterial({ color: 0xf59e0b }), 0.020, 0.002, 0));
+    geek.add(box(0.040, 0.046, 0.044, darkMetal, 0, 0, 0));
+    geek.add(box(0.004, 0.034, 0.034, new THREE.MeshBasicMaterial({ color: 0xf59e0b }), 0.019, 0.002, 0));
     group.add(geek);
   }
 }
@@ -1404,9 +1730,13 @@ function addMountedScarf(group, yCenter, scarfLen, scarfH, tex, fringeColor, dar
 }
 
 const sharedBallTex = createSoccerBallTexture();
-const sharedBlackWoodTex = createWoodGrainTexture('#191c22', 'rgba(255,255,255,0.03)');
-const sharedGrayWoodTex = createWoodGrainTexture('#525761', 'rgba(20,24,30,0.12)');
-const sharedWalnutTex = createWoodGrainTexture('#7c5134', 'rgba(35,20,10,0.22)');
+const sharedWoodBumpTex = createWoodBumpTexture();
+const sharedBlackWoodTex = createWoodGrainTexture('#1a1d24', 'rgba(0,0,0,0.22)', 'rgba(255,255,255,0.032)');
+const sharedGrayWoodTex = createWoodGrainTexture('#505660', 'rgba(18,22,28,0.18)', 'rgba(255,255,255,0.04)');
+const sharedWalnutTex = createWoodGrainTexture('#784c30', 'rgba(35,18,8,0.28)', 'rgba(255,215,175,0.05)');
+const sharedFeltPadTex = createFeltDeskpadTexture();
+const sharedMxKeysTex = createMxKeysMiniTexture();
+const sharedPegboardTex = createPegboardTexture();
 const sharedKaisiTex = createKaisiMatTexture();
 const sharedSetupScrTex = createMonitorScreenTexture('setup');
 const sharedVertScrTex = createMonitorScreenTexture('vertical_code');
@@ -1436,17 +1766,41 @@ export function buildFurnitureMesh(itemData, roomState) {
   const ledColorObj = LED_COLORS.find(l => l.id === roomState.ledColorMode) || LED_COLORS[0];
   const activeLedHex = ledColorObj.hex;
 
-  const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1c1f26, roughness: 0.30, metalness: 0.75 });
-  const blackMelamine = new THREE.MeshStandardMaterial({ map: sharedBlackWoodTex, roughness: 0.46, metalness: 0.12 });
-  const grayMelamine = new THREE.MeshStandardMaterial({ map: sharedGrayWoodTex, roughness: 0.48, metalness: 0.10 });
-  const darkGrayMelamine = new THREE.MeshStandardMaterial({ color: 0x343842, roughness: 0.48, metalness: 0.12 });
-  const walnutWood = new THREE.MeshStandardMaterial({ map: sharedWalnutTex, roughness: 0.42, metalness: 0.08 });
+  const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1a1d24, roughness: 0.28, metalness: 0.78 });
+  const blackMelamine = new THREE.MeshStandardMaterial({
+    map: sharedBlackWoodTex,
+    bumpMap: sharedWoodBumpTex,
+    bumpScale: 0.0035,
+    roughness: 0.42,
+    metalness: 0.08
+  });
+  const grayMelamine = new THREE.MeshStandardMaterial({
+    map: sharedGrayWoodTex,
+    bumpMap: sharedWoodBumpTex,
+    bumpScale: 0.0035,
+    roughness: 0.46,
+    metalness: 0.08
+  });
+  const darkGrayMelamine = new THREE.MeshStandardMaterial({
+    color: 0x2f343e,
+    bumpMap: sharedWoodBumpTex,
+    bumpScale: 0.0025,
+    roughness: 0.45,
+    metalness: 0.10
+  });
+  const walnutWood = new THREE.MeshStandardMaterial({
+    map: sharedWalnutTex,
+    bumpMap: sharedWoodBumpTex,
+    bumpScale: 0.0045,
+    roughness: 0.38,
+    metalness: 0.06
+  });
   const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.14, metalness: 0.92 });
   const ballMat = new THREE.MeshStandardMaterial({ map: sharedBallTex, roughness: 0.32 });
 
   switch (itemData.type) {
     // ========================================================================
-    // MUEBLES BASE ACTUALES (CALIBRADOS SIN TRASLAPE)
+    // MUEBLES BASE ACTUALES (CALIBRADOS SIN TRASLAPE · ACABADOS PREMIUM)
     // ========================================================================
     case 'l_desk': {
       // Medidas reales exactas: 1.20 m × 1.20 m exterior · 0.40 m fondo de tabla · 0.80 m × 0.80 m interior de la L
@@ -1464,12 +1818,32 @@ export function buildFurnitureMesh(itemData, roomState) {
       group.add(box(leftWingW - 0.02, deskH - 0.03, 0.03, blackMelamine, leftX, (deskH - 0.03) / 2, d / 2 - 0.02));
       group.add(box(0.03, deskH - 0.03, d - 0.04, blackMelamine, -w / 2 + 0.02, (deskH - 0.03) / 2, 0));
 
+      // Canaleta metálica ocultacables discreta debajo del ala principal
+      group.add(box(0.10, 0.055, 0.62, darkMetal, -w / 2 + 0.11, deskH - 0.058, 0.10));
+
+      // Módulo lateral derecho abierto con 2 entrepaños + cajitas cerradas negras de componentes guardados
       const shelfW = 0.28;
       const rightX = w / 2 - shelfW / 2;
-      group.add(box(shelfW, deskH - 0.03, topWingD - 0.02, blackMelamine, rightX, (deskH - 0.03) / 2, topZ));
-      const bookMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
-      group.add(box(shelfW - 0.05, 0.08, topWingD - 0.06, bookMat, rightX, 0.56, topZ + 0.02));
-      group.add(box(shelfW - 0.05, 0.06, topWingD - 0.06, bookMat, rightX, 0.16, topZ + 0.02));
+      // Laterales y entrepaños del librerito lateral
+      group.add(box(0.02, deskH - 0.03, topWingD - 0.02, blackMelamine, rightX - shelfW / 2 + 0.01, (deskH - 0.03) / 2, topZ));
+      group.add(box(0.02, deskH - 0.03, topWingD - 0.02, blackMelamine, rightX + shelfW / 2 - 0.01, (deskH - 0.03) / 2, topZ));
+      group.add(box(shelfW, deskH - 0.03, 0.018, blackMelamine, rightX, (deskH - 0.03) / 2, topZ - topWingD / 2 + 0.02));
+      [0.08, 0.38].forEach((sy) => {
+        group.add(box(shelfW - 0.02, 0.02, topWingD - 0.03, blackMelamine, rightX, sy, topZ));
+      });
+
+      // Cajas organizadoras negro mate + acrílico ahumado guardando componentes electrónicos fuera de la mesa
+      const compBoxMat = new THREE.MeshStandardMaterial({ color: 0x1e222a, roughness: 0.48, metalness: 0.15 });
+      const compLidMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.35, metalness: 0.25 });
+      const compLabelMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.6 });
+      // Caja superior (ESP32, sensores y cables)
+      group.add(box(shelfW - 0.06, 0.11, topWingD - 0.09, compBoxMat, rightX, 0.455, topZ + 0.01));
+      group.add(box(shelfW - 0.052, 0.016, topWingD - 0.082, compLidMat, rightX, 0.515, topZ + 0.01));
+      group.add(box(0.065, 0.022, 0.004, compLabelMat, rightX, 0.46, topZ + (topWingD - 0.09) / 2 + 0.012));
+      // Caja inferior (cautín, multímetro y herramientas guardadas)
+      group.add(box(shelfW - 0.06, 0.15, topWingD - 0.09, compBoxMat, rightX, 0.175, topZ + 0.01));
+      group.add(box(shelfW - 0.052, 0.016, topWingD - 0.082, compLidMat, rightX, 0.255, topZ + 0.01));
+      group.add(box(0.065, 0.022, 0.004, compLabelMat, rightX, 0.18, topZ + (topWingD - 0.09) / 2 + 0.012));
       break;
     }
 
@@ -1709,9 +2083,15 @@ export function buildFurnitureMesh(itemData, roomState) {
       const isDual = itemData.type === 'vibe_setup_dual';
       const is34 = itemData.type === 'vibe_setup_34';
 
-      // Deskpad calibrado al fondo de 40 cm (34 cm fondo × 74 cm largo)
-      const padMat = new THREE.MeshStandardMaterial({ color: 0x252a34, roughness: 0.92 });
-      group.add(box(0.34, 0.005, is34 || isDual ? 0.76 : 0.72, padMat, 0.02, 0.003, 0));
+      // Deskpad de fieltro tejido grafito calibrado al fondo de 40 cm (34 cm fondo × 74 cm largo)
+      const padMat = new THREE.MeshStandardMaterial({
+        map: sharedFeltPadTex,
+        bumpMap: sharedFeltPadTex,
+        bumpScale: 0.002,
+        roughness: 0.94,
+        metalness: 0.02
+      });
+      group.add(box(0.34, 0.004, is34 || isDual ? 0.76 : 0.72, padMat, 0.02, 0.002, 0));
 
       // Prensa de brazo hidráulico NB F80 / H180 al borde trasero de la mesa (x = -0.178)
       group.add(cyl(0.022, 0.026, 0.35, 14, darkMetal, -0.178, 0.175, -0.08));
@@ -1790,25 +2170,25 @@ export function buildFurnitureMesh(itemData, roomState) {
       alexaGroup.userData = { isSubGadget: 'alexa_echo' };
       group.add(alexaGroup);
 
-      // 2. Multicontacto Inteligente WiFi Tuya (pegado al borde trasero x = -0.16)
+      // 2. Multicontacto Inteligente WiFi Tuya Negro Mate (oculto y discreto al borde trasero x = -0.165)
       const stripGroup = new THREE.Group();
-      stripGroup.position.set(-0.16, 0.014, -0.25);
-      const whiteAbs = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.35 });
-      stripGroup.add(box(0.056, 0.024, 0.21, whiteAbs, 0, 0, 0));
-      stripGroup.add(box(0.018, 0.008, 0.022, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.013, -0.080));
-      const socketMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
+      stripGroup.position.set(-0.165, 0.012, -0.25);
+      const matteStripMat = new THREE.MeshStandardMaterial({ color: 0x161920, roughness: 0.38, metalness: 0.35 });
+      stripGroup.add(box(0.052, 0.022, 0.21, matteStripMat, 0, 0, 0));
+      stripGroup.add(box(0.016, 0.006, 0.020, new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0, 0.012, -0.080));
+      const socketMat = new THREE.MeshStandardMaterial({ color: 0x272d38, roughness: 0.55 });
       [-0.042, -0.002, 0.038, 0.078].forEach((sz, idx) => {
-        stripGroup.add(box(0.032, 0.003, 0.025, socketMat, 0, 0.0125, sz));
-        const outLed = cyl(0.002, 0.002, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.020, 0.013, sz);
+        stripGroup.add(box(0.030, 0.003, 0.024, socketMat, 0, 0.0115, sz));
+        const outLed = cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), 0.019, 0.012, sz);
         outLed.userData = { isOutletLed: idx + 1 };
         stripGroup.add(outLed);
       });
-      stripGroup.add(box(0.026, 0.002, 0.012, new THREE.MeshStandardMaterial({ color: 0x1e293b }), 0, 0.0125, 0.098));
-      const usbLed = cyl(0.0018, 0.0018, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.020, 0.013, 0.098);
+      stripGroup.add(box(0.024, 0.002, 0.012, new THREE.MeshStandardMaterial({ color: 0x0f172a }), 0, 0.0115, 0.098));
+      const usbLed = cyl(0.0016, 0.0016, 0.004, 8, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.019, 0.012, 0.098);
       usbLed.userData = { isOutletLed: 'usb' };
       stripGroup.add(usbLed);
-      const cableMat = new THREE.MeshStandardMaterial({ color: 0x181a20, roughness: 0.75 });
-      stripGroup.add(cyl(0.0055, 0.0055, 0.28, 8, cableMat, -0.015, -0.12, -0.10));
+      const cableMat = new THREE.MeshStandardMaterial({ color: 0x111318, roughness: 0.78 });
+      stripGroup.add(cyl(0.005, 0.005, 0.28, 8, cableMat, -0.015, -0.12, -0.10));
       stripGroup.userData = { isSubGadget: 'smart_power_strip' };
       group.add(stripGroup);
 
@@ -1857,110 +2237,90 @@ export function buildFurnitureMesh(itemData, roomState) {
     }
 
     // ========================================================================
-    // ZONA 2: PANEL PERFORADO YOLISPA + LABORATORIO MAKER (SIN TRASLAPES)
+    // ZONA 2: PANEL PERFORADO MINIMALISTA + MESA LIMPIA Y COMPONENTES GUARDADOS
     // ========================================================================
     case 'yolispa_pegboard':
     case 'yolispa_pegboard_double': {
       const isDouble = itemData.type === 'yolispa_pegboard_double';
-      const boardMat = new THREE.MeshStandardMaterial({ color: 0x20242c, roughness: 0.42, metalness: 0.25 });
-      const accMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.35 });
-      const orangeTool = new THREE.MeshStandardMaterial({ color: 0xf97316 });
-      const yellowMeter = new THREE.MeshStandardMaterial({ color: 0xeab308 });
+      const boardMat = new THREE.MeshStandardMaterial({
+        map: sharedPegboardTex,
+        bumpMap: sharedPegboardTex,
+        bumpScale: 0.004,
+        roughness: 0.48,
+        metalness: 0.22
+      });
+      const matteBinMat = new THREE.MeshStandardMaterial({ color: 0x272c36, roughness: 0.45, metalness: 0.25 });
+      const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xd6d3cd, roughness: 0.65 });
+      const sageMat = new THREE.MeshStandardMaterial({ color: 0x4d7c5b, roughness: 0.72 });
 
-      group.add(box(0.018, h, d, boardMat, 0, h / 2, 0));
-      group.add(box(0.022, 0.005, d - 0.03, darkMetal, 0, h / 2, 0));
-      group.add(box(0.022, h - 0.03, 0.005, darkMetal, 0, h / 2, 0));
+      // Panel perforado negro mate con ranuras reales
+      group.add(box(0.016, h, d, boardMat, 0, h / 2, 0));
 
-      group.add(box(0.065, 0.09, 0.085, accMat, 0.035, h * 0.68, -d * 0.24));
-      group.add(cyl(0.007, 0.007, 0.13, 8, orangeTool, 0.035, h * 0.77, -d * 0.26));
-      group.add(cyl(0.007, 0.007, 0.12, 8, new THREE.MeshStandardMaterial({ color: 0x3b82f6 }), 0.035, h * 0.76, -d * 0.21));
+      // Contenedor negro mate minimalista (arriba izquierda) + estuche de precisión cerrado
+      group.add(box(0.062, 0.085, 0.090, matteBinMat, 0.036, h * 0.70, -d * 0.24));
+      group.add(box(0.022, 0.115, 0.054, darkMetal, 0.032, h * 0.75, -d * 0.24));
 
-      group.add(box(0.085, 0.016, 0.22, accMat, 0.042, h * 0.30, -0.04));
-      group.add(box(0.035, 0.105, 0.068, yellowMeter, 0.042, h * 0.37, -0.08));
-      group.add(box(0.006, 0.055, 0.052, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0.061, h * 0.38, -0.08));
+      // Repisita minimalista negra con suculenta en cerámica arena y cable USB-C enrollado
+      group.add(box(0.082, 0.014, 0.20, matteBinMat, 0.044, h * 0.30, -0.05));
+      group.add(cyl(0.028, 0.022, 0.048, 16, ceramicMat, 0.044, h * 0.33, -0.10));
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.032, 14, 14), sageMat).translateX(0.044).translateY(h * 0.37).translateZ(-0.10));
+      const coiledCable = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.0045, 10, 20), darkMetal);
+      coiledCable.rotation.y = Math.PI / 2;
+      coiledCable.position.set(0.032, h * 0.35, 0.01);
+      group.add(coiledCable);
 
-      const hp = new THREE.Mesh(new THREE.TorusGeometry(0.068, 0.014, 12, 24), blackMelamine);
+      // Audífonos over-ear negro mate colgados a la derecha
+      const hp = new THREE.Mesh(new THREE.TorusGeometry(0.066, 0.012, 14, 28), darkMetal);
       hp.rotation.y = Math.PI / 2;
       hp.position.set(0.035, h * 0.70, d * 0.22);
       group.add(hp);
+      group.add(cyl(0.028, 0.028, 0.024, 16, matteBinMat, 0.035, h * 0.63, d * 0.165).rotateX(Math.PI / 2));
+      group.add(cyl(0.028, 0.028, 0.024, 16, matteBinMat, 0.035, h * 0.63, d * 0.275).rotateX(Math.PI / 2));
 
       if (isDouble) {
-        group.add(box(0.085, 0.016, 0.20, accMat, 0.042, h * 0.30, d * 0.22));
-        group.add(box(0.055, 0.055, 0.11, new THREE.MeshStandardMaterial({ color: 0x10b981 }), 0.042, h * 0.34, d * 0.22));
+        // Estuche rígido negro mate para herramientas/cables y bandeja superior sobria
+        group.add(box(0.080, 0.014, 0.18, matteBinMat, 0.044, h * 0.30, d * 0.22));
+        group.add(box(0.052, 0.046, 0.11, darkMetal, 0.044, h * 0.33, d * 0.22));
       }
       break;
     }
 
     case 'engineer_maker_station': {
-      const kaisiMat = new THREE.MeshStandardMaterial({ map: sharedKaisiTex, roughness: 0.68 });
-      group.add(box(0.38, 0.006, 0.26, kaisiMat, -0.05, 0.003, 0.04));
+      // MESA 100% LIMPIA BAJO LA VENTANA (sin tapete ni cautín expuestos)
+      // Solo 2 detalles minimalistas sobrios arriba + cajas cerradas de componentes guardadas debajo
+      const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xe5e0d8, roughness: 0.62 });
+      const sageMat = new THREE.MeshStandardMaterial({ color: 0x4d7c5b, roughness: 0.72 });
+      const matteSlate = new THREE.MeshStandardMaterial({ color: 0x232730, roughness: 0.42, metalness: 0.28 });
 
-      const drawW = 0.17;
-      const drawH = 0.20;
-      const drawD = 0.12;
-      const drawX = 0.22;
-      const drawZ = -0.11;
-      group.add(box(drawW, drawH, drawD, darkMetal, drawX, drawH / 2, drawZ));
-      const drawerFrontMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.82, roughness: 0.2 });
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 2; c++) {
-          group.add(box(0.068, 0.048, 0.012, drawerFrontMat, drawX - 0.038 + c * 0.076, 0.045 + r * 0.060, drawZ + drawD / 2 + 0.004));
-        }
-      }
+      // 1. Cargador compacto Ugreen Nexode GaN 100W discreto al fondo izquierdo
+      group.add(box(0.058, 0.064, 0.072, matteSlate, -0.22, 0.032, -0.11));
+      group.add(box(0.044, 0.048, 0.005, chromeMat, -0.22, 0.032, -0.073));
 
-      group.add(box(0.062, 0.068, 0.082, darkGrayMelamine, -0.22, 0.034, -0.11));
-      group.add(box(0.048, 0.054, 0.006, chromeMat, -0.22, 0.034, -0.067));
+      // 2. Mini planta zen en maceta cerámica mate arena + portavasos negro mate
+      group.add(cyl(0.042, 0.034, 0.075, 20, ceramicMat, 0.16, 0.038, -0.09));
+      const leaf1 = new THREE.Mesh(new THREE.SphereGeometry(0.046, 16, 16), sageMat);
+      leaf1.scale.set(1.0, 0.85, 1.0);
+      leaf1.position.set(0.16, 0.095, -0.09);
+      group.add(leaf1);
+      // Portavasos minimalista en el frente derecho
+      group.add(cyl(0.048, 0.048, 0.006, 24, matteSlate, 0.06, 0.003, 0.06));
+      // Libreta negra mate cerrada con pluma metálica
+      group.add(box(0.145, 0.012, 0.205, matteSlate, -0.07, 0.006, 0.03));
+      const pen = cyl(0.004, 0.004, 0.135, 10, chromeMat, 0.018, 0.010, 0.03);
+      pen.rotation.x = Math.PI / 2;
+      group.add(pen);
 
-      const mdfMat = new THREE.MeshStandardMaterial({ color: 0x9a7b4f, roughness: 0.7 });
-      group.add(box(0.13, 0.075, 0.11, mdfMat, -0.03, 0.042, 0.04));
-      group.add(box(0.065, 0.008, 0.045, new THREE.MeshStandardMaterial({ color: 0x059669 }), 0.08, 0.010, 0.07));
-      const blueArm = box(0.026, 0.14, 0.026, new THREE.MeshStandardMaterial({ color: 0x2563eb }), -0.03, 0.12, 0.04);
-      blueArm.rotation.z = -0.35;
-      group.add(blueArm);
-
-      group.add(box(0.045, 0.022, 0.048, darkMetal, -0.17, 0.014, 0.06));
-      const fnirsiGroup = new THREE.Group();
-      fnirsiGroup.position.set(-0.17, 0.052, 0.07);
-      fnirsiGroup.rotation.x = -0.78;
-      // Cuerpo del cautín metálico
-      fnirsiGroup.add(cyl(0.007, 0.0055, 0.11, 12, chromeMat, 0, 0.02, 0));
-      // Pantalla OLED mini del cautín
-      fnirsiGroup.add(box(0.008, 0.022, 0.006, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }), 0, 0.025, 0.006));
-      // Punta incandescente de precisión
-      const fnirsiTipMat = new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
-        emissive: new THREE.Color(0xf97316),
-        emissiveIntensity: 0.95,
-        roughness: 0.35
+      // 3. Cajas apilables negro mate con tapa (componentes electrónicos guardados debajo del escritorio)
+      const boxBodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1e26, roughness: 0.45, metalness: 0.15 });
+      const boxLidMat = new THREE.MeshStandardMaterial({ color: 0x2d3544, roughness: 0.35, metalness: 0.22 });
+      const handleTagMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.5 });
+      // Dos cajas modulares apiladas ordenadamente en el piso bajo el ala norte
+      [0.085, 0.245].forEach((by) => {
+        const yFloor = -0.75 + by;
+        group.add(box(0.32, 0.145, 0.24, boxBodyMat, -0.02, yFloor, -0.04));
+        group.add(box(0.33, 0.016, 0.25, boxLidMat, -0.02, yFloor + 0.078, -0.04));
+        group.add(box(0.08, 0.022, 0.005, handleTagMat, -0.02, yFloor + 0.01, 0.083));
       });
-      const fnirsiTip = cyl(0.003, 0.0008, 0.042, 10, fnirsiTipMat, 0, -0.055, 0);
-      fnirsiTip.userData = { isFnirsiTip: true };
-      fnirsiGroup.add(fnirsiTip);
-      group.add(fnirsiGroup);
-
-      // Módulo FTDI USB-UART serial con jumpers Dupont a la protoboard
-      const ftdiGroup = new THREE.Group();
-      ftdiGroup.position.set(0.08, 0.010, -0.04);
-      const ftdiBoardMat = new THREE.MeshStandardMaterial({ color: 0xd92626, roughness: 0.4 });
-      ftdiGroup.add(box(0.038, 0.005, 0.022, ftdiBoardMat, 0, 0, 0));
-      // Chip FT232RL
-      ftdiGroup.add(box(0.014, 0.004, 0.012, darkMetal, 0, 0.004, 0));
-      // Mini conector USB
-      ftdiGroup.add(box(0.010, 0.006, 0.010, chromeMat, 0.018, 0.004, 0));
-      // LEDs PWR (rojo) y TX/RX (verde)
-      ftdiGroup.add(cyl(0.0016, 0.0016, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0xef4444 }), -0.010, 0.004, 0.005));
-      ftdiGroup.add(cyl(0.0016, 0.0016, 0.003, 8, new THREE.MeshBasicMaterial({ color: 0x22c55e }), -0.010, 0.004, -0.005));
-      // 4 Jumpers Dupont (amarillo, naranja, rojo, café) arqueando hacia la protoboard
-      const wireColors = [0xf59e0b, 0xf97316, 0xef4444, 0x854d0e];
-      wireColors.forEach((wCol, widx) => {
-        const jumper = cyl(0.0016, 0.0016, 0.095, 8, new THREE.MeshStandardMaterial({ color: wCol }));
-        jumper.rotation.z = 1.15;
-        jumper.rotation.x = (widx - 1.5) * 0.12;
-        jumper.position.set(-0.04, 0.014, (widx - 1.5) * 0.005);
-        ftdiGroup.add(jumper);
-      });
-      ftdiGroup.userData = { isSubGadget: 'ftdi_debugger' };
-      group.add(ftdiGroup);
       break;
     }
 
@@ -1969,10 +2329,10 @@ export function buildFurnitureMesh(itemData, roomState) {
     // ========================================================================
     case 'shelf_lack_110': {
       group.add(box(w, 0.044, d, blackMelamine, 0, 0.022, 0));
-      group.add(box(0.14, 0.15, 0.038, new THREE.MeshStandardMaterial({ color: 0xe2e8f0 }), 0, 0.11, -d * 0.26));
-      group.add(box(0.13, 0.13, 0.032, new THREE.MeshStandardMaterial({ color: 0x38bdf8 }), 0, 0.10, -d * 0.18));
-      group.add(cyl(0.042, 0.032, 0.075, 14, new THREE.MeshStandardMaterial({ color: 0xf3f4f6 }), 0, 0.08, d * 0.25));
-      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.058, 14, 14), new THREE.MeshStandardMaterial({ color: 0x22c55e })).translateY(0.14).translateZ(d * 0.25));
+      group.add(box(0.14, 0.15, 0.036, new THREE.MeshStandardMaterial({ color: 0xe5e0d8, roughness: 0.72 }), 0, 0.11, -d * 0.26));
+      group.add(box(0.13, 0.13, 0.030, new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.68 }), 0, 0.10, -d * 0.18));
+      group.add(cyl(0.040, 0.032, 0.072, 18, new THREE.MeshStandardMaterial({ color: 0xe5e0d8, roughness: 0.62 }), 0, 0.078, d * 0.24));
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.052, 16, 16), new THREE.MeshStandardMaterial({ color: 0x4d7c5b, roughness: 0.72 })).translateY(0.135).translateZ(d * 0.24));
       break;
     }
 
@@ -2161,10 +2521,19 @@ export function buildFurnitureMesh(itemData, roomState) {
     case 'under_desk_drawer': {
       const alexH = 0.71;
       group.add(box(w, alexH, d, blackMelamine, 0, alexH / 2, 0));
-      const frontMat = new THREE.MeshStandardMaterial({ color: 0x262930, roughness: 0.45 });
+      const frontMat = new THREE.MeshStandardMaterial({
+        map: sharedBlackWoodTex,
+        bumpMap: sharedWoodBumpTex,
+        bumpScale: 0.0025,
+        color: 0xd4d8e0,
+        roughness: 0.42,
+        metalness: 0.10
+      });
       for (let i = 0; i < 5; i++) {
         const dy = 0.08 + i * 0.132;
-        group.add(box(0.02, 0.115, d - 0.03, frontMat, w / 2 + 0.005, dy, 0));
+        group.add(box(0.02, 0.116, d - 0.026, frontMat, w / 2 + 0.004, dy, 0));
+        // Tirador minimalista empotrado tipo ALEX
+        group.add(box(0.006, 0.014, 0.095, darkMetal, w / 2 + 0.014, dy + 0.036, 0));
       }
       break;
     }
